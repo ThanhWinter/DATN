@@ -1,5 +1,8 @@
 import "package:get/get.dart";
 
+import "../../features/main/presentation/views/main_view.dart";
+import "../bindings/main_binding.dart";
+
 import "../../features/home/presentation/views/home_view.dart";
 import "../bindings/home_binding.dart";
 
@@ -11,6 +14,9 @@ import "../bindings/order_binding.dart";
 
 import "../../features/notifications/presentation/views/notification_view.dart";
 import "../bindings/notification_binding.dart";
+
+import "../../features/profile/presentation/views/profile_view.dart";
+import "../bindings/profile_binding.dart";
 
 import "../../features/auth/presentation/views/email_login_view.dart";
 import "../../features/auth/presentation/views/forgot_password_view.dart";
@@ -45,6 +51,11 @@ class AppPages {
       binding: RegisterBinding(),
     ),
     GetPage(
+      name: AppRoutes.main,
+      page: () => const MainView(),
+      binding: MainBinding(),
+    ),
+    GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
       binding: HomeBinding(),
@@ -63,6 +74,11 @@ class AppPages {
       name: AppRoutes.notifications,
       page: () => const NotificationView(),
       binding: NotificationBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.profile,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
     ),
   ];
 }

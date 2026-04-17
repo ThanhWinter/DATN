@@ -1,5 +1,7 @@
 import "package:get/get.dart";
 
+import "../../../../app/routes/app_routes.dart";
+
 class EmailLoginController extends GetxController {
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
@@ -17,6 +19,7 @@ class EmailLoginController extends GetxController {
     try {
       // TODO: Call AuthRepository.login(email, password)
       await Future.delayed(const Duration(milliseconds: 500));
+      Get.offAllNamed(AppRoutes.main);
     } catch (e) {
       Get.snackbar(
         "Đăng nhập thất bại",

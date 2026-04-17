@@ -1,26 +1,25 @@
 import 'package:get/get.dart';
+
 import '../../data/models/cart_item_model.dart';
 import '../../data/repositories/cart_repository.dart';
 
 class CartController extends GetxController {
-  // ignore: unused_field
-  final CartRepository _repository = CartRepository();
+  final CartRepository _repository;
 
-  // RxList for state
+  CartController(this._repository);
+
   final RxList<CartItemModel> cartItems = <CartItemModel>[].obs;
-
-  // RxDouble to avoid computing inside Obx/rebuild storms
   final RxDouble totalPrice = 0.0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadMockData();
+    _loadData();
   }
 
-  void _loadMockData() {
-    // // TODO: mock data (Tạm thời tắt để hiển thị trạng thái Giỏ Hàng Trống)
-    cartItems.value = [];
+  Future<void> _loadData() async {
+    final items = await _repository.fetchCartItems();
+    cartItems.assignAll(items);
     calculateTotalPrice();
   }
 
@@ -64,17 +63,19 @@ class CartController extends GetxController {
   }
 
   void calculateTotalPrice() {
-    double total = 0.0;
-    for (var item in cartItems) {
-      total += item.price * item.quantity;
-    }
-    totalPrice.value = total;
+    totalPrice.value = cartItems.fold(
+      0.0,
+      (sum, item) => sum + item.price * item.quantity,
+    );
   }
 
   void addItem(CartItemModel newItem) {
     final index = cartItems.indexWhere((item) => item.id == newItem.id);
     if (index != -1) {
-      increaseQuantity(newItem.id);
+      final item = cartItems[index];
+      cartItems[index] =
+          item.copyWith(quantity: item.quantity + newItem.quantity);
+      calculateTotalPrice();
     } else {
       cartItems.add(newItem);
       calculateTotalPrice();

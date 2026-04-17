@@ -14,11 +14,18 @@ class CartView extends GetView<CartController> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: const Text('Giỏ hàng của bạn', style: AppTextStyles.h2),
-        backgroundColor: AppColors.white,
+        title: const Text(
+          'Giỏ hàng của bạn',
+          style: TextStyle(
+            color: AppColors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: AppColors.primaryOrange,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: AppColors.black),
+        iconTheme: const IconThemeData(color: AppColors.white),
       ),
       body: Column(
         children: [
@@ -26,7 +33,7 @@ class CartView extends GetView<CartController> {
             child: Obx(() {
               if (controller.cartItems.isEmpty) {
                 return const Center(
-                  child: Text('Giỏ hàng trống', style: AppTextStyles.bodyLarge),
+                  child: Text('Giỏ hàng của bạn đang trống', style: AppTextStyles.bodyLarge),
                 );
               }
               return ListView.separated(

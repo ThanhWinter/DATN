@@ -16,7 +16,7 @@ class CustomerApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Food Hit Customer",
-      initialRoute: AppRoutes.home,
+      initialRoute: AppRoutes.main,
       getPages: AppPages.routes,
     );
   }

@@ -41,27 +41,9 @@ class FoodItemCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ColoredBox(
-                    color: AppColors.grey100,
-                    child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                        ? Image.network(
-                            item.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(
-                                Icons.restaurant,
-                                color: AppColors.grey400,
-                                size: 36,
-                              ),
-                            ),
-                          )
-                        : const Center(
-                            child: Icon(
-                              Icons.restaurant,
-                              color: AppColors.grey400,
-                              size: 36,
-                            ),
-                          ),
+                  AppNetworkImage(
+                    url: item.imageUrl,
+                    fit: BoxFit.cover,
                   ),
                   // Badge "Hết hàng"
                   if (!item.isAvailable)

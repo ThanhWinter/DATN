@@ -16,16 +16,25 @@ class OrderView extends GetView<OrderController> {
       child: Scaffold(
         backgroundColor: AppColors.grey100,
         appBar: AppBar(
-          title: const Text('Đơn hàng của tôi', style: AppTextStyles.h2),
-          backgroundColor: AppColors.white,
+          title: const Text(
+            'Đơn hàng của bạn',
+            style: TextStyle(
+              color: AppColors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+            ),
+          ),
+          backgroundColor: AppColors.primaryOrange,
           elevation: 0,
           centerTitle: true,
+          iconTheme: const IconThemeData(color: AppColors.white),
           bottom: const TabBar(
-            labelColor: AppColors.primaryOrange,
-            unselectedLabelColor: AppColors.textGrey,
-            indicatorColor: AppColors.primaryOrange,
+            labelColor: AppColors.white,
+            unselectedLabelColor: AppColors.white,
+            indicatorColor: AppColors.white,
             indicatorWeight: 3,
             labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 15),
             tabs: [
               Tab(text: 'Đang giao'),
               Tab(text: 'Lịch sử'),
@@ -63,7 +72,7 @@ class OrderView extends GetView<OrderController> {
             ),
             const SizedBox(height: 16),
             Text(
-              isActive ? 'Không có đơn hàng nào đang giao' : 'Chưa có lịch sử đơn hàng',
+              isActive ? 'Đơn hàng của bạn đang trống' : 'Đơn hàng của bạn đang trống',
               style: AppTextStyles.bodyLarge,
             ),
           ],
