@@ -14,12 +14,11 @@ class CartView extends GetView<CartController> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Giỏ hàng của bạn',
-          style: TextStyle(
+          style: AppTextStyles.h3.copyWith(
             color: AppColors.white,
             fontWeight: FontWeight.w800,
-            fontSize: 18,
           ),
         ),
         backgroundColor: AppColors.primaryOrange,

@@ -3,6 +3,7 @@ import '../models/notification_model.dart';
 class NotificationRepository {
   Future<List<NotificationModel>> fetchNotifications() async {
     await Future.delayed(const Duration(milliseconds: 600));
+    // TODO: mock data
     return [
       NotificationModel(
         id: '1',

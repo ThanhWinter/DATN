@@ -37,32 +37,32 @@ class HomeView extends GetView<HomeController> {
             }
             return false;
           },
-          child: CustomScrollView(
+          child: const CustomScrollView(
             slivers: [
               // ── Hero nhà hàng (sticky app bar) ──────────────────────────
-              const HomeHeroSection(),
+              HomeHeroSection(),
 
               // ── Thanh tìm kiếm ───────────────────────────────────────────
-              const SliverToBoxAdapter(child: HomeSearchBar()),
+              SliverToBoxAdapter(child: HomeSearchBar()),
 
               // ── Banner khuyến mãi ────────────────────────────────────────
-              const SliverToBoxAdapter(child: HomePromoSection()),
+              SliverToBoxAdapter(child: HomePromoSection()),
 
               // ── Bộ lọc danh mục ─────────────────────────────────────────
               SliverPersistentHeader(
                 pinned: true,
                 delegate: CategoryHeaderDelegate(
-                  child: const HomeCategorySection(),
+                  child: HomeCategorySection(),
                 ),
               ),
 
               // ── Tiêu đề thực đơn + đếm số lượng ────────────────────────
-              const SliverToBoxAdapter(child: HomeMenuHeader()),
+              SliverToBoxAdapter(child: HomeMenuHeader()),
 
               // ── Lưới món ăn 2 cột ───────────────────────────────────────
-              const HomeMenuGrid(),
+              HomeMenuGrid(),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
         );

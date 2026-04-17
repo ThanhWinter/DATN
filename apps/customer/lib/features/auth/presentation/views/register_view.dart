@@ -51,7 +51,7 @@ class _RegisterViewState extends State<RegisterView> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
+        data: ThemeData(
           colorScheme: const ColorScheme.light(
             primary: AppColors.primaryOrange,
             onPrimary: AppColors.white,

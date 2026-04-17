@@ -1,6 +1,5 @@
-library core_network;
-
 import "dart:convert";
+import "dart:isolate";
 
 import "package:http/http.dart" as http;
 
@@ -60,11 +59,11 @@ class ApiClient implements IApiClient {
     return Uri.parse("$baseUrl$path").replace(queryParameters: query);
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
     final body = response.body;
     final data = body.isEmpty
         ? <String, dynamic>{}
-        : jsonDecode(body) as Map<String, dynamic>;
+        : await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return data;

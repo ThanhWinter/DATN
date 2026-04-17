@@ -5,15 +5,100 @@ import 'package:get/get.dart';
 import '../../data/models/home_items.dart';
 import '../controllers/food_detail_controller.dart';
 
-class FoodDetailSheet extends GetView<FoodDetailController> {
+class FoodDetailSheet extends StatefulWidget {
   const FoodDetailSheet({super.key});
 
-  static void show(FoodItemModel item) {
+  static Future<void> show(FoodItemModel item) async {
     Get.put(FoodDetailController(item: item));
-    Get.bottomSheet(
+    await Get.bottomSheet<void>(
       const FoodDetailSheet(),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+    );
+    Get.delete<FoodDetailController>(force: true);
+  }
+
+  @override
+  State<FoodDetailSheet> createState() => _FoodDetailSheetState();
+}
+
+class _FoodDetailSheetState extends State<FoodDetailSheet> {
+  late final FoodDetailController _controller;
+  final _noteController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.find<FoodDetailController>();
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  void _showQuantityDialog() {
+    final ctrl = TextEditingController(text: '${_controller.quantity.value}');
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Chỉnh số lượng', style: AppTextStyles.h3),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.h2,
+          decoration: InputDecoration(
+            hintText: 'Nhập số lượng',
+            hintStyle: AppTextStyles.bodySmall,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.primaryOrange),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: Text('Huỷ',
+                style: AppTextStyles.bodyLarge
+                    .copyWith(color: AppColors.grey600)),
+          ),
+          TextButton(
+            onPressed: () {
+              _controller.setQuantity(
+                int.tryParse(ctrl.text.trim()) ?? _controller.quantity.value,
+              );
+              Get.back();
+            },
+            child: Text('Xác nhận',
+                style: AppTextStyles.bodyLarge
+                    .copyWith(color: AppColors.primaryOrange)),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  void _addToCart() {
+    final itemName = _controller.item.name;
+    final qty = _controller.quantity.value;
+    _controller.addToCart(_noteController.text);
+    Get.snackbar(
+      'Đã thêm vào giỏ',
+      '$itemName x$qty',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.primaryOrange,
+      colorText: AppColors.white,
+      duration: const Duration(seconds: 2),
+      margin: const EdgeInsets.all(12),
+      borderRadius: 12,
     );
   }
 
@@ -42,8 +127,8 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildName(),
-                        if (controller.item.description != null &&
-                            controller.item.description!.isNotEmpty) ...[
+                        if (_controller.item.description != null &&
+                            _controller.item.description!.isNotEmpty) ...[
                           const SizedBox(height: 10),
                           _buildDescription(),
                         ],
@@ -87,7 +172,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
 
   Widget _buildImage() {
     return AppNetworkImage(
-      url: controller.item.imageUrl,
+      url: _controller.item.imageUrl,
       height: 220,
       width: double.infinity,
       fit: BoxFit.cover,
@@ -97,14 +182,14 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
 
   Widget _buildName() {
     return Text(
-      controller.item.name,
+      _controller.item.name,
       style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.w800),
     );
   }
 
   Widget _buildDescription() {
     return Text(
-      controller.item.description!,
+      _controller.item.description!,
       style: AppTextStyles.bodyMedium.copyWith(
         color: AppColors.textGrey,
         height: 1.5,
@@ -128,11 +213,11 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
               children: [
                 _buildQtyButton(
                   icon: Icons.remove_rounded,
-                  onTap: controller.decrease,
-                  enabled: controller.quantity.value > 1,
+                  onTap: _controller.decrease,
+                  enabled: _controller.quantity.value > 1,
                 ),
                 GestureDetector(
-                  onTap: controller.showQuantityDialog,
+                  onTap: _showQuantityDialog,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 12),
                     padding: const EdgeInsets.symmetric(
@@ -142,7 +227,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${controller.quantity.value}',
+                      '${_controller.quantity.value}',
                       style:
                           AppTextStyles.h3.copyWith(fontWeight: FontWeight.w800),
                     ),
@@ -150,7 +235,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
                 ),
                 _buildQtyButton(
                   icon: Icons.add_rounded,
-                  onTap: controller.increase,
+                  onTap: _controller.increase,
                   enabled: true,
                 ),
               ],
@@ -192,7 +277,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
         ),
         const SizedBox(height: 10),
         TextField(
-          controller: controller.noteController,
+          controller: _noteController,
           maxLines: 2,
           textInputAction: TextInputAction.done,
           decoration: InputDecoration(
@@ -233,7 +318,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
       ),
       child: Obx(
         () => GestureDetector(
-          onTap: controller.addToCart,
+          onTap: _addToCart,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
@@ -259,7 +344,7 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
                     color: AppColors.white, size: 20),
                 const SizedBox(width: 10),
                 Text(
-                  'Thêm vào giỏ  •  ${_formatPrice(controller.totalPrice)}',
+                  'Thêm vào giỏ  •  ${_controller.totalPrice.toVnd()}đ',
                   style: AppTextStyles.button.copyWith(
                     color: AppColors.white,
                     fontWeight: FontWeight.w800,
@@ -271,15 +356,5 @@ class FoodDetailSheet extends GetView<FoodDetailController> {
         ),
       ),
     );
-  }
-
-  String _formatPrice(int price) {
-    final s = price.toString();
-    final buf = StringBuffer();
-    for (var i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-      buf.write(s[i]);
-    }
-    return '$bufđ';
   }
 }

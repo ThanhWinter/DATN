@@ -19,7 +19,7 @@ class HomeMenuHeader extends GetView<HomeController> {
             const Text("Thực đơn", style: AppTextStyles.h3),
             const SizedBox(width: 8),
             Text(
-              "(${controller.filteredFoodItems.length} món)",
+              "(${controller.filteredCount.value} món)",
               style:
                   AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
             ),
@@ -36,7 +36,7 @@ class HomeMenuGrid extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.filteredFoodItems.isEmpty) {
+      if (controller.isFilteredEmpty.value) {
         return const SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 48),
@@ -72,12 +72,21 @@ class HomeMenuGrid extends GetView<HomeController> {
               final item = controller.filteredFoodItems[index];
               return FoodItemCard(
                 item: item,
-                onAdd:
-                    item.isAvailable ? () => controller.addToCart(item) : null,
+                onAdd: item.isAvailable
+                    ? () {
+                        controller.addToCart(item);
+                        Get.snackbar(
+                          'Đã thêm vào giỏ',
+                          item.name,
+                          snackPosition: SnackPosition.TOP,
+                          duration: const Duration(seconds: 1),
+                        );
+                      }
+                    : null,
                 onTap: () => FoodDetailSheet.show(item),
               );
             },
-            childCount: controller.filteredFoodItems.length,
+            childCount: controller.filteredCount.value,
           ),
         ),
       );

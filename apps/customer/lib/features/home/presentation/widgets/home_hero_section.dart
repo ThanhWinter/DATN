@@ -93,7 +93,7 @@ class HomeHeroSection extends GetView<HomeController> {
                           onTap: () => Get.toNamed(AppRoutes.notifications),
                           child: Obx(() {
                             final unreadCount =
-                                controller.unreadNotificationCount;
+                                controller.unreadNotificationCount.value;
                             return Stack(
                               clipBehavior: Clip.none,
                               children: [

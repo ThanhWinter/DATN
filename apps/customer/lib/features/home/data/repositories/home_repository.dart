@@ -3,6 +3,7 @@ import '../models/home_items.dart';
 class HomeRepository {
   Future<RestaurantInfo> fetchRestaurantInfo() async {
     await Future.delayed(const Duration(milliseconds: 300));
+    // TODO: mock data
     return const RestaurantInfo(
       name: 'FoodHit Kitchen',
       rating: 4.8,
@@ -15,6 +16,7 @@ class HomeRepository {
   }
 
   Future<HomePromoBannerItem> fetchPromoBanner() async {
+    // TODO: mock data
     return const HomePromoBannerItem(
       title: 'Miễn phí giao hàng hôm nay',
       subtitle: 'Áp dụng cho đơn từ 99K. Không cần mã giảm giá.',
@@ -24,6 +26,7 @@ class HomeRepository {
   }
 
   Future<List<CategoryItem>> fetchCategories() async {
+    // TODO: mock data
     return const [
       CategoryItem(name: 'Tất cả', slug: 'all'),
       CategoryItem(name: 'Cơm', slug: 'com'),
@@ -35,6 +38,7 @@ class HomeRepository {
 
   Future<List<FoodItemModel>> fetchFoodItems() async {
     await Future.delayed(const Duration(milliseconds: 300));
+    // TODO: mock data
     return const [
       // ─── Cơm ──────────────────────────────────────────────────────────────
       FoodItemModel(

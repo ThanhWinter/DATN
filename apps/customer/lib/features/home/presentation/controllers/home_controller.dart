@@ -34,6 +34,8 @@ class HomeController extends GetxController {
   // ── Món ăn ───────────────────────────────────────────────────────────────
   final _allFoodItems = <FoodItemModel>[];
   final filteredFoodItems = <FoodItemModel>[].obs;
+  final isFilteredEmpty = true.obs;
+  final filteredCount = 0.obs;
 
   // ── Giỏ hàng ─────────────────────────────────────────────────────────────
   CartController get _cartController => Get.find<CartController>();
@@ -42,7 +44,7 @@ class HomeController extends GetxController {
   NotificationController get _notificationController =>
       Get.find<NotificationController>();
 
-  int get unreadNotificationCount => _notificationController.unreadCount.value;
+  RxInt get unreadNotificationCount => _notificationController.unreadCount;
 
   @override
   void onInit() {
@@ -65,12 +67,6 @@ class HomeController extends GetxController {
         imageUrl: item.imageUrl,
       ),
     );
-    Get.snackbar(
-      'Đã thêm vào giỏ',
-      item.name,
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 1),
-    );
   }
 
   // ── Private ──────────────────────────────────────────────────────────────
@@ -85,6 +81,12 @@ class HomeController extends GetxController {
             .toList(),
       );
     }
+    _syncFilteredMeta();
+  }
+
+  void _syncFilteredMeta() {
+    isFilteredEmpty.value = filteredFoodItems.isEmpty;
+    filteredCount.value = filteredFoodItems.length;
   }
 
   Future<void> _loadData() async {
@@ -99,6 +101,7 @@ class HomeController extends GetxController {
         ..clear()
         ..addAll(await _repository.fetchFoodItems());
       filteredFoodItems.assignAll(_allFoodItems);
+      _syncFilteredMeta();
     } catch (e) {
       error.value = e;
     } finally {
