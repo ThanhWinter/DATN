@@ -1,0 +1,18 @@
+name: food_hit_workspace
+
+packages:
+  - apps/*
+  - packages/*
+
+scripts:
+  bootstrap:
+    run: melos bootstrap
+    description: Bootstrap all workspace packages
+
+  analyze:
+    run: melos exec -- flutter analyze
+    description: Analyze all Flutter packages
+
+  test:
+    run: melos exec -- flutter test
+    description: Run tests in all Flutter packages

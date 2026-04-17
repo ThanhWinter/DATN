@@ -1,0 +1,14 @@
+name: core_ui
+description: Shared UI components and themes for food_hit apps
+publish_to: none
+version: 0.0.1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
