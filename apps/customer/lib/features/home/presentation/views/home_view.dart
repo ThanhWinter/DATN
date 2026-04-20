@@ -16,19 +16,10 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey100,
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryOrange),
-          );
-        }
-        if (controller.error.value != null) {
-          return const Center(
-            child: Text("Đã có lỗi xảy ra", style: AppTextStyles.bodyLarge),
-          );
-        }
-
-        return NotificationListener<ScrollNotification>(
+      body: SnapHelperWidget(
+        isLoading: controller.isLoading,
+        error: controller.error,
+        onSuccess: () => NotificationListener<ScrollNotification>(
           onNotification: (notification) {
             // expandedHeight(220) - toolbarHeight(56) ≈ 164px
             final collapsed = notification.metrics.pixels > 160;
@@ -65,8 +56,8 @@ class HomeView extends GetView<HomeController> {
               SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

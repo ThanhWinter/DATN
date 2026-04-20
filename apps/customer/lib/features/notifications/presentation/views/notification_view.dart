@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/notification_controller.dart';
+import '../widgets/notification_empty_state.dart';
 import '../widgets/notification_tile.dart';
 
 class NotificationView extends GetView<NotificationController> {
@@ -31,18 +32,11 @@ class NotificationView extends GetView<NotificationController> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryOrange),
-          );
-        }
-
-        if (controller.notifications.isEmpty) {
-          return const _EmptyState();
-        }
-
-        return ListView.separated(
+      body: SnapHelperWidget(
+        isLoading: controller.isLoading,
+        isEmpty: () => controller.notifications.isEmpty,
+        emptyWidget: const NotificationEmptyState(),
+        onSuccess: () => ListView.separated(
           padding: const EdgeInsets.symmetric(vertical: 8),
           itemCount: controller.notifications.length,
           separatorBuilder: (_, __) =>
@@ -55,29 +49,7 @@ class NotificationView extends GetView<NotificationController> {
               onDelete: () => controller.deleteNotification(notif.id),
             );
           },
-        );
-      }),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 64,
-            color: AppColors.grey300,
-          ),
-          SizedBox(height: 16),
-          Text('Bạn chưa có thông báo nào', style: AppTextStyles.bodyLarge),
-        ],
+        ),
       ),
     );
   }

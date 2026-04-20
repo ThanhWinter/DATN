@@ -2,9 +2,8 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../data/models/order_model.dart';
 import '../controllers/order_controller.dart';
-import '../widgets/order_card.dart';
+import '../widgets/order_list_section.dart';
 
 class OrderView extends GetView<OrderController> {
   const OrderView({super.key});
@@ -45,65 +44,23 @@ class OrderView extends GetView<OrderController> {
             ],
           ),
         ),
-        body: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primaryOrange),
-            );
-          }
-          return TabBarView(
+        body: SnapHelperWidget(
+          isLoading: controller.isLoading,
+          onSuccess: () => TabBarView(
             children: [
-              _OrderList(
+              OrderListSection(
                 orders: controller.activeOrders,
                 emptyIcon: Icons.motorcycle_outlined,
                 emptyMessage: 'Không có đơn hàng đang giao',
               ),
-              _OrderList(
+              OrderListSection(
                 orders: controller.historyOrders,
                 emptyIcon: Icons.receipt_long_outlined,
                 emptyMessage: 'Chưa có đơn hàng nào',
               ),
             ],
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _OrderList extends StatelessWidget {
-  final List<OrderModel> orders;
-  final IconData emptyIcon;
-  final String emptyMessage;
-
-  const _OrderList({
-    required this.orders,
-    required this.emptyIcon,
-    required this.emptyMessage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(emptyIcon, size: 64, color: AppColors.grey300),
-            const SizedBox(height: 16),
-            Text(emptyMessage, style: AppTextStyles.bodyLarge),
-          ],
+          ),
         ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
-      itemBuilder: (_, index) => OrderCard(
-        order: orders[index],
-        onActionPressed: () {},
       ),
     );
   }

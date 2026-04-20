@@ -9,18 +9,20 @@ class FoodDetailSheet extends StatefulWidget {
   const FoodDetailSheet({super.key});
 
   static Future<void> show(FoodItemModel item) async {
-    Get.put(FoodDetailController(item: item));
     await Get.bottomSheet<void>(
-      const FoodDetailSheet(),
+      GetBuilder<FoodDetailController>(
+        init: FoodDetailController(item: item),
+        builder: (_) => const FoodDetailSheet(),
+      ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
     );
-    Get.delete<FoodDetailController>(force: true);
   }
 
   @override
   State<FoodDetailSheet> createState() => _FoodDetailSheetState();
 }
+
 
 class _FoodDetailSheetState extends State<FoodDetailSheet> {
   late final FoodDetailController _controller;

@@ -44,11 +44,13 @@ class HomeController extends GetxController {
   NotificationController get _notificationController =>
       Get.find<NotificationController>();
 
-  RxInt get unreadNotificationCount => _notificationController.unreadCount;
+  final RxInt unreadNotificationCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
+    unreadNotificationCount.value = _notificationController.unreadCount.value;
+    ever(_notificationController.unreadCount, (val) => unreadNotificationCount.value = val);
     _loadData();
   }
 

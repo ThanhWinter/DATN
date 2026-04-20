@@ -123,3 +123,20 @@ class ProfileMenuBadge extends StatelessWidget {
     );
   }
 }
+
+class ProfileSectionLabel extends StatelessWidget {
+  final String text;
+
+  const ProfileSectionLabel(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: AppTextStyles.bodySmall.copyWith(
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.1,
+      ),
+    );
+  }
+}
