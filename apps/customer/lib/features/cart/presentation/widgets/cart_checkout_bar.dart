@@ -9,17 +9,10 @@ class CartCheckoutBar extends GetView<CartController> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
       decoration: const BoxDecoration(
         color: AppColors.white,
-        border: Border(top: BorderSide(color: AppColors.grey300)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black54,
-            blurRadius: 4,
-            offset: Offset(0, -2),
-          )
-        ],
+        border: Border(top: BorderSide(color: AppColors.grey200)),
       ),
       child: SafeArea(
         child: Column(
@@ -28,37 +21,36 @@ class CartCheckoutBar extends GetView<CartController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Tổng cộng:', style: AppTextStyles.h3),
+                const Text(
+                  'Tổng cộng',
+                  style: AppTextStyles.bodyMedium,
+                ),
                 Obx(() => Text(
                       '${controller.totalPrice.value.toVnd()} ₫',
-                      style: AppTextStyles.h2
-                          .copyWith(color: AppColors.primaryOrangeDark),
+                      style: AppTextStyles.h3.copyWith(
+                        color: AppColors.primaryOrangeDark,
+                        fontWeight: FontWeight.w700,
+                      ),
                     )),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
+              height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle checkout action
-                  Get.snackbar(
-                    'Thông báo',
-                    'Chức năng thanh toán đang được phát triển',
-                    backgroundColor: AppColors.primaryOrange,
-                    colorText: AppColors.white,
-                  );
-                },
+                onPressed: () => Get.toNamed('/checkout'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryOrange,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text('Thanh toán', style: AppTextStyles.button),
+                child: const Text('Đặt hàng', style: AppTextStyles.button),
               ),
-            )
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

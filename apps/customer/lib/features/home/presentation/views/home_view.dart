@@ -1,13 +1,12 @@
-import "package:core_ui/core_ui.dart";
-import "package:flutter/material.dart";
-import "package:get/get.dart";
+import 'package:core_ui/core_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import "../controllers/home_controller.dart";
-import "../widgets/home_category_section.dart";
-import "../widgets/home_hero_section.dart";
-import "../widgets/home_menu_section.dart";
-import "../widgets/home_promo_section.dart";
-import "../widgets/home_search_bar.dart";
+import '../controllers/home_controller.dart';
+import '../widgets/home_category_section.dart';
+import '../widgets/home_location_header.dart';
+import '../widgets/home_popular_section.dart';
+import '../widgets/home_promo_section.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -19,43 +18,38 @@ class HomeView extends GetView<HomeController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        onSuccess: () => NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            // expandedHeight(220) - toolbarHeight(56) ≈ 164px
-            final collapsed = notification.metrics.pixels > 160;
-            if (controller.isAppBarCollapsed.value != collapsed) {
-              controller.isAppBarCollapsed.value = collapsed;
-            }
-            return false;
-          },
-          child: const CustomScrollView(
-            slivers: [
-              // ── Hero nhà hàng (sticky app bar) ──────────────────────────
-              HomeHeroSection(),
+        onSuccess: () => const Column(
+          children: [
+            // ── Header vị trí + thanh tìm kiếm (dính trên cùng) ───────────
+            HomeLocationHeader(),
 
-              // ── Thanh tìm kiếm ───────────────────────────────────────────
-              SliverToBoxAdapter(child: HomeSearchBar()),
+            // ── Nội dung cuộn ─────────────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 8),
 
-              // ── Banner khuyến mãi ────────────────────────────────────────
-              SliverToBoxAdapter(child: HomePromoSection()),
+                    // ── Danh mục thực đơn có hình tròn ────────────────────
+                    HomeCategorySection(),
 
-              // ── Bộ lọc danh mục ─────────────────────────────────────────
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: CategoryHeaderDelegate(
-                  child: HomeCategorySection(),
+                    SizedBox(height: 8),
+
+                    // ── Banner quảng cáo cố định ───────────────────────────
+                    HomePromoSection(),
+
+                    SizedBox(height: 8),
+
+                    // ── Món ăn phổ biến nhất ───────────────────────────────
+                    HomePopularSection(),
+
+                    SizedBox(height: 24),
+                  ],
                 ),
               ),
-
-              // ── Tiêu đề thực đơn + đếm số lượng ────────────────────────
-              SliverToBoxAdapter(child: HomeMenuHeader()),
-
-              // ── Lưới món ăn 2 cột ───────────────────────────────────────
-              HomeMenuGrid(),
-
-              SliverToBoxAdapter(child: SizedBox(height: 24)),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

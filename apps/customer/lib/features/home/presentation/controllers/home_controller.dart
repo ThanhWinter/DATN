@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../../cart/data/models/cart_item_model.dart';
@@ -11,46 +12,46 @@ class HomeController extends GetxController {
 
   HomeController(this._repository);
 
-  // ── Loading / Error ──────────────────────────────────────────────────────
+  // ── Loading / Error ──────────────────────────────────────────────────────────
   final isLoading = false.obs;
   final error = Rxn<Object>();
 
-  // ── App bar collapse state ────────────────────────────────────────────────
-  final isAppBarCollapsed = false.obs;
+  // ── Vị trí giao hàng ─────────────────────────────────────────────────────────
+  final locationName = ''.obs;
 
-  // ── User ─────────────────────────────────────────────────────────────────
-  final userInitial = 'H'.obs;
+  // ── Trạng thái lấy vị trí ────────────────────────────────────────────────────
+  final isLocating = false.obs;
+  final pickerAddress = ''.obs;
 
-  // ── Thông tin nhà hàng ───────────────────────────────────────────────────
-  final restaurantInfo = Rxn<RestaurantInfo>();
+  // ── Thông báo ────────────────────────────────────────────────────────────────
+  NotificationController get _notificationController =>
+      Get.find<NotificationController>();
+  final RxInt unreadNotificationCount = 0.obs;
 
-  // ── Promo banner ─────────────────────────────────────────────────────────
-  final promoBanner = Rxn<HomePromoBannerItem>();
-
-  // ── Danh mục ─────────────────────────────────────────────────────────────
+  // ── Danh mục có hình ảnh ─────────────────────────────────────────────────────
   final categories = <CategoryItem>[].obs;
   final selectedCategorySlug = 'all'.obs;
 
-  // ── Món ăn ───────────────────────────────────────────────────────────────
+  // ── Banner quảng cáo ─────────────────────────────────────────────────────────
+  final promoBanners = <HomePromoBannerItem>[].obs;
+
+  // ── Tất cả món ăn ────────────────────────────────────────────────────────────
   final _allFoodItems = <FoodItemModel>[];
   final filteredFoodItems = <FoodItemModel>[].obs;
-  final isFilteredEmpty = true.obs;
-  final filteredCount = 0.obs;
 
-  // ── Giỏ hàng ─────────────────────────────────────────────────────────────
+  // ── Món ăn phổ biến nhất ─────────────────────────────────────────────────────
+  final popularItems = <FoodItemModel>[].obs;
+  final popularCount = 0.obs;
+  final isPopularEmpty = true.obs;
+
   CartController get _cartController => Get.find<CartController>();
-
-  // ── Thông báo (badge đếm) ─────────────────────────────────────────────────
-  NotificationController get _notificationController =>
-      Get.find<NotificationController>();
-
-  final RxInt unreadNotificationCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
     unreadNotificationCount.value = _notificationController.unreadCount.value;
-    ever(_notificationController.unreadCount, (val) => unreadNotificationCount.value = val);
+    ever(_notificationController.unreadCount,
+        (val) => unreadNotificationCount.value = val);
     _loadData();
   }
 
@@ -71,7 +72,64 @@ class HomeController extends GetxController {
     );
   }
 
-  // ── Private ──────────────────────────────────────────────────────────────
+  // ── Location Picker ──────────────────────────────────────────────────────────
+
+  void initPickerLocation() {
+    pickerAddress.value = locationName.value;
+    // Tự động hỏi quyền & lấy GPS ngay khi sheet mở
+    fetchCurrentLocation();
+  }
+
+  void updatePickerAddress(String address) {
+    pickerAddress.value = address;
+  }
+
+  Future<void> fetchCurrentLocation() async {
+    try {
+      isLocating.value = true;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        Get.snackbar(
+          'Không có quyền vị trí',
+          'Vui lòng cấp quyền vị trí trong cài đặt điện thoại',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+
+      final address = await _repository.reverseGeocode(
+        position.latitude,
+        position.longitude,
+      );
+      pickerAddress.value = address;
+    } catch (_) {
+      Get.snackbar(
+        'Lỗi vị trí',
+        'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLocating.value = false;
+    }
+  }
+
+  void confirmPickerLocation() {
+    if (pickerAddress.value.isNotEmpty) {
+      locationName.value = pickerAddress.value;
+    }
+    Get.back();
+  }
+
+  // ── Private ──────────────────────────────────────────────────────────────────
 
   void _applyFilter() {
     if (selectedCategorySlug.value == 'all') {
@@ -83,12 +141,6 @@ class HomeController extends GetxController {
             .toList(),
       );
     }
-    _syncFilteredMeta();
-  }
-
-  void _syncFilteredMeta() {
-    isFilteredEmpty.value = filteredFoodItems.isEmpty;
-    filteredCount.value = filteredFoodItems.length;
   }
 
   Future<void> _loadData() async {
@@ -96,14 +148,26 @@ class HomeController extends GetxController {
       isLoading.value = true;
       error.value = null;
 
-      restaurantInfo.value = await _repository.fetchRestaurantInfo();
-      promoBanner.value = await _repository.fetchPromoBanner();
-      categories.assignAll(await _repository.fetchCategories());
+      final results = await Future.wait([
+        _repository.fetchCategories(),
+        _repository.fetchPromoBanners(),
+        _repository.fetchFoodItems(),
+      ]);
+
+      categories.assignAll(results[0] as List<CategoryItem>);
+      promoBanners.assignAll(results[1] as List<HomePromoBannerItem>);
+
       _allFoodItems
         ..clear()
-        ..addAll(await _repository.fetchFoodItems());
+        ..addAll(results[2] as List<FoodItemModel>);
       filteredFoodItems.assignAll(_allFoodItems);
-      _syncFilteredMeta();
+
+      final popular = _allFoodItems
+          .where((item) => item.isPopular && item.isAvailable)
+          .toList();
+      popularItems.assignAll(popular);
+      popularCount.value = popular.length;
+      isPopularEmpty.value = popular.isEmpty;
     } catch (e) {
       error.value = e;
     } finally {

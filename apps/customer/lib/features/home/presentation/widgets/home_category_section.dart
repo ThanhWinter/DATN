@@ -1,9 +1,8 @@
-import "package:core_ui/core_ui.dart";
-import "package:flutter/material.dart";
-import "package:get/get.dart";
+import 'package:core_ui/core_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import "../controllers/home_controller.dart";
-import "category_filter_chip.dart";
+import '../controllers/home_controller.dart';
 
 class HomeCategorySection extends GetView<HomeController> {
   const HomeCategorySection({super.key});
@@ -11,23 +10,24 @@ class HomeCategorySection extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.grey100,
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      color: AppColors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Obx(() {
-        // Đọc giá trị synchronously để GetX đăng ký callback
-        final currentSlug = controller.selectedCategorySlug.value;
+        final selectedSlug = controller.selectedCategorySlug.value;
         return SizedBox(
-          height: 40,
+          height: 96,
           child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             scrollDirection: Axis.horizontal,
             itemCount: controller.categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, __) => const SizedBox(width: 4),
             itemBuilder: (context, index) {
               final cat = controller.categories[index];
-              return CategoryFilterChip(
-                item: cat,
-                isSelected: currentSlug == cat.slug,
+              final isSelected = selectedSlug == cat.slug;
+              return _CategoryTile(
+                name: cat.name,
+                imageUrl: cat.imageUrl,
+                isSelected: isSelected,
                 onTap: () => controller.selectCategory(cat.slug),
               );
             },
@@ -38,31 +38,75 @@ class HomeCategorySection extends GetView<HomeController> {
   }
 }
 
-class CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final Widget child;
+class _CategoryTile extends StatelessWidget {
+  final String name;
+  final String? imageUrl;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  const CategoryHeaderDelegate({required this.child});
+  const _CategoryTile({
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+    this.imageUrl,
+  });
 
   @override
-  double get minExtent => 60;
-
-  @override
-  double get maxExtent => 60;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Material(
-      elevation: shrinkOffset > 0 ? 2 : 0,
-      color: AppColors.grey100,
-      child: child,
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 72,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: isSelected
+                    ? Border.all(color: AppColors.primaryOrange, width: 2.5)
+                    : null,
+                color: AppColors.grey100,
+              ),
+              child: ClipOval(
+                child: imageUrl != null
+                    ? AppNetworkImage(
+                        url: imageUrl!,
+                        fit: BoxFit.cover,
+                        errorWidget: const Icon(
+                          Icons.fastfood_rounded,
+                          color: AppColors.primaryOrange,
+                          size: 28,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.fastfood_rounded,
+                        color: AppColors.primaryOrange,
+                        size: 28,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodySmall.copyWith(
+                fontSize: 10,
+                color: isSelected
+                    ? AppColors.primaryOrange
+                    : AppColors.textDark,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w400,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
-
-  @override
-  bool shouldRebuild(CategoryHeaderDelegate oldDelegate) =>
-      oldDelegate.child != child;
 }

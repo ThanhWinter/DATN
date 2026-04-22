@@ -18,13 +18,13 @@ class AccountSection extends StatelessWidget {
         ProfileMenuCard(
           children: [
             ProfileMenuItem(
-              icon: Icons.shopping_bag_outlined,
+              svgPath: AppIcons.shoppingBagSvg,
               label: 'Đơn hàng',
               onTap: () => Get.find<MainController>().onTabChanged(2),
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
-              icon: Icons.local_offer_outlined,
+              svgPath: AppIcons.sellSvg,
               label: 'Ưu đãi',
               trailing: const ProfileMenuBadge(count: '2'),
               onTap: () => Get.snackbar(
@@ -53,13 +53,13 @@ class SupportSection extends StatelessWidget {
         ProfileMenuCard(
           children: [
             ProfileMenuItem(
-              icon: Icons.help_outline_rounded,
+              svgPath: AppIcons.helpSvg,
               label: 'Câu hỏi thường gặp',
               onTap: () {},
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
-              icon: Icons.headset_mic_outlined,
+              svgPath: AppIcons.supportSvg,
               label: 'Liên hệ hỗ trợ',
               onTap: () {},
             ),
@@ -125,7 +125,7 @@ class SettingsSection extends GetView<ProfileController> {
         ProfileMenuCard(
           children: [
             ProfileMenuItem(
-              icon: Icons.language_outlined,
+              svgPath: AppIcons.languageSvg,
               label: 'Ngôn ngữ',
               trailing: Text(
                 'Tiếng Việt',
@@ -138,13 +138,13 @@ class SettingsSection extends GetView<ProfileController> {
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
-              icon: Icons.lock_outline_rounded,
+              svgPath: AppIcons.lockSvg,
               label: 'Bảo mật & Mật khẩu',
               onTap: () {},
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
-              icon: Icons.logout_rounded,
+              svgPath: AppIcons.logoutSvg,
               label: 'Đăng xuất',
               onTap: _confirmLogout,
               iconColor: AppColors.errorRed,

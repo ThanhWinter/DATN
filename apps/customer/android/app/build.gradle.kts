@@ -42,3 +42,7 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation(files("libs/zpdk-release-v3.1.aar"))
+}

@@ -1,5 +1,6 @@
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ProfileMenuCard extends StatelessWidget {
   final List<Widget> children;
@@ -26,7 +27,9 @@ class ProfileMenuCard extends StatelessWidget {
 }
 
 class ProfileMenuItem extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? iconPath;
+  final String? svgPath;
   final String label;
   final VoidCallback onTap;
   final Widget? trailing;
@@ -35,13 +38,15 @@ class ProfileMenuItem extends StatelessWidget {
 
   const ProfileMenuItem({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconPath,
+    this.svgPath,
     required this.label,
     required this.onTap,
     this.trailing,
     this.iconColor,
     this.labelColor,
-  });
+  }) : assert(icon != null || iconPath != null || svgPath != null);
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +66,7 @@ class ProfileMenuItem extends StatelessWidget {
                     : AppColors.grey100,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: iconColor ?? AppColors.textGrey,
-                size: 18,
-              ),
+              child: _buildIcon(),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -83,6 +84,31 @@ class ProfileMenuItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildIcon() {
+    final color = iconColor ?? AppColors.textGrey;
+    if (svgPath != null) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SvgPicture.asset(
+          svgPath!,
+          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        ),
+      );
+    }
+    if (iconPath != null) {
+      return ImageIcon(
+        AssetImage(iconPath!),
+        color: color,
+        size: 18,
+      );
+    }
+    return Icon(
+      icon,
+      color: color,
+      size: 18,
     );
   }
 }

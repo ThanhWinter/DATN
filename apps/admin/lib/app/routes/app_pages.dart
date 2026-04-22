@@ -1,8 +1,10 @@
-import "package:get/get.dart";
+import 'package:get/get.dart';
 
-import "../../features/auth/presentation/views/login_view.dart";
-import "../bindings/auth_binding.dart";
-import "app_routes.dart";
+import '../../features/auth/presentation/views/login_view.dart';
+import '../../features/main/presentation/views/main_view.dart';
+import '../bindings/auth_binding.dart';
+import '../bindings/main_binding.dart';
+import 'app_routes.dart';
 
 class AppPages {
   static final routes = <GetPage<dynamic>>[
@@ -10,6 +12,11 @@ class AppPages {
       name: AppRoutes.login,
       page: () => LoginView(),
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.main,
+      page: () => const MainView(),
+      binding: MainBinding(),
     ),
   ];
 }

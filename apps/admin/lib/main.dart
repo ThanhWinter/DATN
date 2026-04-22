@@ -1,11 +1,14 @@
 import "package:flutter/material.dart";
 import "package:core_ui/core_ui.dart";
+import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:get/get.dart";
 
 import "app/routes/app_pages.dart";
 import "app/routes/app_routes.dart";
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(const AdminApp());
 }
 
@@ -18,7 +21,7 @@ class AdminApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Food Hit Admin",
       theme: AppTheme.light(),
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.main,
       getPages: AppPages.routes,
     );
   }

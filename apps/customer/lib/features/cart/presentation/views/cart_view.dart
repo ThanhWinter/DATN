@@ -28,22 +28,31 @@ class CartView extends GetView<CartController> {
       body: Column(
         children: [
           Expanded(
-            child: SnapHelperWidget(
-              isLoading: RxBool(false), // cart không có isLoading thực sự từ controller
-              isEmpty: () => controller.cartItems.isEmpty,
-              emptyMessage: 'Giỏ hàng của bạn đang trống',
-              onSuccess: () => ListView.separated(
+            child: Obx(() {
+              if (controller.cartItems.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.shopping_cart_outlined,
+                          size: 56, color: AppColors.grey300),
+                      SizedBox(height: 12),
+                      Text('Giỏ hàng trống',
+                          style: AppTextStyles.bodyMedium),
+                    ],
+                  ),
+                );
+              }
+              return ListView.separated(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 itemCount: controller.cartItems.length,
-                separatorBuilder: (context, index) =>
-                    const Divider(color: AppColors.grey300),
-                itemBuilder: (context, index) {
-                  final item = controller.cartItems[index];
-                  return CartItemCard(item: item);
-                },
-              ),
-            ),
+                separatorBuilder: (_, __) =>
+                    const Divider(color: AppColors.grey200, height: 1),
+                itemBuilder: (_, index) =>
+                    CartItemCard(item: controller.cartItems[index]),
+              );
+            }),
           ),
           const CartCheckoutBar(),
         ],

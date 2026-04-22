@@ -1,40 +1,28 @@
-// ── Promo Banner ─────────────────────────────────────────────────────────────
+// ── Promo Banner (hardcoded ad) ───────────────────────────────────────────────
 class HomePromoBannerItem {
   final String title;
   final String subtitle;
   final String? imageUrl;
+  final String? badgeText;
 
   const HomePromoBannerItem({
     required this.title,
     required this.subtitle,
     this.imageUrl,
+    this.badgeText,
   });
 }
 
-// ── Category (bộ lọc danh mục món ăn) ────────────────────────────────────────
+// ── Category (danh mục thực đơn có hình ảnh) ─────────────────────────────────
 class CategoryItem {
   final String name;
-  final String slug; // "all" | "com" | "bun" | "drink" | "dessert" | ...
+  final String slug;
+  final String? imageUrl;
 
-  const CategoryItem({required this.name, required this.slug});
-}
-
-// ── Thông tin nhà hàng ────────────────────────────────────────────────────────
-class RestaurantInfo {
-  final String name;
-  final double rating;
-  final int reviewCount;
-  final String deliveryTime;
-  final String? coverImageUrl;
-  final String? description;
-
-  const RestaurantInfo({
+  const CategoryItem({
     required this.name,
-    required this.rating,
-    required this.reviewCount,
-    required this.deliveryTime,
-    this.coverImageUrl,
-    this.description,
+    required this.slug,
+    this.imageUrl,
   });
 }
 
@@ -47,6 +35,7 @@ class FoodItemModel {
   final String? imageUrl;
   final String categorySlug;
   final bool isAvailable;
+  final bool isPopular;
 
   const FoodItemModel({
     required this.id,
@@ -56,6 +45,7 @@ class FoodItemModel {
     this.description,
     this.imageUrl,
     this.isAvailable = true,
+    this.isPopular = false,
   });
 
   factory FoodItemModel.fromJson(Map<String, dynamic> json) {
@@ -67,6 +57,7 @@ class FoodItemModel {
       imageUrl: json['imageUrl']?.toString(),
       categorySlug: (json['categorySlug'] ?? 'other').toString(),
       isAvailable: json['isAvailable'] as bool? ?? true,
+      isPopular: json['isPopular'] as bool? ?? false,
     );
   }
 }

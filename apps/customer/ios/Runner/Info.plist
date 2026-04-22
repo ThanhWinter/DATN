@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cần quyền truy cập vị trí để xác định địa chỉ giao hàng của bạn</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Cần quyền truy cập vị trí để xác định địa chỉ giao hàng của bạn</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

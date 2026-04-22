@@ -64,12 +64,21 @@ class AppIcons {
   static const IconData delete = Icons.delete_outline;
   static const IconData circle = Icons.circle;
 
-  // ── Custom PNG assets ─────────────────────────────────────────────────────
-  // Thêm icon PNG vào assets/icons/ rồi khai báo ở đây
-  // Ví dụ:
-  // static const String iconLogo = 'assets/icons/logo.png';
-  // static const String iconVnpay = 'assets/icons/vnpay.png';
-  // static const String iconMomo = 'assets/icons/momo.png';
+  // ── Custom Assets ────────────────────────────────────────────────────────
+  static const String iconZalopay = 'assets/icons/zalopay_icon.png';
+  static const String homeSvg = 'assets/icons/home_icon.svg';
+  static const String cartSvg = 'assets/icons/shopping_cart_icon.svg';
+  static const String orderSvg = 'assets/icons/order_icon.svg';
+  static const String accountSvg = 'assets/icons/account_circle_icon.svg';
+  static const String shoppingBagSvg = 'assets/icons/shopping_bag_icon.svg';
+  static const String sellSvg = 'assets/icons/sell_icon.svg';
+  static const String helpSvg = 'assets/icons/help_icon.svg';
+  static const String supportSvg = 'assets/icons/headset_mic_icon.svg';
+  static const String languageSvg = 'assets/icons/language_icon.svg';
+  static const String lockSvg = 'assets/icons/lock_icon.svg';
+  static const String logoutSvg = 'assets/icons/logout_icon.svg';
+  static const String searchSvg = 'assets/icons/search_icon.svg';
+  static const String editSvg = 'assets/icons/pen_edit_icon.svg';
 
   // ── Custom PNG images ─────────────────────────────────────────────────────
   // Thêm ảnh vào assets/images/ rồi khai báo ở đây

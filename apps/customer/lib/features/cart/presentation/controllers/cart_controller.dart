@@ -62,6 +62,11 @@ class CartController extends GetxController {
     }
   }
 
+  void clearCart() {
+    cartItems.clear();
+    totalPrice.value = 0;
+  }
+
   void calculateTotalPrice() {
     totalPrice.value = cartItems.fold(
       0.0,

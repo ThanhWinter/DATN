@@ -1,38 +1,83 @@
+import 'package:core_network/core_network.dart';
+
 import '../models/home_items.dart';
 
 class HomeRepository {
-  Future<RestaurantInfo> fetchRestaurantInfo() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // TODO: mock data
-    return const RestaurantInfo(
-      name: 'FoodHit Kitchen',
-      rating: 4.8,
-      reviewCount: 1340,
-      deliveryTime: '20-30 phút',
-      coverImageUrl:
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80',
-      description: 'Ẩm thực Việt Nam truyền thống — Giao hàng nhanh tận nơi',
-    );
-  }
+  // ApiClient xử lý Isolate.run() tại tầng network — không parse JSON ở đây
+  final _nominatimClient = ApiClient(
+    baseUrl: 'https://nominatim.openstreetmap.org',
+    defaultHeaders: const {
+      'Content-Type': 'application/json',
+      'User-Agent': 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)',
+    },
+  );
 
-  Future<HomePromoBannerItem> fetchPromoBanner() async {
+  Future<List<HomePromoBannerItem>> fetchPromoBanners() async {
     // TODO: mock data
-    return const HomePromoBannerItem(
-      title: 'Miễn phí giao hàng hôm nay',
-      subtitle: 'Áp dụng cho đơn từ 99K. Không cần mã giảm giá.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=60',
-    );
+    return const [
+      HomePromoBannerItem(
+        title: 'Mua 1 Tặng 1',
+        subtitle: 'Áp dụng cuối tuần này',
+        badgeText: 'Ưu đãi',
+        imageUrl:
+            'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=70',
+      ),
+      HomePromoBannerItem(
+        title: 'Miễn phí giao hàng',
+        subtitle: 'Đơn từ 99K',
+        badgeText: 'Hôm nay',
+        imageUrl:
+            'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=70',
+      ),
+      HomePromoBannerItem(
+        title: 'Combo tiết kiệm',
+        subtitle: 'Giảm đến 30%',
+        badgeText: 'Hot',
+        imageUrl:
+            'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=800&q=70',
+      ),
+    ];
   }
 
   Future<List<CategoryItem>> fetchCategories() async {
     // TODO: mock data
     return const [
-      CategoryItem(name: 'Tất cả', slug: 'all'),
-      CategoryItem(name: 'Cơm', slug: 'com'),
-      CategoryItem(name: 'Bún', slug: 'bun'),
-      CategoryItem(name: 'Đồ uống', slug: 'drink'),
-      CategoryItem(name: 'Tráng miệng', slug: 'dessert'),
+      CategoryItem(
+        name: 'Bún/Phở\nMỳ/Cháo',
+        slug: 'bun',
+        imageUrl:
+            'https://images.unsplash.com/photo-1617196034796-73c7fba0bdc0?auto=format&fit=crop&w=200&q=70',
+      ),
+      CategoryItem(
+        name: 'Cơm/Cơm\ntấm',
+        slug: 'com',
+        imageUrl:
+            'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=200&q=70',
+      ),
+      CategoryItem(
+        name: 'Thức ăn\nnhanh',
+        slug: 'fastfood',
+        imageUrl:
+            'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=200&q=70',
+      ),
+      CategoryItem(
+        name: 'Món truyền\nthống/Đặc',
+        slug: 'traditional',
+        imageUrl:
+            'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?auto=format&fit=crop&w=200&q=70',
+      ),
+      CategoryItem(
+        name: 'Trà sữa\n& Cafe',
+        slug: 'drink',
+        imageUrl:
+            'https://images.unsplash.com/photo-1558857563-b371033873b8?auto=format&fit=crop&w=200&q=70',
+      ),
+      CategoryItem(
+        name: 'Tráng\nmiệng',
+        slug: 'dessert',
+        imageUrl:
+            'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=200&q=70',
+      ),
     ];
   }
 
@@ -40,13 +85,13 @@ class HomeRepository {
     await Future.delayed(const Duration(milliseconds: 300));
     // TODO: mock data
     return const [
-      // ─── Cơm ──────────────────────────────────────────────────────────────
       FoodItemModel(
         id: 1,
         name: 'Cơm sườn nướng',
         description: 'Sườn nướng mật ong, cơm trắng dẻo',
         priceVnd: 65000,
         categorySlug: 'com',
+        isPopular: true,
         imageUrl:
             'https://images.unsplash.com/photo-1628294895950-9805252327bc?auto=format&fit=crop&w=600&q=60',
       ),
@@ -56,6 +101,7 @@ class HomeRepository {
         description: 'Gà da giòn, cơm thơm, nước mắm ớt',
         priceVnd: 60000,
         categorySlug: 'com',
+        isPopular: true,
         imageUrl:
             'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?auto=format&fit=crop&w=600&q=60',
       ),
@@ -72,19 +118,19 @@ class HomeRepository {
         description: 'Sườn bì chả, trứng ốp la',
         priceVnd: 70000,
         categorySlug: 'com',
+        isPopular: true,
         imageUrl:
             'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=60',
       ),
-
-      // ─── Bún ──────────────────────────────────────────────────────────────
       FoodItemModel(
         id: 5,
         name: 'Phở bò tái nạm',
         description: 'Phở tươi, thịt bò tái, nạm mềm',
         priceVnd: 65000,
         categorySlug: 'bun',
+        isPopular: true,
         imageUrl:
-            'https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=600&q=60',
+            'https://images.unsplash.com/photo-1617196034796-73c7fba0bdc0?auto=format&fit=crop&w=600&q=60',
       ),
       FoodItemModel(
         id: 6,
@@ -99,6 +145,7 @@ class HomeRepository {
         description: 'Chả nướng than hoa, bún tươi, nem cuốn',
         priceVnd: 65000,
         categorySlug: 'bun',
+        isPopular: true,
         imageUrl:
             'https://images.unsplash.com/photo-1617196034796-73c7fba0bdc0?auto=format&fit=crop&w=600&q=60',
       ),
@@ -110,22 +157,12 @@ class HomeRepository {
         categorySlug: 'bun',
       ),
       FoodItemModel(
-        id: 9,
-        name: 'Bún riêu cua',
-        description: 'Riêu cua đồng, đậu phụ chiên, cà chua',
-        priceVnd: 55000,
-        categorySlug: 'bun',
-        imageUrl:
-            'https://images.unsplash.com/photo-1604909052743-94e838986d24?auto=format&fit=crop&w=600&q=60',
-      ),
-
-      // ─── Đồ uống ──────────────────────────────────────────────────────────
-      FoodItemModel(
         id: 10,
         name: 'Trà đào cam sả',
         description: 'Trà tươi, đào mật, cam tươi, sả',
         priceVnd: 35000,
         categorySlug: 'drink',
+        isPopular: true,
       ),
       FoodItemModel(
         id: 11,
@@ -134,22 +171,6 @@ class HomeRepository {
         priceVnd: 25000,
         categorySlug: 'drink',
       ),
-      FoodItemModel(
-        id: 12,
-        name: 'Nước ép cam tươi',
-        description: '100% cam vắt tươi, không đường',
-        priceVnd: 30000,
-        categorySlug: 'drink',
-      ),
-      FoodItemModel(
-        id: 13,
-        name: 'Sinh tố bơ sữa',
-        description: 'Bơ Đắk Lắk, sữa đặc, đá xay',
-        priceVnd: 40000,
-        categorySlug: 'drink',
-      ),
-
-      // ─── Tráng miệng ──────────────────────────────────────────────────────
       FoodItemModel(
         id: 14,
         name: 'Chè thái',
@@ -163,15 +184,27 @@ class HomeRepository {
         description: 'Flan mềm mịn, caramel đắng nhẹ',
         priceVnd: 25000,
         categorySlug: 'dessert',
-      ),
-      FoodItemModel(
-        id: 16,
-        name: 'Kem tươi matcha',
-        description: 'Matcha Nhật, kem tươi Hokkaido',
-        priceVnd: 45000,
-        categorySlug: 'dessert',
-        isAvailable: false,
+        isPopular: true,
       ),
     ];
+  }
+
+  Future<String> reverseGeocode(double lat, double lng) async {
+    try {
+      // Isolate.run() đã nằm trong ApiClient._handleResponse — không dùng lại ở đây
+      final data = await _nominatimClient.get(
+        '/reverse',
+        query: {
+          'format': 'json',
+          'lat': lat.toStringAsFixed(7),
+          'lon': lng.toStringAsFixed(7),
+          'zoom': '18',
+          'accept-language': 'vi',
+        },
+      );
+      return data['display_name']?.toString() ?? 'Không xác định được địa chỉ';
+    } catch (_) {
+      return 'Không xác định được địa chỉ';
+    }
   }
 }

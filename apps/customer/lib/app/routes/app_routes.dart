@@ -9,4 +9,5 @@ abstract class AppRoutes {
   static const orders = "/orders";
   static const notifications = "/notifications";
   static const profile = "/profile";
+  static const checkout = "/checkout";
 }

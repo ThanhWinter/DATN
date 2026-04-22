@@ -1,24 +1,13 @@
-import "package:core_network/core_network.dart";
-
 class AuthRepository {
-  AuthRepository(this._apiClient);
-
-  final IApiClient _apiClient;
-
   Future<String> login({
     required String email,
     required String password,
   }) async {
-    final response = await _apiClient.post(
-      "/admin/auth/login",
-      body: {"email": email, "password": password},
-    );
-
-    final token = response["token"]?.toString();
-    if (token == null || token.isEmpty) {
-      throw Exception("Missing token from admin login response");
+    await Future.delayed(const Duration(milliseconds: 800));
+    // TODO: mock data
+    if (email.isNotEmpty && password.isNotEmpty) {
+      return 'mock_admin_token_${DateTime.now().millisecondsSinceEpoch}';
     }
-
-    return token;
+    throw Exception('Email hoặc mật khẩu không đúng');
   }
 }

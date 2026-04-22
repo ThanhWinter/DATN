@@ -22,101 +22,131 @@ class CartItemCard extends GetView<CartController> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.grey300,
+    return Dismissible(
+      key: Key(item.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        color: AppColors.errorRed,
+        child: const Icon(Icons.delete_outline, color: AppColors.white, size: 22),
+      ),
+      onDismissed: (_) => controller.removeItem(item.id),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
               borderRadius: BorderRadius.circular(8),
+              child: item.imageUrl != null
+                  ? Image.network(
+                      item.imageUrl!,
+                      width: 68,
+                      height: 68,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _placeholder(),
+                    )
+                  : _placeholder(),
             ),
-            clipBehavior: Clip.antiAlias,
-            child: item.imageUrl != null
-                ? Image.network(item.imageUrl!, fit: BoxFit.cover)
-                : const Icon(Icons.fastfood, color: AppColors.grey600),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.name, style: AppTextStyles.bodyLarge),
-                if (item.note != null && item.note!.isNotEmpty)
-                  Text(item.note!, style: AppTextStyles.bodySmall),
-                const SizedBox(height: 4),
-                Text(
-                  '${item.price.toVnd()} ₫',
-                  style: AppTextStyles.labelLarge
-                      .copyWith(color: AppColors.primaryOrange),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Nút xoá sản phẩm
-              GestureDetector(
-                onTap: () => controller.removeItem(item.id),
-                child: const Icon(
-                  Icons.delete_outline,
-                  color: AppColors.grey600,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(height: 6),
-              // Điều chỉnh số lượng: nhấn số để nhập tay
-              Row(
-                mainAxisSize: MainAxisSize.min,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    onPressed: () => controller.decreaseQuantity(item.id),
-                    icon: const Icon(
-                      Icons.remove_circle_outline,
-                      color: AppColors.grey600,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    iconSize: 22,
+                  Text(
+                    item.name,
+                    style: AppTextStyles.bodyLarge
+                        .copyWith(fontWeight: FontWeight.w600),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 6),
-                  GestureDetector(
-                    onTap: _showQuantityDialog,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.grey300),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${item.quantity}',
-                        style: AppTextStyles.bodyLarge,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton(
-                    onPressed: () => controller.increaseQuantity(item.id),
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: AppColors.primaryOrange,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    iconSize: 22,
+                  if (item.note != null && item.note!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(item.note!, style: AppTextStyles.bodySmall),
+                  ],
+                  const SizedBox(height: 6),
+                  Text(
+                    '${item.price.toVnd()} ₫',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.primaryOrange),
                   ),
                 ],
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _QtyButton(
+                  icon: Icons.remove,
+                  onTap: () => controller.decreaseQuantity(item.id),
+                ),
+                GestureDetector(
+                  onTap: _showQuantityDialog,
+                  child: SizedBox(
+                    width: 28,
+                    child: Text(
+                      '${item.quantity}',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyLarge
+                          .copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                _QtyButton(
+                  icon: Icons.add,
+                  onTap: () => controller.increaseQuantity(item.id),
+                  filled: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholder() {
+    return Container(
+      width: 68,
+      height: 68,
+      color: AppColors.grey200,
+      child: const Icon(Icons.fastfood_outlined, color: AppColors.grey400, size: 28),
+    );
+  }
+}
+
+class _QtyButton extends StatelessWidget {
+  const _QtyButton({
+    required this.icon,
+    required this.onTap,
+    this.filled = false,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: filled ? AppColors.primaryOrange : AppColors.transparent,
+          border: filled
+              ? null
+              : Border.all(color: AppColors.grey300),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: filled ? AppColors.white : AppColors.textDark,
+        ),
       ),
     );
   }
