@@ -50,10 +50,21 @@ class OrderDetailSheet extends StatelessWidget {
                 controller: scrollCtrl,
                 children: [
                   _Section(title: 'Khách hàng', children: [
-                    _Row(icon: Icons.person_outline, text: order.customerName),
-                    _Row(icon: Icons.phone_outlined, text: order.customerPhone),
+                    _Row(icon: Icons.person_outline, text: order.customerName ?? 'Không rõ'),
+                    _Row(icon: Icons.phone_outlined, text: order.customerPhone ?? ''),
                     _Row(icon: Icons.location_on_outlined, text: order.deliveryAddress),
                     _Row(icon: Icons.access_time, text: _fmt(order.orderDate)),
+                    _Row(
+                      icon: order.paymentMethod == OrderModel.methodZaloPay
+                          ? Icons.account_balance_wallet_outlined
+                          : Icons.payments_outlined,
+                      text: order.paymentMethod == OrderModel.methodZaloPay
+                          ? 'Thanh toán: ZaloPay (Đã nhận tiền)'
+                          : 'Thanh toán: Tiền mặt (Thu khi giao)',
+                      color: order.paymentMethod == OrderModel.methodZaloPay
+                          ? Colors.blue
+                          : Colors.green,
+                    ),
                     if (order.note != null)
                       _Row(icon: Icons.sticky_note_2_outlined, text: order.note!),
                     if (order.couponCode != null)
@@ -141,7 +152,8 @@ class OrderDetailSheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (order.status == OrderModel.statusPending) ...[
+                  if (order.status == OrderModel.statusPending ||
+                      order.status == OrderModel.statusPaid) ...[
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
@@ -172,10 +184,10 @@ class OrderDetailSheet extends StatelessWidget {
   }
 
   String? _nextStatus(String current) => switch (current) {
-        OrderModel.statusPending => OrderModel.statusConfirmed,
-        OrderModel.statusConfirmed => OrderModel.statusPreparing,
-        OrderModel.statusPreparing => OrderModel.statusReady,
-        OrderModel.statusReady => OrderModel.statusDelivered,
+        OrderModel.statusPending => OrderModel.statusPreparing,
+        OrderModel.statusPaid => OrderModel.statusPreparing,
+        OrderModel.statusPreparing => OrderModel.statusDelivering,
+        OrderModel.statusDelivering => OrderModel.statusCompleted,
         _ => null,
       };
 }

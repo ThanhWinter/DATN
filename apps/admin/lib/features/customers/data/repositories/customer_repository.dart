@@ -1,52 +1,48 @@
+import 'dart:developer' as dev;
+
+import 'package:core_network/core_network.dart';
+
 import '../models/customer_model.dart';
 
 class CustomerRepository {
-  Future<List<CustomerModel>> fetchCustomers() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // TODO: mock data
-    return [
-      CustomerModel(
-        id: 'u001', firstName: 'Nguyễn Văn', lastName: 'An',
-        email: 'an.nguyen@gmail.com', phone: '0901234567',
-        createdAt: DateTime(2024, 1, 15),
-        totalOrders: 12, totalSpent: 850000,
-      ),
-      CustomerModel(
-        id: 'u002', firstName: 'Trần Thị', lastName: 'Bình',
-        email: 'binh.tran@gmail.com', phone: '0912345678',
-        createdAt: DateTime(2024, 3, 20), gender: 2,
-        totalOrders: 5, totalSpent: 320000,
-      ),
-      CustomerModel(
-        id: 'u003', firstName: 'Lê Hoàng', lastName: 'Cường',
-        email: 'cuong.le@gmail.com', phone: '0923456789',
-        createdAt: DateTime(2024, 5, 10),
-        totalOrders: 28, totalSpent: 2100000,
-      ),
-      CustomerModel(
-        id: 'u004', firstName: 'Phạm Minh', lastName: 'Đức',
-        email: 'duc.pham@gmail.com', phone: '0934567890',
-        createdAt: DateTime(2024, 6, 3),
-        totalOrders: 3, totalSpent: 195000,
-      ),
-      CustomerModel(
-        id: 'u005', firstName: 'Hoàng Thị', lastName: 'Lan',
-        email: 'lan.hoang@gmail.com', phone: '0945678901',
-        createdAt: DateTime(2024, 7, 22), gender: 2,
-        totalOrders: 17, totalSpent: 1230000,
-      ),
-      CustomerModel(
-        id: 'u006', firstName: 'Võ Thanh', lastName: 'Hà',
-        email: 'ha.vo@gmail.com', phone: '0956789012',
-        createdAt: DateTime(2024, 8, 5), gender: 2,
-        totalOrders: 8, totalSpent: 540000,
-      ),
-      CustomerModel(
-        id: 'u007', firstName: 'Đặng Quốc', lastName: 'Toản',
-        email: 'toan.dang@gmail.com', phone: '0967890123',
-        createdAt: DateTime(2024, 9, 14),
-        totalOrders: 1, totalSpent: 65000,
-      ),
-    ];
+  CustomerRepository(this._apiClient);
+
+  final IApiClient _apiClient;
+
+  /// GET /users — Spring Page response: result.content = List<UserResponse>
+  /// NOTE: Backend UserResponse chưa có trường `id` — CustomerModel.id sẽ dùng email
+  /// làm fallback cho đến khi backend thêm id vào UserResponse.
+  Future<List<CustomerModel>> fetchCustomers({int page = 0, int size = 50}) async {
+    dev.log('[CUSTOMER/REPO] Fetching customers... page=$page size=$size');
+    final res = await _apiClient.get(
+      '/users',
+      query: {'page': '$page', 'size': '$size'},
+    );
+
+    // Tuỳ backend trả List thẳng hay Page object
+    final result = res['result'];
+    final List<dynamic> list = result is List
+        ? result
+        : (result as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+
+    dev.log('[CUSTOMER/REPO] ✅ Got ${list.length} customers');
+    return list
+        .map((e) => CustomerModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<CustomerModel> getCustomerDetail(String id) async {
+    dev.log('[CUSTOMER/REPO] Fetching customer detail: $id');
+    final res = await _apiClient.get('/users/$id');
+    final model =
+        CustomerModel.fromJson(res['result'] as Map<String, dynamic>);
+    dev.log('[CUSTOMER/REPO] ✅ Customer detail loaded: ${model.email}');
+    return model;
+  }
+
+  Future<void> deleteCustomer(String id) async {
+    dev.log('[CUSTOMER/REPO] Deleting customer id=$id');
+    await _apiClient.delete('/users/$id');
+    dev.log('[CUSTOMER/REPO] ✅ Customer $id deleted');
   }
 }

@@ -34,6 +34,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
     return Scaffold(
       body: Stack(
         children: [
+          // ── Background Gradient ────────────────────────────────────────────
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -49,101 +50,129 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
               ),
             ),
           ),
+
+          // ── Nội dung chính ─────────────────────────────────────────────────
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAppBar(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'Đặt lại mật khẩu',
-                        style: AppTextStyles.h1.copyWith(
-                          fontSize: 28,
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Nhập mật khẩu mới cho tài khoản admin của bạn.',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      
-                      Obx(() => _buildInputSection(
-                            child: GlassInputField(
-                              controller: _passCtrl,
-                              hintText: 'Mật khẩu mới',
-                              svgPath: AppIcons.lockSvg,
-                              obscureText: !controller.isPasswordVisible.value,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  controller.isPasswordVisible.value
-                                      ? AppIcons.visibilityOn
-                                      : AppIcons.visibilityOff,
-                                  color: AppColors.white.withValues(alpha: 0.7),
-                                  size: 22,
-                                ),
-                                onPressed: controller.togglePasswordVisibility,
+
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+
+                        Text(
+                          'Đặt lại mật khẩu',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            shadows: [
+                              Shadow(
+                                color: AppColors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
                               ),
-                            ),
-                            errorText: controller.passwordError.value,
-                          )),
-                      
-                      const SizedBox(height: 16),
-                      
-                      Obx(() => _buildInputSection(
-                            child: GlassInputField(
-                              controller: _confirmPassCtrl,
-                              hintText: 'Xác nhận mật khẩu mới',
-                              svgPath: AppIcons.lockSvg,
-                              obscureText: !controller.isConfirmPasswordVisible.value,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  controller.isConfirmPasswordVisible.value
-                                      ? AppIcons.visibilityOn
-                                      : AppIcons.visibilityOff,
-                                  color: AppColors.white.withValues(alpha: 0.7),
-                                  size: 22,
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                          'Nhập mật khẩu mới cho tài khoản admin của bạn.',
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: AppColors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // ── Mật khẩu mới ──────────────────────────────────────
+                        Obx(() => _buildInputSection(
+                              child: GlassInputField(
+                                controller: _passCtrl,
+                                hintText: 'Mật khẩu mới',
+                                svgPath: AppIcons.lockSvg,
+                                obscureText: !controller.isPasswordVisible.value,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    controller.isPasswordVisible.value
+                                        ? AppIcons.visibilityOn
+                                        : AppIcons.visibilityOff,
+                                    color: AppColors.white.withValues(alpha: 0.7),
+                                    size: 22,
+                                  ),
+                                  onPressed: controller.togglePasswordVisibility,
                                 ),
-                                onPressed: controller.toggleConfirmPasswordVisibility,
                               ),
-                            ),
-                            errorText: controller.confirmPasswordError.value,
-                          )),
-                      
-                      const SizedBox(height: 32),
-                      
-                      Obx(() => GradientActionButton(
-                            svgPath: AppIcons.lockSvg,
-                            iconColor: AppColors.primaryOrange,
-                            text: 'Đổi mật khẩu',
-                            isPrimary: true,
-                            onTap: controller.isLoading.value
-                                ? () {}
-                                : () => controller.resetPassword(
-                                      newPassword: _passCtrl.text,
-                                      confirmPassword: _confirmPassCtrl.text,
-                                    ),
-                          )),
-                    ],
+                              errorText: controller.passwordError.value,
+                            )),
+
+                        const SizedBox(height: 16),
+
+                        // ── Xác nhận mật khẩu ─────────────────────────────────
+                        Obx(() => _buildInputSection(
+                              child: GlassInputField(
+                                controller: _confirmPassCtrl,
+                                hintText: 'Xác nhận mật khẩu mới',
+                                svgPath: AppIcons.lockSvg,
+                                obscureText:
+                                    !controller.isConfirmPasswordVisible.value,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    controller.isConfirmPasswordVisible.value
+                                        ? AppIcons.visibilityOn
+                                        : AppIcons.visibilityOff,
+                                    color: AppColors.white.withValues(alpha: 0.7),
+                                    size: 22,
+                                  ),
+                                  onPressed:
+                                      controller.toggleConfirmPasswordVisibility,
+                                ),
+                              ),
+                              errorText: controller.confirmPasswordError.value,
+                            )),
+
+                        const SizedBox(height: 40),
+
+                        // ── Nút Đổi mật khẩu ──────────────────────────────────
+                        Obx(() => GradientActionButton(
+                              svgPath: AppIcons.lockSvg,
+                              iconColor: AppColors.primaryOrange,
+                              text: 'Đổi mật khẩu',
+                              isPrimary: true,
+                              onTap: controller.isLoading.value
+                                  ? () {}
+                                  : () => controller.resetPassword(
+                                        newPassword: _passCtrl.text,
+                                        confirmPassword: _confirmPassCtrl.text,
+                                      ),
+                            )),
+
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+
+          // ── Loading Overlay ────────────────────────────────────────────────
           Obx(() => controller.isLoading.value
               ? Container(
-                  color: AppColors.black.withValues(alpha: 0.5),
+                  color: AppColors.black54,
                   child: const Center(
-                    child: CircularProgressIndicator(color: AppColors.white),
+                    child: CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 3,
+                    ),
                   ),
                 )
               : const SizedBox.shrink()),

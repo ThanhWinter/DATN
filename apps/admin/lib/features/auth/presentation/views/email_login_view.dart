@@ -229,11 +229,15 @@ class _EmailLoginViewState extends State<EmailLoginView> {
           ),
 
           // Loading Overlay
+          // ── Loading Overlay ────────────────────────────────────────────────
           Obx(() => controller.isLoading.value
               ? Container(
-                  color: AppColors.black.withValues(alpha: 0.5),
+                  color: AppColors.black54,
                   child: const Center(
-                    child: CircularProgressIndicator(color: AppColors.white),
+                    child: CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 3,
+                    ),
                   ),
                 )
               : const SizedBox.shrink()),

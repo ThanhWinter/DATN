@@ -52,58 +52,73 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAppBar(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'Quên mật khẩu',
-                        style: AppTextStyles.h1.copyWith(
-                          fontSize: 28,
-                          color: AppColors.white,
-                          fontWeight: FontWeight.bold,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          'Quên mật khẩu',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            shadows: [
+                              Shadow(
+                                color: AppColors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Nhập email quản trị để nhận mã xác thực khôi phục mật khẩu.',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppColors.white.withValues(alpha: 0.8),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Nhập email quản trị để nhận mã xác thực khôi phục mật khẩu.',
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: AppColors.white.withValues(alpha: 0.8),
+                            height: 1.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      Obx(() => _buildInputSection(
-                            child: GlassInputField(
-                              controller: _emailCtrl,
-                              hintText: 'Nhập email của bạn',
-                              svgPath: AppIcons.emailSvg,
-                              keyboardType: TextInputType.emailAddress,
-                            ),
-                            errorText: controller.emailError.value,
-                          )),
-                      const SizedBox(height: 32),
-                      Obx(() => GradientActionButton(
-                            icon: AppIcons.send,
-                            iconColor: AppColors.primaryOrange,
-                            text: 'Gửi mã xác thực',
-                            isPrimary: true,
-                            onTap: controller.isLoading.value
-                                ? () {}
-                                : () => controller.sendOtp(_emailCtrl.text),
-                          )),
-                    ],
+                        const SizedBox(height: 40),
+                        Obx(() => _buildInputSection(
+                              child: GlassInputField(
+                                controller: _emailCtrl,
+                                hintText: 'Nhập email của bạn',
+                                svgPath: AppIcons.emailSvg,
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                              errorText: controller.emailError.value,
+                            )),
+                        const SizedBox(height: 40),
+                        Obx(() => GradientActionButton(
+                              icon: AppIcons.send,
+                              iconColor: AppColors.primaryOrange,
+                              text: 'Gửi mã xác thực',
+                              isPrimary: true,
+                              onTap: controller.isLoading.value
+                                  ? () {}
+                                  : () => controller.sendOtp(_emailCtrl.text),
+                            )),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          // ── Loading Overlay ────────────────────────────────────────────────
           Obx(() => controller.isLoading.value
               ? Container(
-                  color: AppColors.black.withValues(alpha: 0.5),
+                  color: AppColors.black54,
                   child: const Center(
-                    child: CircularProgressIndicator(color: AppColors.white),
+                    child: CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 3,
+                    ),
                   ),
                 )
               : const SizedBox.shrink()),

@@ -332,7 +332,7 @@ class _RegisterViewState extends State<RegisterView> {
           // ── Loading Overlay ────────────────────────────────────────────────
           Obx(() => controller.isLoading.value
               ? Container(
-                  color: AppColors.black.withValues(alpha: 0.5),
+                  color: AppColors.black54,
                   child: const Center(
                     child: CircularProgressIndicator(
                       color: AppColors.white,

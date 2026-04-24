@@ -61,7 +61,9 @@ class RegisterController extends GetxController {
       phone: phone,
       password: password,
       confirmPassword: confirmPassword,
-    )) return;
+    )) {
+      return;
+    }
 
     isLoading.value = true;
     try {

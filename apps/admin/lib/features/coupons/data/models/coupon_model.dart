@@ -31,4 +31,17 @@ class CouponModel {
   String get displayValue => discountType == typePercent
       ? '${discountValue.toInt()}%'
       : '${discountValue.toInt()}đ';
+
+  factory CouponModel.fromJson(Map<String, dynamic> json) => CouponModel(
+        id: json['id'] as String? ?? '',
+        code: json['code'] as String,
+        discountType: json['discountType'] as String,
+        discountValue: (json['discountValue'] as num).toDouble(),
+        expiresAt: DateTime.parse(json['expiresAt'] as String),
+        minOrderValue: (json['minOrderValue'] as num?)?.toDouble(),
+        maxDiscount: (json['maxDiscount'] as num?)?.toDouble(),
+        usageLimit: (json['usageLimit'] as num?)?.toInt(),
+        usedCount: (json['usedCount'] as num?)?.toInt() ?? 0,
+        isActive: json['isActive'] as bool? ?? true,
+      );
 }

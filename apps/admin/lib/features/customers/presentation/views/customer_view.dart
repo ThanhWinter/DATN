@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../data/models/customer_model.dart';
 import '../controllers/customer_controller.dart';
+import '../widgets/customer_detail_sheet.dart';
 
 class CustomerView extends GetView<CustomerController> {
   const CustomerView({super.key});
@@ -71,6 +72,37 @@ class _CustomerCard extends GetView<CustomerController> {
 
   final CustomerModel customer;
 
+  void _showDetail() {
+    Get.bottomSheet(
+      CustomerDetailSheet(customer: customer),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Xoá khách hàng'),
+        content: Text('Bạn muốn xoá "${customer.fullName}"?'),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('Huỷ')),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteCustomer(customer.id);
+            },
+            child: const Text('Xoá', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -121,12 +153,14 @@ class _CustomerCard extends GetView<CustomerController> {
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: AppColors.grey600),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               onSelected: (v) {
+                if (v == 'view') _showDetail();
                 if (v == 'delete') _confirmDelete(context);
               },
-              itemBuilder: (_) => [
-                const PopupMenuItem(
+              itemBuilder: (_) => const [
+                PopupMenuItem(
                   value: 'view',
                   child: Row(children: [
                     Icon(Icons.visibility_outlined, size: 18),
@@ -134,7 +168,7 @@ class _CustomerCard extends GetView<CustomerController> {
                     Text('Xem chi tiết'),
                   ]),
                 ),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
                     Icon(Icons.delete_outline, size: 18, color: Colors.red),
@@ -146,26 +180,6 @@ class _CustomerCard extends GetView<CustomerController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Xoá khách hàng'),
-        content: Text('Bạn muốn xoá "${customer.fullName}"?'),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Huỷ')),
-          TextButton(
-            onPressed: () {
-              controller.deleteCustomer(customer.id);
-              Get.back();
-            },
-            child: const Text('Xoá', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }
@@ -185,10 +199,11 @@ class _Stat extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: color ?? AppColors.grey600),
         const SizedBox(width: 3),
-        Text(label,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: color ?? AppColors.textGrey,
-            )),
+        Text(
+          label,
+          style: AppTextStyles.bodySmall
+              .copyWith(color: color ?? AppColors.textGrey),
+        ),
       ],
     );
   }

@@ -49,16 +49,43 @@ class OrderCard extends StatelessWidget {
                   OrderStatusBadge(status: order.status),
                 ],
               ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(
+                    order.paymentMethod == OrderModel.methodZaloPay
+                        ? Icons.account_balance_wallet_outlined
+                        : Icons.payments_outlined,
+                    size: 12,
+                    color: order.paymentMethod == OrderModel.methodZaloPay
+                        ? Colors.blue
+                        : Colors.green,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    order.paymentMethod == OrderModel.methodZaloPay
+                        ? 'Đã thanh toán (ZaloPay)'
+                        : 'Thanh toán tiền mặt',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      fontSize: 11,
+                      color: order.paymentMethod == OrderModel.methodZaloPay
+                          ? Colors.blue
+                          : Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   const Icon(Icons.person_outline, size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
-                  Text(order.customerName, style: AppTextStyles.bodyMedium),
+                  Text(order.customerName ?? 'Không rõ', style: AppTextStyles.bodyMedium),
                   const SizedBox(width: 12),
                   const Icon(Icons.phone_outlined, size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
-                  Text(order.customerPhone, style: AppTextStyles.bodySmall),
+                  Text(order.customerPhone ?? '', style: AppTextStyles.bodySmall),
                 ],
               ),
               const SizedBox(height: 4),
@@ -127,10 +154,10 @@ class OrderCard extends StatelessWidget {
   }
 
   String? _nextStatus(String current) => switch (current) {
-        OrderModel.statusPending => OrderModel.statusConfirmed,
-        OrderModel.statusConfirmed => OrderModel.statusPreparing,
-        OrderModel.statusPreparing => OrderModel.statusReady,
-        OrderModel.statusReady => OrderModel.statusDelivered,
+        OrderModel.statusPending => OrderModel.statusPreparing,
+        OrderModel.statusPaid => OrderModel.statusPreparing,
+        OrderModel.statusPreparing => OrderModel.statusDelivering,
+        OrderModel.statusDelivering => OrderModel.statusCompleted,
         _ => null,
       };
 }

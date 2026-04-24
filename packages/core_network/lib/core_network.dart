@@ -4,6 +4,14 @@ import "dart:developer" as dev;
 
 import "package:http/http.dart" as http;
 
+/// Record dùng cho multipart file upload.
+typedef MultipartFileData = ({
+  String field,
+  List<int> bytes,
+  String filename,
+  String contentType,
+});
+
 abstract class IApiClient {
   Future<Map<String, dynamic>> get(
     String path, {
@@ -17,10 +25,39 @@ abstract class IApiClient {
     Map<String, dynamic>? body,
   });
 
-  void updateToken(String? token);
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  });
 
+  /// [query] merge vào query params của URL (giữ nguyên params có sẵn trong path).
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+    Map<String, String>? query,
+  });
+
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, String>? headers,
+  });
+
+  /// Upload multipart/form-data. Bytes đã có trong RAM nên retry an toàn khi token hết hạn.
+  Future<Map<String, dynamic>> multipartPost(
+    String path, {
+    Map<String, String>? fields,
+    List<MultipartFileData>? files,
+  });
+
+  void updateToken(String? token);
   void setRefreshToken(String? refreshToken);
 }
+
+// =========================================================================
+// AuthHttpClient — tự động đính Bearer token vào mọi request (kể cả multipart).
+// =========================================================================
 
 class AuthHttpClient extends http.BaseClient {
   AuthHttpClient({http.Client? inner, this.token})
@@ -34,21 +71,20 @@ class AuthHttpClient extends http.BaseClient {
     if (token != null && token!.isNotEmpty) {
       request.headers['Authorization'] = 'Bearer $token';
     }
-
-    dev.log("🚀 [API REQUEST] ${request.method} ${request.url}");
-    if (request is http.Request && request.body.isNotEmpty) {
-      dev.log("📦 [BODY] ${request.body}");
-    }
-
+    dev.log('🚀 [API] ${request.method} ${request.url}');
     return _inner.send(request);
   }
 }
+
+// =========================================================================
+// ApiClient — triển khai đầy đủ IApiClient.
+// =========================================================================
 
 class ApiClient implements IApiClient {
   ApiClient({
     required this.baseUrl,
     http.Client? httpClient,
-    this.defaultHeaders = const {"Content-Type": "application/json"},
+    this.defaultHeaders = const {'Content-Type': 'application/json'},
     String? token,
     String? refreshToken,
     this.onTokenRefreshed,
@@ -62,70 +98,150 @@ class ApiClient implements IApiClient {
   String? _refreshToken;
   bool _isRefreshing = false;
 
-  /// Gọi sau khi refresh token thành công để app lưu token mới.
   final Future<void> Function(String accessToken, String? refreshToken)?
       onTokenRefreshed;
-
-  /// Gọi khi refresh thất bại — app nên xóa auth và chuyển về login.
   final Future<void> Function()? onAuthFailed;
 
   @override
-  void updateToken(String? token) {
-    _httpClient.token = token;
-  }
+  void updateToken(String? token) => _httpClient.token = token;
 
   @override
-  void setRefreshToken(String? refreshToken) {
-    _refreshToken = refreshToken;
-  }
+  void setRefreshToken(String? refreshToken) => _refreshToken = refreshToken;
+
+  // -----------------------------------------------------------------------
+  // GET
+  // -----------------------------------------------------------------------
 
   @override
   Future<Map<String, dynamic>> get(
     String path, {
     Map<String, String>? headers,
     Map<String, String>? query,
-  }) async {
-    return _withAutoRefresh(() async {
-      final response = await _httpClient.get(
-        _buildUri(path, query),
-        headers: {...defaultHeaders, ...?headers},
-      );
-      return _handleResponse(response);
-    });
-  }
+  }) =>
+      _withAutoRefresh(() async {
+        final res = await _httpClient.get(
+          _buildUri(path, query),
+          headers: {...defaultHeaders, ...?headers},
+        );
+        return _handleResponse(res);
+      });
+
+  // -----------------------------------------------------------------------
+  // POST
+  // -----------------------------------------------------------------------
 
   @override
   Future<Map<String, dynamic>> post(
     String path, {
     Map<String, String>? headers,
     Map<String, dynamic>? body,
-  }) async {
-    return _withAutoRefresh(() async {
-      final response = await _httpClient.post(
-        _buildUri(path),
-        headers: {...defaultHeaders, ...?headers},
-        body: jsonEncode(body ?? <String, dynamic>{}),
-      );
-      return _handleResponse(response);
-    });
-  }
+  }) =>
+      _withAutoRefresh(() async {
+        final res = await _httpClient.post(
+          _buildUri(path),
+          headers: {...defaultHeaders, ...?headers},
+          body: jsonEncode(body ?? <String, dynamic>{}),
+        );
+        return _handleResponse(res);
+      });
 
-  // =====================================================================
-  // AUTO-REFRESH: Khi gặp 401 → tự gọi /auth/refresh-token → retry
-  // =====================================================================
+  // -----------------------------------------------------------------------
+  // PUT
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) =>
+      _withAutoRefresh(() async {
+        final res = await _httpClient.put(
+          _buildUri(path),
+          headers: {...defaultHeaders, ...?headers},
+          body: jsonEncode(body ?? <String, dynamic>{}),
+        );
+        return _handleResponse(res);
+      });
+
+  // -----------------------------------------------------------------------
+  // PATCH  — hỗ trợ query params (dùng cho /orders/{id}/status?status=X)
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+    Map<String, String>? query,
+  }) =>
+      _withAutoRefresh(() async {
+        final res = await _httpClient.patch(
+          _buildUri(path, query),
+          headers: {...defaultHeaders, ...?headers},
+          body: body != null ? jsonEncode(body) : null,
+        );
+        return _handleResponse(res);
+      });
+
+  // -----------------------------------------------------------------------
+  // DELETE
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, String>? headers,
+  }) =>
+      _withAutoRefresh(() async {
+        final res = await _httpClient.delete(
+          _buildUri(path),
+          headers: {...defaultHeaders, ...?headers},
+        );
+        return _handleResponse(res);
+      });
+
+  // -----------------------------------------------------------------------
+  // MULTIPART POST
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<Map<String, dynamic>> multipartPost(
+    String path, {
+    Map<String, String>? fields,
+    List<MultipartFileData>? files,
+  }) =>
+      _withAutoRefresh(() async {
+        final request = http.MultipartRequest('POST', _buildUri(path));
+        if (fields != null) request.fields.addAll(fields);
+        if (files != null) {
+          for (final f in files) {
+            request.files.add(http.MultipartFile.fromBytes(
+              f.field,
+              f.bytes,
+              filename: f.filename,
+            ));
+          }
+        }
+        dev.log('🚀 [API MULTIPART] POST ${request.url} | fields: ${request.fields.keys.toList()}');
+        final streamed = await _httpClient.send(request);
+        final res = await http.Response.fromStream(streamed);
+        return _handleResponse(res);
+      });
+
+  // =========================================================================
+  // AUTO-REFRESH: 401 → refresh token → retry một lần
+  // =========================================================================
 
   Future<Map<String, dynamic>> _withAutoRefresh(
-    Future<Map<String, dynamic>> Function() request,
+    Future<Map<String, dynamic>> Function() call,
   ) async {
     try {
-      return await request();
+      return await call();
     } on ApiException catch (e) {
       if (e.statusCode == 401 && _refreshToken != null && !_isRefreshing) {
-        dev.log("🔄 [TOKEN] Access token hết hạn — đang refresh...");
-        final refreshed = await _tryRefreshToken();
-        if (refreshed) {
-          return await request();
-        }
+        dev.log('🔄 [TOKEN] Access token hết hạn — đang refresh...');
+        if (await _tryRefreshToken()) return await call();
       }
       rethrow;
     }
@@ -134,39 +250,33 @@ class ApiClient implements IApiClient {
   Future<bool> _tryRefreshToken() async {
     _isRefreshing = true;
     try {
-      final response = await _httpClient.post(
-        _buildUri("/auth/refresh-token"),
+      final res = await _httpClient.post(
+        _buildUri('/auth/refresh-token'),
         headers: defaultHeaders,
-        body: jsonEncode({"refreshToken": _refreshToken}),
+        body: jsonEncode({'refreshToken': _refreshToken}),
       );
-
-      final rawBody = response.body;
-      final data = rawBody.isEmpty
+      final body = res.body;
+      final data = body.isEmpty
           ? <String, dynamic>{}
-          : await Isolate.run(
-              () => jsonDecode(rawBody) as Map<String, dynamic>);
+          : await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final result = data["result"] as Map<String, dynamic>?;
-        final newAccessToken = result?["accessToken"] as String?;
-        final newRefreshToken = result?["refreshToken"] as String?;
-
-        if (newAccessToken != null && newAccessToken.isNotEmpty) {
-          _httpClient.token = newAccessToken;
-          if (newRefreshToken != null) {
-            _refreshToken = newRefreshToken;
-          }
-          dev.log("✅ [TOKEN] Refresh thành công");
-          await onTokenRefreshed?.call(newAccessToken, newRefreshToken);
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final result = data['result'] as Map<String, dynamic>?;
+        final newAccess = result?['accessToken'] as String?;
+        final newRefresh = result?['refreshToken'] as String?;
+        if (newAccess != null && newAccess.isNotEmpty) {
+          _httpClient.token = newAccess;
+          if (newRefresh != null) _refreshToken = newRefresh;
+          dev.log('✅ [TOKEN] Refresh thành công');
+          await onTokenRefreshed?.call(newAccess, newRefresh);
           return true;
         }
       }
-
-      dev.log("❌ [TOKEN] Refresh thất bại — status ${response.statusCode}");
+      dev.log('❌ [TOKEN] Refresh thất bại — status ${res.statusCode}');
       await onAuthFailed?.call();
       return false;
     } catch (e) {
-      dev.log("❌ [TOKEN] Refresh exception: $e");
+      dev.log('❌ [TOKEN] Refresh exception: $e');
       await onAuthFailed?.call();
       return false;
     } finally {
@@ -174,38 +284,46 @@ class ApiClient implements IApiClient {
     }
   }
 
-  Uri _buildUri(String path, [Map<String, String>? query]) {
-    return Uri.parse("$baseUrl$path").replace(queryParameters: query);
+  // =========================================================================
+  // HELPERS
+  // =========================================================================
+
+  /// Merge query params trong [path] với [extra], không xoá params có sẵn.
+  Uri _buildUri(String path, [Map<String, String>? extra]) {
+    final uri = Uri.parse('$baseUrl$path');
+    if (extra == null || extra.isEmpty) return uri;
+    return uri.replace(
+      queryParameters: {...uri.queryParameters, ...extra},
+    );
   }
 
-  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
-    final body = response.body;
+  Future<Map<String, dynamic>> _handleResponse(http.Response res) async {
+    final body = res.body;
+    dev.log('${res.statusCode >= 200 && res.statusCode < 300 ? '✅' : '❌'} [API] ${res.statusCode} ${res.request?.url}');
+    if (body.isNotEmpty) dev.log('📝 [RESULT] $body');
 
-    dev.log("✅ [API RESPONSE] ${response.statusCode} ${response.request?.url}");
-    if (body.isNotEmpty) {
-      dev.log("📝 [RESULT] $body");
-    }
+    if (res.statusCode == 204) return <String, dynamic>{};
 
     final data = body.isEmpty
         ? <String, dynamic>{}
         : await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return data;
-    }
-
-    dev.log("❌ [API ERROR] ${response.statusCode} - ${data["message"]}");
+    if (res.statusCode >= 200 && res.statusCode < 300) return data;
 
     throw ApiException(
-      statusCode: response.statusCode,
-      message: data["message"]?.toString() ?? "Unexpected API error",
+      statusCode: res.statusCode,
+      message: data['message']?.toString() ?? 'Unexpected API error',
       payload: data,
     );
   }
 }
 
+// =========================================================================
+// ApiException
+// =========================================================================
+
 class ApiException implements Exception {
-  ApiException({
+  const ApiException({
     required this.statusCode,
     required this.message,
     this.payload,
@@ -216,7 +334,5 @@ class ApiException implements Exception {
   final Map<String, dynamic>? payload;
 
   @override
-  String toString() {
-    return "ApiException($statusCode): $message";
-  }
+  String toString() => 'ApiException($statusCode): $message';
 }

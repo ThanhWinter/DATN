@@ -1,3 +1,6 @@
+import 'dart:developer' as dev;
+
+import 'package:core_ui/core_ui.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/customer_model.dart';
@@ -10,11 +13,15 @@ class CustomerController extends GetxController {
 
   final isLoading = true.obs;
   final error = Rxn<String>();
+  final isMutating = false.obs;
 
-  // TODO: mock data
   final allCustomers = <CustomerModel>[].obs;
   final filteredCustomers = <CustomerModel>[].obs;
   final searchQuery = ''.obs;
+
+  // Detail sheet state
+  final selectedCustomer = Rxn<CustomerModel>();
+  final isLoadingDetail = false.obs;
 
   @override
   void onInit() {
@@ -23,12 +30,15 @@ class CustomerController extends GetxController {
   }
 
   Future<void> loadCustomers() async {
+    dev.log('[CUSTOMER/VM] Loading customers...');
     isLoading.value = true;
     error.value = null;
     try {
       allCustomers.value = await _repository.fetchCustomers();
-      filteredCustomers.value = List.of(allCustomers);
+      _applySearch(searchQuery.value);
+      dev.log('[CUSTOMER/VM] ✅ Loaded ${allCustomers.length} customers');
     } catch (e) {
+      dev.log('[CUSTOMER/VM] ❌ loadCustomers error: $e');
       error.value = e.toString();
     } finally {
       isLoading.value = false;
@@ -37,7 +47,11 @@ class CustomerController extends GetxController {
 
   void search(String q) {
     searchQuery.value = q;
-    final lower = q.toLowerCase();
+    _applySearch(q);
+  }
+
+  void _applySearch(String q) {
+    final lower = q.toLowerCase().trim();
     filteredCustomers.value = lower.isEmpty
         ? List.of(allCustomers)
         : allCustomers
@@ -48,8 +62,42 @@ class CustomerController extends GetxController {
             .toList();
   }
 
-  void deleteCustomer(String id) {
-    allCustomers.removeWhere((c) => c.id == id);
-    filteredCustomers.removeWhere((c) => c.id == id);
+  Future<void> loadCustomerDetail(String id) async {
+    dev.log('[CUSTOMER/VM] Loading detail for id=$id');
+    isLoadingDetail.value = true;
+    selectedCustomer.value = null;
+    try {
+      selectedCustomer.value = await _repository.getCustomerDetail(id);
+      dev.log('[CUSTOMER/VM] ✅ Detail loaded: ${selectedCustomer.value?.email}');
+    } catch (e) {
+      dev.log('[CUSTOMER/VM] ❌ loadCustomerDetail error: $e');
+      Get.snackbar('Lỗi', 'Không thể tải thông tin khách hàng: $e',
+          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+    } finally {
+      isLoadingDetail.value = false;
+    }
+  }
+
+  Future<void> deleteCustomer(String id) async {
+    dev.log('[CUSTOMER/VM] Deleting customer id=$id');
+    isMutating.value = true;
+    try {
+      await _repository.deleteCustomer(id);
+      allCustomers.removeWhere((c) => c.id == id);
+      filteredCustomers.removeWhere((c) => c.id == id);
+      Get.snackbar(
+        'Đã xoá',
+        'Khách hàng đã bị xoá khỏi hệ thống',
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.white,
+      );
+      dev.log('[CUSTOMER/VM] ✅ Customer $id deleted');
+    } catch (e) {
+      dev.log('[CUSTOMER/VM] ❌ deleteCustomer error: $e');
+      Get.snackbar('Lỗi', 'Không thể xoá khách hàng: $e',
+          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+    } finally {
+      isMutating.value = false;
+    }
   }
 }
