@@ -3,11 +3,8 @@ import "package:flutter/material.dart";
 import "package:get/get.dart";
 
 import "../../../../app/routes/app_routes.dart";
-import "../controllers/auth_controller.dart";
 
-/// Màn hình đăng nhập Customer — thiết kế gradient cam
-/// lấy cảm hứng từ shipper_app login của fo_mobile.
-class LoginView extends GetView<AuthController> {
+class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
   @override
@@ -36,27 +33,11 @@ class LoginView extends GetView<AuthController> {
           SafeArea(
             child: Column(
               children: [
-                // Top: Logo / Tagline
                 _buildHeaderSection(),
-
-                // Bottom: Login Form + Buttons
                 _buildFormSection(),
               ],
             ),
           ),
-
-          // ── Loading Overlay ────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
         ],
       ),
     );
@@ -187,20 +168,11 @@ class LoginView extends GetView<AuthController> {
 
           // ── Đăng nhập bằng Email ─────────────────────
           GradientActionButton(
-            icon: Icons.email_outlined,
+            svgPath: AppIcons.emailSvg,
             iconColor: AppColors.primaryOrange,
             text: "Đăng nhập bằng Email",
             isPrimary: true,
             onTap: () => Get.toNamed(AppRoutes.emailLogin),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── Đăng nhập bằng Google ────────────────────
-          GoogleSignInButton(
-            onTap: () {
-              // TODO: Implement Google Sign In
-            },
           ),
 
           const SizedBox(height: 16),
@@ -212,7 +184,7 @@ class LoginView extends GetView<AuthController> {
 
           // ── Đăng ký tài khoản mới ────────────────────
           GradientActionButton(
-            icon: Icons.person_add_outlined,
+            svgPath: AppIcons.accountSvg,
             iconColor: AppColors.white,
             text: "Đăng ký tài khoản mới",
             isPrimary: false,

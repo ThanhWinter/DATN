@@ -1,30 +1,92 @@
+import "dart:developer" as dev;
+
+import "package:core_network/core_network.dart";
+import "package:core_ui/core_ui.dart";
 import "package:get/get.dart";
 
 import "../../../../app/routes/app_routes.dart";
+import "../../../../app/services/auth_service.dart";
+import "../../data/repositories/auth_repository.dart";
 
 class EmailLoginController extends GetxController {
+  EmailLoginController(this._authRepository, this._authService);
+
+  final AuthRepository _authRepository;
+  final AuthService _authService;
+
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
+  final rememberMe = false.obs;
   final emailError = "".obs;
   final passwordError = "".obs;
 
+  /// Callback để View cập nhật TextEditingController khi load được credentials cũ
+  void Function(String email, String password)? onSavedCredentialsLoaded;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final creds = await _authService.getSavedCredentials();
+    if (creds['email'] != null && creds['password'] != null) {
+      rememberMe.value = true;
+      onSavedCredentialsLoaded?.call(creds['email']!, creds['password']!);
+    }
+  }
+
   void togglePasswordVisibility() => isPasswordVisible.toggle();
+  void toggleRememberMe() => rememberMe.toggle();
 
   Future<void> login({
     required String email,
     required String password,
   }) async {
     if (!_validate(email, password)) return;
+
+    dev.log("[AUTH/LOGIN] Attempting login for: $email");
     isLoading.value = true;
     try {
-      // TODO: Call AuthRepository.login(email, password)
+      final tokenResponse = await _authRepository.login(
+        email: email.trim(),
+        password: password,
+        rememberMe: rememberMe.value,
+      );
+      dev.log("[AUTH/LOGIN] ✅ Token received — saving to secure storage");
+
+      await _authService.saveToken(
+        tokenResponse.accessToken,
+        refreshToken: tokenResponse.refreshToken,
+      );
+
+      // Đồng bộ token vào ApiClient để các API call tiếp theo có auth
+      final apiClient = Get.find<IApiClient>();
+      apiClient.updateToken(tokenResponse.accessToken);
+      apiClient.setRefreshToken(tokenResponse.refreshToken);
+
+      // Xử lý Ghi nhớ mật khẩu
+      if (rememberMe.value) {
+        await _authService.saveCredentials(email.trim(), password);
+      } else {
+        await _authService.clearSavedCredentials();
+      }
+
       await Future.delayed(const Duration(milliseconds: 500));
       Get.offAllNamed(AppRoutes.main);
     } catch (e) {
+      dev.log("[AUTH/LOGIN] ❌ Login failed: $e");
+      final message = e is ApiException
+          ? _mapErrorCode(e.message)
+          : "Đã xảy ra lỗi. Vui lòng thử lại.";
       Get.snackbar(
         "Đăng nhập thất bại",
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
+        message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.white,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;
@@ -32,11 +94,14 @@ class EmailLoginController extends GetxController {
   }
 
   bool _validate(String email, String password) {
-    bool isValid = true;
     emailError.value = "";
     passwordError.value = "";
 
-    if (email.trim().isEmpty || !email.contains("@")) {
+    bool isValid = true;
+    if (email.trim().isEmpty) {
+      emailError.value = "Vui lòng nhập email";
+      isValid = false;
+    } else if (!GetUtils.isEmail(email.trim())) {
       emailError.value = "Email không hợp lệ";
       isValid = false;
     }
@@ -46,4 +111,11 @@ class EmailLoginController extends GetxController {
     }
     return isValid;
   }
+
+  String _mapErrorCode(String message) => switch (message) {
+        "User not existed!" => "Email chưa được đăng ký trong hệ thống.",
+        "Unauthenticated" => "Mật khẩu không chính xác. Vui lòng thử lại.",
+        "Unknow exception!" => "Lỗi máy chủ. Vui lòng thử lại sau.",
+        _ => "Đăng nhập thất bại. Vui lòng thử lại.",
+      };
 }

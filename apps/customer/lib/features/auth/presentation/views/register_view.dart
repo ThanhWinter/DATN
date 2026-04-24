@@ -26,6 +26,13 @@ class _RegisterViewState extends State<RegisterView> {
   final _passwordCtrl = TextEditingController();
   final _confirmPasswordCtrl = TextEditingController();
 
+  final _lastNameFocus = FocusNode();
+  final _firstNameFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _phoneFocus = FocusNode();
+  final _passwordFocus = FocusNode();
+  final _confirmPasswordFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +48,12 @@ class _RegisterViewState extends State<RegisterView> {
     _dobCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
+    _lastNameFocus.dispose();
+    _firstNameFocus.dispose();
+    _emailFocus.dispose();
+    _phoneFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
 
@@ -148,8 +161,11 @@ class _RegisterViewState extends State<RegisterView> {
                                   child: _buildInputSection(
                                     child: GlassInputField(
                                       controller: _lastNameCtrl,
+                                      focusNode: _lastNameFocus,
                                       hintText: "Họ",
                                       icon: Icons.person_outline,
+                                      textInputAction: TextInputAction.next,
+                                      onSubmitted: () => _firstNameFocus.requestFocus(),
                                     ),
                                     errorText: controller.lastNameError.value,
                                   ),
@@ -159,8 +175,11 @@ class _RegisterViewState extends State<RegisterView> {
                                   child: _buildInputSection(
                                     child: GlassInputField(
                                       controller: _firstNameCtrl,
+                                      focusNode: _firstNameFocus,
                                       hintText: "Tên",
                                       icon: Icons.person_outline,
+                                      textInputAction: TextInputAction.next,
+                                      onSubmitted: () => _emailFocus.requestFocus(),
                                     ),
                                     errorText: controller.firstNameError.value,
                                   ),
@@ -174,9 +193,12 @@ class _RegisterViewState extends State<RegisterView> {
                         Obx(() => _buildInputSection(
                               child: GlassInputField(
                                 controller: _emailCtrl,
+                                focusNode: _emailFocus,
                                 hintText: "Email",
                                 icon: Icons.email_outlined,
                                 keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
+                                onSubmitted: () => _phoneFocus.requestFocus(),
                               ),
                               errorText: controller.emailError.value,
                             )),
@@ -187,10 +209,13 @@ class _RegisterViewState extends State<RegisterView> {
                         Obx(() => _buildInputSection(
                               child: GlassInputField(
                                 controller: _phoneCtrl,
+                                focusNode: _phoneFocus,
                                 hintText: "Số điện thoại",
                                 icon: Icons.phone_outlined,
                                 keyboardType: TextInputType.phone,
                                 maxLength: 10,
+                                textInputAction: TextInputAction.next,
+                                onSubmitted: () => _passwordFocus.requestFocus(),
                               ),
                               errorText: controller.phoneError.value,
                             )),
@@ -219,9 +244,12 @@ class _RegisterViewState extends State<RegisterView> {
                         Obx(() => _buildInputSection(
                               child: GlassInputField(
                                 controller: _passwordCtrl,
+                                focusNode: _passwordFocus,
                                 hintText: "Mật khẩu",
                                 icon: Icons.lock_outline,
                                 obscureText: !controller.isPasswordVisible.value,
+                                textInputAction: TextInputAction.next,
+                                onSubmitted: () => _confirmPasswordFocus.requestFocus(),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     controller.isPasswordVisible.value
@@ -243,10 +271,20 @@ class _RegisterViewState extends State<RegisterView> {
                         Obx(() => _buildInputSection(
                               child: GlassInputField(
                                 controller: _confirmPasswordCtrl,
+                                focusNode: _confirmPasswordFocus,
                                 hintText: "Nhập lại mật khẩu",
                                 icon: Icons.lock_outline,
                                 obscureText:
                                     !controller.isConfirmPasswordVisible.value,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: () => controller.signUp(
+                                  firstName: _firstNameCtrl.text,
+                                  lastName: _lastNameCtrl.text,
+                                  email: _emailCtrl.text,
+                                  phone: _phoneCtrl.text,
+                                  password: _passwordCtrl.text,
+                                  confirmPassword: _confirmPasswordCtrl.text,
+                                ),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     controller.isConfirmPasswordVisible.value

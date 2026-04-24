@@ -8,6 +8,7 @@ abstract class AppRoutes {
   static const cart = "/cart";
   static const orders = "/orders";
   static const notifications = "/notifications";
-  static const profile = "/profile";
   static const checkout = "/checkout";
+  static const otpVerification = "/otp-verification";
+  static const resetPassword = "/reset-password";
 }

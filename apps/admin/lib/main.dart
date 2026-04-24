@@ -5,10 +5,12 @@ import "package:get/get.dart";
 
 import "app/routes/app_pages.dart";
 import "app/routes/app_routes.dart";
+import "app/services/auth_service.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await Get.putAsync(() => AuthService().init());
   runApp(const AdminApp());
 }
 
@@ -21,7 +23,7 @@ class AdminApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Food Hit Admin",
       theme: AppTheme.light(),
-      initialRoute: AppRoutes.main,
+      initialRoute: AppRoutes.login,
       getPages: AppPages.routes,
     );
   }

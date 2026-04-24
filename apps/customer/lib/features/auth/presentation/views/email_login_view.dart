@@ -25,6 +25,12 @@ class _EmailLoginViewState extends State<EmailLoginView> {
   void initState() {
     super.initState();
     controller = Get.find<EmailLoginController>();
+
+    // Pre-fill nếu có thông tin đã lưu
+    controller.onSavedCredentialsLoaded = (email, password) {
+      _emailCtrl.text = email;
+      _passCtrl.text = password;
+    };
   }
 
   @override
@@ -107,7 +113,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                               child: GlassInputField(
                                 controller: _emailCtrl,
                                 hintText: "Nhập email của bạn",
-                                icon: Icons.email_outlined,
+                                svgPath: AppIcons.emailSvg,
                                 keyboardType: TextInputType.emailAddress,
                               ),
                               errorText: controller.emailError.value,
@@ -120,14 +126,14 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                               child: GlassInputField(
                                 controller: _passCtrl,
                                 hintText: "Nhập mật khẩu",
-                                icon: Icons.lock_outline,
+                                svgPath: AppIcons.lockSvg,
                                 obscureText:
                                     !controller.isPasswordVisible.value,
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     controller.isPasswordVisible.value
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
+                                        ? AppIcons.visibilityOn
+                                        : AppIcons.visibilityOff,
                                     color:
                                         AppColors.white.withValues(alpha: 0.7),
                                     size: 22,
@@ -140,20 +146,80 @@ class _EmailLoginViewState extends State<EmailLoginView> {
 
                         const SizedBox(height: 8),
 
-                        // ── Quên mật khẩu ────────────────────────────────────
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () =>
-                                Get.toNamed(AppRoutes.forgotPassword),
-                            child: Text(
-                              "Quên mật khẩu?",
-                              style: AppTextStyles.labelLarge.copyWith(
-                                color: AppColors.accentGold,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                        // ── Nhớ tôi + Quên mật khẩu ─────────────────────────
+                        Padding(
+                          padding: const EdgeInsets.only(left: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Checkbox "Nhớ tôi" — căn trái thẳng icon email/lock
+                              Obx(() => InkWell(
+                                    onTap: controller.toggleRememberMe,
+                                    borderRadius: BorderRadius.circular(8),
+                                    splashColor:
+                                        AppColors.accentGold.withValues(alpha: 0.2),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 4),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          AnimatedContainer(
+                                            duration:
+                                                const Duration(milliseconds: 200),
+                                            width: 20,
+                                            height: 20,
+                                            decoration: BoxDecoration(
+                                              color: controller.rememberMe.value
+                                                  ? AppColors.accentGold
+                                                  : AppColors.transparent,
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              border: Border.all(
+                                                color: controller.rememberMe.value
+                                                    ? AppColors.accentGold
+                                                    : AppColors.white
+                                                        .withValues(alpha: 0.6),
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                            child: controller.rememberMe.value
+                                                ? const Icon(
+                                                    Icons.check_rounded,
+                                                    size: 14,
+                                                    color: AppColors
+                                                        .primaryOrangeDark,
+                                                  )
+                                                : null,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            "Nhớ tôi",
+                                            style:
+                                                AppTextStyles.bodyMedium.copyWith(
+                                              color: AppColors.white,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )),
+
+                              // Quên mật khẩu
+                              TextButton(
+                                onPressed: () =>
+                                    Get.toNamed(AppRoutes.forgotPassword),
+                                child: Text(
+                                  "Quên mật khẩu?",
+                                  style: AppTextStyles.labelLarge.copyWith(
+                                    color: AppColors.accentGold,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
 
@@ -162,7 +228,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                         // ── Nút Đăng nhập ─────────────────────────────────────
                         Obx(
                           () => GradientActionButton(
-                            icon: Icons.login_rounded,
+                            icon: AppIcons.login,
                             iconColor: AppColors.primaryOrange,
                             text: "Đăng nhập",
                             isPrimary: true,
@@ -207,7 +273,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: IconButton(
-        icon: const Icon(Icons.arrow_back_ios, color: AppColors.white),
+        icon: const Icon(AppIcons.backArrowSimple, color: AppColors.white),
         onPressed: Get.back,
       ),
     );

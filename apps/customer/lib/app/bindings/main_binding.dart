@@ -1,4 +1,8 @@
+import 'package:core_network/core_network.dart';
 import 'package:get/get.dart';
+
+import '../../features/auth/data/repositories/auth_repository.dart';
+import '../services/auth_service.dart';
 
 import '../../features/cart/data/repositories/cart_repository.dart';
 import '../../features/cart/presentation/controllers/cart_controller.dart';
@@ -42,9 +46,16 @@ class MainBinding extends Bindings {
       fenix: true,
     );
 
-    Get.lazyPut<ProfileRepository>(() => ProfileRepository(), fenix: true);
+    Get.lazyPut<ProfileRepository>(
+      () => ProfileRepository(Get.find<IApiClient>()),
+      fenix: true,
+    );
     Get.lazyPut<ProfileController>(
-      () => ProfileController(Get.find<ProfileRepository>()),
+      () => ProfileController(
+        Get.find<ProfileRepository>(),
+        Get.find<AuthRepository>(),
+        Get.find<AuthService>(),
+      ),
       fenix: true,
     );
   }

@@ -21,6 +21,8 @@ dependencies:
     path: ../../packages/core_utils
   geolocator: ^13.0.0
   flutter_svg: ^2.0.10+1
+  flutter_secure_storage: ^10.0.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

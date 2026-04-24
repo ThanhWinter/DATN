@@ -1,13 +1,27 @@
+import "dart:developer" as dev;
+
+import "package:core_network/core_network.dart";
+import "package:core_ui/core_ui.dart";
 import "package:get/get.dart";
+import "package:intl/intl.dart";
+
+import "../../../../app/routes/app_routes.dart";
+import "../../data/repositories/auth_repository.dart";
+
+// Phải khớp với @Pattern regex trong RegisterUserRequest.java của backend
+const _passwordRegex =
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,16}$';
 
 class RegisterController extends GetxController {
-  // ── Loading & Visibility State ───────────────────────────────────────────
+  RegisterController(this._authRepository);
+
+  final AuthRepository _authRepository;
+
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
   final selectedDob = Rxn<DateTime>();
 
-  // ── Validation Error State ───────────────────────────────────────────────
   final lastNameError = "".obs;
   final firstNameError = "".obs;
   final emailError = "".obs;
@@ -33,21 +47,43 @@ class RegisterController extends GetxController {
     required String confirmPassword,
   }) async {
     if (!_validate(firstName, lastName, email, phone, password, confirmPassword)) return;
+
+    dev.log("[AUTH/REGISTER] Attempting register for: $email");
     isLoading.value = true;
     try {
-      // TODO: Call repository.signUp(firstName, lastName, email, phone, password, selectedDob.value)
-      await Future.delayed(const Duration(milliseconds: 500));
+      final dobStr = DateFormat('yyyy-MM-dd').format(selectedDob.value!);
+      await _authRepository.register(
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+        password: password,
+        dob: dobStr,
+      );
+
+      dev.log("[AUTH/REGISTER] ✅ Register success — OTP sent to $email");
       Get.snackbar(
         "Thành công",
-        "Hệ thống đã gửi mã OTP đến email của bạn.",
+        "Vui lòng kiểm tra email để lấy mã xác thực OTP.",
         snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.white,
+        duration: const Duration(seconds: 3),
       );
-      // TODO: await Future.delayed(const Duration(milliseconds: 500)); Get.toNamed(AppRoutes.otpVerification, arguments: email.trim())
+      await Future.delayed(const Duration(milliseconds: 500));
+      Get.toNamed(AppRoutes.otpVerification, arguments: email.trim());
     } catch (e) {
+      dev.log("[AUTH/REGISTER] ❌ Register failed: $e");
+      final message = e is ApiException
+          ? _mapErrorCode(e.message)
+          : "Đăng ký thất bại. Vui lòng thử lại.";
       Get.snackbar(
-        "Lỗi đăng ký",
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
+        "Đăng ký thất bại",
+        message,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.white,
+        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;
@@ -79,7 +115,7 @@ class RegisterController extends GetxController {
       lastNameError.value = "Vui lòng nhập họ";
       isValid = false;
     }
-    if (!GetUtils.isEmail(email)) {
+    if (!GetUtils.isEmail(email.trim())) {
       emailError.value = "Email không hợp lệ";
       isValid = false;
     }
@@ -91,9 +127,9 @@ class RegisterController extends GetxController {
       dobError.value = "Vui lòng chọn ngày sinh";
       isValid = false;
     }
-    if (password.length < 6) {
-      passwordError.value = "Mật khẩu tối thiểu 6 ký tự";
-      isValid = false;
+    if (!RegExp(_passwordRegex).hasMatch(password)) {
+      passwordError.value = "8–16 ký tự, gồm chữ HOA, thường, số và @\$!%*?&";
+      return false;
     }
     if (password != confirmPassword) {
       confirmPasswordError.value = "Mật khẩu không khớp";
@@ -101,4 +137,11 @@ class RegisterController extends GetxController {
     }
     return isValid;
   }
+
+  String _mapErrorCode(String message) => switch (message) {
+        "User already existed!" => "Email này đã được đăng ký. Vui lòng dùng email khác.",
+        "Validation failed" => "Thông tin đăng ký không hợp lệ. Vui lòng kiểm tra lại.",
+        "Unknow exception!" => "Lỗi máy chủ. Vui lòng thử lại sau.",
+        _ => "Đăng ký thất bại. Vui lòng thử lại.",
+      };
 }

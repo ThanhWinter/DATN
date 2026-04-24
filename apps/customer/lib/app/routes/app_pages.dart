@@ -15,8 +15,6 @@ import "../bindings/order_binding.dart";
 import "../../features/notifications/presentation/views/notification_view.dart";
 import "../bindings/notification_binding.dart";
 
-import "../../features/profile/presentation/views/profile_view.dart";
-import "../bindings/profile_binding.dart";
 
 import "../../features/payment/presentation/views/checkout_view.dart";
 import "../bindings/checkout_binding.dart";
@@ -29,6 +27,10 @@ import "../bindings/auth_binding.dart";
 import "../bindings/email_login_binding.dart";
 import "../bindings/forgot_password_binding.dart";
 import "../bindings/register_binding.dart";
+import "../bindings/otp_binding.dart";
+import "../../features/auth/presentation/views/otp_view.dart";
+import "../bindings/reset_password_binding.dart";
+import "../../features/auth/presentation/views/reset_password_view.dart";
 import "app_routes.dart";
 
 class AppPages {
@@ -79,14 +81,19 @@ class AppPages {
       binding: NotificationBinding(),
     ),
     GetPage(
-      name: AppRoutes.profile,
-      page: () => const ProfileView(),
-      binding: ProfileBinding(),
-    ),
-    GetPage(
       name: AppRoutes.checkout,
       page: () => const CheckoutView(),
       binding: CheckoutBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.otpVerification,
+      page: () => const OtpView(),
+      binding: OtpBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.resetPassword,
+      page: () => const ResetPasswordView(),
+      binding: ResetPasswordBinding(),
     ),
   ];
 }

@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter_svg/flutter_svg.dart";
 
 import "../theme/app_colors.dart";
 import "../theme/app_text_styles.dart";
@@ -6,7 +7,8 @@ import "../theme/app_text_styles.dart";
 /// Nút bấm chung cho login screen (Primary filled / Outline ghost).
 /// Dùng chung cho các màn login/register trên nền gradient.
 class GradientActionButton extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? svgPath;
   final Color iconColor;
   final String text;
   final bool isPrimary;
@@ -14,7 +16,8 @@ class GradientActionButton extends StatelessWidget {
 
   const GradientActionButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.svgPath,
     required this.iconColor,
     required this.text,
     required this.isPrimary,
@@ -54,7 +57,18 @@ class GradientActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: iconColor, size: 22),
+              svgPath != null
+                  ? SvgPicture.asset(
+                      svgPath!,
+                      colorFilter: ColorFilter.mode(
+                        iconColor,
+                        BlendMode.srcIn,
+                      ),
+                      width: 22,
+                      height: 22,
+                    )
+                  : Icon(icon ?? Icons.help_outline,
+                      color: iconColor, size: 22),
               const SizedBox(width: 12),
               Text(
                 text,
