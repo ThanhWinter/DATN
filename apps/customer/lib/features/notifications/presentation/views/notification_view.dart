@@ -6,8 +6,22 @@ import '../controllers/notification_controller.dart';
 import '../widgets/notification_empty_state.dart';
 import '../widgets/notification_tile.dart';
 
-class NotificationView extends GetView<NotificationController> {
+class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
+
+  @override
+  State<NotificationView> createState() => _NotificationViewState();
+}
+
+class _NotificationViewState extends State<NotificationView> {
+  late final NotificationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<NotificationController>();
+    controller.loadNotifications();
+  }
 
   @override
   Widget build(BuildContext context) {

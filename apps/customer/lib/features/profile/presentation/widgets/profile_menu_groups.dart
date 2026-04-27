@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core_ui/core_ui.dart';
+import '../../../../app/routes/app_routes.dart';
 import '../../../main/presentation/controllers/main_controller.dart';
 import '../controllers/profile_controller.dart';
 import 'profile_menu_section.dart';
@@ -21,6 +22,12 @@ class AccountSection extends StatelessWidget {
               svgPath: AppIcons.shoppingBagSvg,
               label: 'Đơn hàng',
               onTap: () => Get.find<MainController>().onTabChanged(2),
+            ),
+            const ProfileMenuDivider(),
+            ProfileMenuItem(
+              icon: Icons.favorite_outline_rounded,
+              label: 'Yêu thích',
+              onTap: () => Get.toNamed(AppRoutes.favorites),
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(

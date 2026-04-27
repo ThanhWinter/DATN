@@ -11,6 +11,10 @@ class AppNetworkImage extends StatelessWidget {
   final Widget? placeholder;
   final Widget? errorWidget;
   final BorderRadius? borderRadius;
+  // Giới hạn kích thước giải mã ảnh trong RAM (tính bằng logical pixel).
+  // Không truyền = giải mã nguyên kích thước gốc → tốn RAM khi ảnh từ server lớn.
+  final int? memCacheWidth;
+  final int? memCacheHeight;
 
   const AppNetworkImage({
     super.key,
@@ -21,6 +25,8 @@ class AppNetworkImage extends StatelessWidget {
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
+    this.memCacheWidth,
+    this.memCacheHeight,
   });
 
   @override
@@ -40,6 +46,8 @@ class AppNetworkImage extends StatelessWidget {
       width: width,
       height: height,
       fit: fit,
+      memCacheWidth: memCacheWidth,
+      memCacheHeight: memCacheHeight,
       placeholder: (_, __) => placeholder ?? _defaultPlaceholder(),
       errorWidget: (_, __, ___) => errorWidget ?? _defaultError(),
     );

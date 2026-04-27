@@ -2,6 +2,7 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -40,9 +41,8 @@ class ProfileView extends GetView<ProfileController> {
                     const AppMenuDivider(),
                     AppMenuTile(
                       icon: Icons.notifications_outlined,
-                      label: 'Thông báo',
-                      onTap: () {},
-                      trailing: const AppMenuBadge(count: '3'),
+                      label: 'Gửi thông báo',
+                      onTap: () => Get.toNamed(AppRoutes.notificationPush),
                     ),
                   ]),
                   const SizedBox(height: 20),
@@ -59,7 +59,13 @@ class ProfileView extends GetView<ProfileController> {
                     AppMenuTile(
                       icon: Icons.settings_outlined,
                       label: 'Cài đặt cửa hàng',
-                      onTap: () {},
+                      onTap: () => Get.toNamed(AppRoutes.settings),
+                    ),
+                    const AppMenuDivider(),
+                    AppMenuTile(
+                      icon: Icons.star_half_rounded,
+                      label: 'Quản lý đánh giá',
+                      onTap: () => Get.toNamed(AppRoutes.reviews),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(

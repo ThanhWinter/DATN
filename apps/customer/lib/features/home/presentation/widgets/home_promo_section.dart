@@ -26,8 +26,6 @@ class HomePromoSection extends GetView<HomeController> {
               final banner = banners[index];
               return _BannerCard(
                 title: banner.title,
-                subtitle: banner.subtitle,
-                badgeText: banner.badgeText,
                 imageUrl: banner.imageUrl,
               );
             },
@@ -40,14 +38,10 @@ class HomePromoSection extends GetView<HomeController> {
 
 class _BannerCard extends StatelessWidget {
   final String title;
-  final String subtitle;
-  final String? badgeText;
   final String? imageUrl;
 
   const _BannerCard({
     required this.title,
-    required this.subtitle,
-    this.badgeText,
     this.imageUrl,
   });
 
@@ -65,6 +59,8 @@ class _BannerCard extends StatelessWidget {
               AppNetworkImage(
                 url: imageUrl!,
                 fit: BoxFit.cover,
+                memCacheWidth: 280,
+                memCacheHeight: 148,
                 errorWidget: _fallbackGradient(),
               )
             else
@@ -86,39 +82,12 @@ class _BannerCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  if (badgeText != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      margin: const EdgeInsets.only(bottom: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        badgeText!,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 11,
-                          color: AppColors.primaryOrange,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
                   Text(
                     title,
                     style: AppTextStyles.h3.copyWith(
                       color: AppColors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
                     ),
                   ),
                 ],

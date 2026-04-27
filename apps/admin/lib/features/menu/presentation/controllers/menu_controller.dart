@@ -24,6 +24,12 @@ class MenuController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Chỉ debounce search — selectCategory và mutation vẫn gọi _applyFilter() trực tiếp
+    debounce(
+      searchQuery,
+      (_) => _applyFilter(),
+      time: const Duration(milliseconds: 400),
+    );
     loadData();
   }
 
@@ -39,7 +45,8 @@ class MenuController extends GetxController {
       categories.value = results[0] as List<CategoryModel>;
       foods.value = results[1] as List<FoodModel>;
       _applyFilter();
-      dev.log('[MENU/VM] ✅ Loaded ${categories.length} categories, ${foods.length} foods');
+      dev.log(
+          '[MENU/VM] ✅ Loaded ${categories.length} categories, ${foods.length} foods');
     } catch (e) {
       dev.log('[MENU/VM] ❌ loadData error: $e');
       error.value = e.toString();
@@ -55,7 +62,7 @@ class MenuController extends GetxController {
 
   void updateSearch(String q) {
     searchQuery.value = q.trim().toLowerCase();
-    _applyFilter();
+    // filter chạy sau 400ms qua debounce worker ở onInit
   }
 
   void _applyFilter() {
@@ -65,9 +72,7 @@ class MenuController extends GetxController {
         ? List.of(foods)
         : foods.where((f) => f.categoryId == id).toList();
     if (q.isNotEmpty) {
-      result = result
-          .where((f) => f.name.toLowerCase().contains(q))
-          .toList();
+      result = result.where((f) => f.name.toLowerCase().contains(q)).toList();
     }
     filteredFoods.value = result;
   }
@@ -190,15 +195,15 @@ class MenuController extends GetxController {
   }
 
   Future<void> deleteFood(int id) async {
-    // TODO: call DELETE /foods/{id} when backend adds the endpoint
-    dev.log('[MENU/VM] Deleting food id=$id (local — backend endpoint pending)');
+    dev.log('[MENU/VM] Deleting food id=$id');
     isMutating.value = true;
     try {
+      await _repository.deleteFood(id);
       foods.removeWhere((f) => f.id == id);
       _applyFilter();
-      Get.snackbar('Đã xoá', 'Món ăn đã được xoá khỏi danh sách',
+      Get.snackbar('Đã xoá', 'Món ăn đã được xoá',
           backgroundColor: AppColors.successGreen, colorText: AppColors.white);
-      dev.log('[MENU/VM] ✅ Food $id removed locally');
+      dev.log('[MENU/VM] ✅ Food $id deleted');
     } catch (e) {
       dev.log('[MENU/VM] ❌ deleteFood error: $e');
       Get.snackbar('Lỗi', 'Không thể xoá món ăn: $e',
@@ -215,25 +220,22 @@ class MenuController extends GetxController {
     required int categoryId,
     String? description,
   }) async {
-    // TODO: call PUT /foods/{id} when backend adds the endpoint
-    dev.log('[MENU/VM] Updating food id=$id (local — backend endpoint pending)');
+    dev.log('[MENU/VM] Updating food id=$id: $name');
     isMutating.value = true;
     try {
-      final idx = foods.indexWhere((f) => f.id == id);
-      if (idx == -1) return;
-      final catName =
-          categories.firstWhereOrNull((c) => c.id == categoryId)?.name ?? '';
-      foods[idx] = foods[idx].copyWith(
+      final updated = await _repository.updateFood(
+        id,
         name: name,
         price: price,
         categoryId: categoryId,
-        categoryName: catName,
         description: description,
       );
+      final idx = foods.indexWhere((f) => f.id == id);
+      if (idx != -1) foods[idx] = updated;
       _applyFilter();
       Get.snackbar('Đã cập nhật', 'Thông tin món ăn đã được cập nhật',
           backgroundColor: AppColors.successGreen, colorText: AppColors.white);
-      dev.log('[MENU/VM] ✅ Food $id updated locally');
+      dev.log('[MENU/VM] ✅ Food $id updated');
     } catch (e) {
       dev.log('[MENU/VM] ❌ updateFood error: $e');
       Get.snackbar('Lỗi', 'Không thể cập nhật món ăn: $e',

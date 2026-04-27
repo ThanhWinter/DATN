@@ -2,6 +2,7 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../app/routes/app_routes.dart';
 import '../controllers/home_controller.dart';
 import 'location_picker_sheet.dart';
 
@@ -97,7 +98,7 @@ class _SearchBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
-        onTap: () {}, // TODO: navigate to search screen
+        onTap: () => Get.toNamed(AppRoutes.search),
         child: Container(
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 14),

@@ -14,6 +14,12 @@ import '../bindings/main_binding.dart';
 import '../bindings/otp_binding.dart';
 import '../bindings/register_binding.dart';
 import '../bindings/reset_password_binding.dart';
+import '../../features/notifications/presentation/views/notification_push_view.dart';
+import '../../features/reviews/presentation/views/review_view.dart';
+import '../../features/settings/presentation/views/settings_view.dart';
+import '../bindings/notification_push_binding.dart';
+import '../bindings/review_binding.dart';
+import '../bindings/settings_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -52,6 +58,21 @@ class AppPages {
       name: AppRoutes.main,
       page: () => const MainView(),
       binding: MainBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.settings,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.reviews,
+      page: () => const AdminReviewView(),
+      binding: ReviewBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.notificationPush,
+      page: () => const NotificationPushView(),
+      binding: NotificationPushBinding(),
     ),
   ];
 }

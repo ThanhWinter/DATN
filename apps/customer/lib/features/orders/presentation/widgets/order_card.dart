@@ -14,6 +14,10 @@ class OrderCard extends StatelessWidget {
     required this.onActionPressed,
   });
 
+  static const _activeStatuses = {'PENDING', 'PROCESSING', 'DELIVERING'};
+
+  bool get _isActive => _activeStatuses.contains(order.status.toUpperCase());
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -71,39 +75,39 @@ class OrderCard extends StatelessWidget {
                   const Text('Tổng cộng', style: AppTextStyles.bodySmall),
                   Text(
                     '${order.totalAmount.toVnd()} ₫',
-                    style:
-                        AppTextStyles.h3.copyWith(color: AppColors.primaryOrange),
+                    style: AppTextStyles.h3
+                        .copyWith(color: AppColors.primaryOrange),
                   ),
                 ],
               ),
-              _buildActionButton(),
+              ElevatedButton(
+                onPressed: onActionPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      _isActive ? AppColors.white : AppColors.primaryOrange,
+                  foregroundColor:
+                      _isActive ? AppColors.primaryOrange : AppColors.white,
+                  elevation: 0,
+                  side: _isActive
+                      ? const BorderSide(color: AppColors.primaryOrange)
+                      : BorderSide.none,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+                child: Text(
+                  'Xem chi tiết',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color:
+                        _isActive ? AppColors.primaryOrange : AppColors.white,
+                  ),
+                ),
+              ),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton() {
-    final isActive = order.status == 'active';
-    return ElevatedButton(
-      onPressed: onActionPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isActive ? AppColors.white : AppColors.primaryOrange,
-        foregroundColor: isActive ? AppColors.primaryOrange : AppColors.white,
-        elevation: 0,
-        side: isActive
-            ? const BorderSide(color: AppColors.primaryOrange)
-            : BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      ),
-      child: Text(
-        isActive ? 'Xem chi tiết' : 'Đặt lại',
-        style: AppTextStyles.labelLarge.copyWith(
-          fontWeight: FontWeight.w700,
-          color: isActive ? AppColors.primaryOrange : AppColors.white,
-        ),
       ),
     );
   }
@@ -133,12 +137,16 @@ class _OrderStatusBadge extends StatelessWidget {
   }
 
   String get _label {
-    switch (status) {
-      case 'active':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return 'Chờ xác nhận';
+      case 'PROCESSING':
+        return 'Đang chuẩn bị';
+      case 'DELIVERING':
         return 'Đang giao';
-      case 'completed':
+      case 'COMPLETED':
         return 'Hoàn thành';
-      case 'cancelled':
+      case 'CANCELLED':
         return 'Đã hủy';
       default:
         return status;
@@ -146,12 +154,14 @@ class _OrderStatusBadge extends StatelessWidget {
   }
 
   Color get _bgColor {
-    switch (status) {
-      case 'active':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+      case 'PROCESSING':
+      case 'DELIVERING':
         return AppColors.primaryOrange.withValues(alpha: 0.15);
-      case 'completed':
+      case 'COMPLETED':
         return Colors.green.withValues(alpha: 0.15);
-      case 'cancelled':
+      case 'CANCELLED':
         return AppColors.errorRed.withValues(alpha: 0.15);
       default:
         return AppColors.grey300;
@@ -159,12 +169,14 @@ class _OrderStatusBadge extends StatelessWidget {
   }
 
   Color get _textColor {
-    switch (status) {
-      case 'active':
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+      case 'PROCESSING':
+      case 'DELIVERING':
         return AppColors.primaryOrangeDark;
-      case 'completed':
+      case 'COMPLETED':
         return Colors.green[800]!;
-      case 'cancelled':
+      case 'CANCELLED':
         return AppColors.errorRed;
       default:
         return AppColors.grey600;

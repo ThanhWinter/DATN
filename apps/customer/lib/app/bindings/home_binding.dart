@@ -1,3 +1,4 @@
+import 'package:core_network/core_network.dart';
 import 'package:get/get.dart';
 
 import '../../features/home/data/repositories/home_repository.dart';
@@ -8,9 +9,11 @@ import '../../features/notifications/presentation/controllers/notification_contr
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<HomeRepository>(() => HomeRepository());
+    Get.lazyPut<HomeRepository>(
+      () => HomeRepository(Get.find<IApiClient>()),
+    );
     Get.lazyPut<NotificationRepository>(
-      () => NotificationRepository(),
+      () => NotificationRepository(Get.find<IApiClient>()),
       fenix: true,
     );
     Get.lazyPut<NotificationController>(

@@ -1,0 +1,166 @@
+import 'dart:developer' as dev;
+
+import 'package:get/get.dart';
+
+import '../../../cart/data/models/cart_item_model.dart';
+import '../../../cart/presentation/controllers/cart_controller.dart';
+import '../../data/models/food_option_model.dart';
+import '../../data/models/home_items.dart';
+import '../../data/repositories/food_repository.dart';
+import '../../../interactions/data/repositories/interaction_repository.dart';
+
+class FoodDetailController extends GetxController {
+  final FoodRepository _repository;
+  final InteractionRepository _interactionRepository;
+
+  FoodDetailController(this._repository, this._interactionRepository);
+
+  // ── State ────────────────────────────────────────────────────────────────────
+  final isLoading = false.obs;
+  final error = Rxn<Object>();
+  final food = Rxn<FoodItemModel>();
+  final quantity = 1.obs;
+  final selectedOptions = <int, List<int>>{}.obs;
+  final totalPrice = 0.0.obs;
+  // Explicit RxBool — không dùng computed getter trong Obx (Rule #2)
+  final canAddToCart = false.obs;
+  final isFavorite = false.obs; // Rule #2 — explicit RxBool
+
+  @override
+  void onInit() {
+    super.onInit();
+    final foodId = Get.arguments as int?;
+    if (foodId != null) _loadFood(foodId);
+  }
+
+  // ── Public ───────────────────────────────────────────────────────────────────
+
+  void increaseQty() {
+    quantity.value++;
+    _recalc();
+  }
+
+  void decreaseQty() {
+    if (quantity.value > 1) {
+      quantity.value--;
+      _recalc();
+    }
+  }
+
+  void toggleOption(int groupId, int itemId, int maxSelect) {
+    final current = List<int>.from(selectedOptions[groupId] ?? []);
+
+    if (current.contains(itemId)) {
+      current.remove(itemId);
+    } else {
+      if (maxSelect == 1) {
+        current
+          ..clear()
+          ..add(itemId);
+      } else if (current.length < maxSelect) {
+        current.add(itemId);
+      }
+    }
+
+    selectedOptions[groupId] = current;
+    selectedOptions.refresh();
+    _recalc();
+  }
+
+  bool isOptionSelected(int groupId, int itemId) {
+    return selectedOptions[groupId]?.contains(itemId) ?? false;
+  }
+
+  void addToCart() {
+    final f = food.value;
+    if (f == null || !canAddToCart.value) return;
+
+    final allSelected = <OptionItemModel>[];
+    for (final group in f.optionGroups) {
+      final ids = selectedOptions[group.id] ?? [];
+      for (final id in ids) {
+        final item = group.items.firstWhereOrNull((o) => o.id == id);
+        if (item != null) allSelected.add(item);
+      }
+    }
+
+    final optionExtra =
+        allSelected.fold(0.0, (sum, o) => sum + o.priceAdjustment);
+
+    final cartItem = CartItemModel(
+      id: buildCartItemId(f.id, allSelected),
+      foodId: f.id,
+      name: f.name,
+      price: f.price + optionExtra,
+      quantity: quantity.value,
+      imageUrl: f.imageUrl,
+      selectedOptions: allSelected,
+    );
+
+    Get.find<CartController>().addItem(cartItem);
+    dev.log('[FOOD_DETAIL] ✅ Added to cart: ${quantity.value}x ${f.name}');
+
+    Get.snackbar(
+      'Đã thêm vào giỏ',
+      '${quantity.value}x ${f.name}',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+    Get.back();
+  }
+
+  Future<void> toggleFavorite() async {
+    final f = food.value;
+    if (f == null) return;
+    try {
+      await _interactionRepository.toggleFavorite(f.id);
+      isFavorite.value = !isFavorite.value;
+      dev.log('[FOOD_DETAIL] ✅ toggleFavorite: ${f.id} → ${isFavorite.value}');
+    } catch (e) {
+      dev.log('[FOOD_DETAIL] ❌ toggleFavorite error: $e');
+    }
+  }
+
+  // ── Private ──────────────────────────────────────────────────────────────────
+
+  Future<void> _loadFood(int id) async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+      food.value = await _repository.getFoodById(id);
+      dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
+      _recalc();
+      try {
+        isFavorite.value = await _interactionRepository.checkFavorite(id);
+      } catch (e) {
+        dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
+      }
+    } catch (e) {
+      dev.log('[FOOD_DETAIL] ❌ Failed to load food id=$id: $e');
+      error.value = e;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Tính lại price + canAddToCart cùng lúc để tránh gọi 2 vòng lặp
+  void _recalc() {
+    final f = food.value;
+    if (f == null) return;
+
+    double extra = 0;
+    bool allGroupsSatisfied = true;
+
+    for (final group in f.optionGroups) {
+      final ids = selectedOptions[group.id] ?? [];
+      if (ids.length < group.minSelect) allGroupsSatisfied = false;
+      for (final id in ids) {
+        final item = group.items.firstWhereOrNull((o) => o.id == id);
+        if (item != null) extra += item.priceAdjustment;
+      }
+    }
+
+    totalPrice.value = (f.price + extra) * quantity.value;
+    canAddToCart.value = allGroupsSatisfied;
+  }
+}

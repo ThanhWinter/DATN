@@ -1,42 +1,40 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
+import 'order_item_model.dart';
 
 class OrderModel {
   final String id;
   final DateTime orderDate;
   final double totalAmount;
-  final String status; // e.g., 'active', 'completed', 'cancelled'
+  final String status;
+  final String deliveryAddress;
+  final String? note;
   final List<String> itemsSummary;
+  final List<OrderItemModel> orderItems;
 
   OrderModel({
     required this.id,
     required this.orderDate,
     required this.totalAmount,
     required this.status,
+    required this.deliveryAddress,
+    this.note,
     required this.itemsSummary,
+    this.orderItems = const [],
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'orderDate': orderDate.millisecondsSinceEpoch,
-      'totalAmount': totalAmount,
-      'status': status,
-      'itemsSummary': itemsSummary,
-    };
-  }
-
-  factory OrderModel.fromMap(Map<String, dynamic> map) {
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
-      id: map['id'] as String,
-      orderDate: DateTime.fromMillisecondsSinceEpoch(map['orderDate'] as int),
-      totalAmount: (map['totalAmount'] as num).toDouble(),
-      status: map['status'] as String,
-      itemsSummary: List<String>.from((map['itemsSummary'] as List)),
+      id: json['id'] as String,
+      orderDate: DateTime.parse(json['orderDate'] as String),
+      totalAmount: (json['totalAmount'] as num).toDouble(),
+      status: json['status'] as String,
+      deliveryAddress: json['deliveryAddress'] as String? ?? '',
+      note: json['note'] as String?,
+      itemsSummary: (json['itemsSummary'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      orderItems: (json['orderItems'] as List<dynamic>? ?? [])
+          .map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory OrderModel.fromJson(String source) => OrderModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

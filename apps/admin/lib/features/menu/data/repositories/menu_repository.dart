@@ -66,40 +66,13 @@ class MenuRepository {
   // -------------------------------------------------------------------------
 
   Future<List<FoodModel>> fetchFoods() async {
-    dev.log('[MENU/REPO] ⚠️ fetchFoods() đang dùng mock data để demo giao diện Hết hàng.');
-    await Future.delayed(const Duration(milliseconds: 300));
-    return [
-      FoodModel(
-        id: 1,
-        name: 'Cơm Sườn Nướng Muối Ớt',
-        price: 65000,
-        categoryId: 1,
-        categoryName: 'Cơm tấm',
-        description: 'Sườn nướng thơm nồng vị muối ớt, ăn kèm đồ chua.',
-        imageUrl: 'https://statics.vinpearl.com/com-tam-sai-gon-1_1620102143.JPG',
-        isAvailable: true,
-      ),
-      FoodModel(
-        id: 2,
-        name: 'Phở Bò Tái Nạm',
-        price: 75000,
-        categoryId: 2,
-        categoryName: 'Phở',
-        description: 'Nước dùng đậm đà, thịt bò tươi ngon mỗi ngày.',
-        imageUrl: 'https://i.ytimg.com/vi/6S9H-4-M-bU/maxresdefault.jpg',
-        isAvailable: false, // Demo trạng thái HẾT HÀNG
-      ),
-      FoodModel(
-        id: 3,
-        name: 'Trà Đào Cam Sả',
-        price: 35000,
-        categoryId: 3,
-        categoryName: 'Đồ uống',
-        description: 'Giải nhiệt cực đã với hương đào và sả tươi.',
-        imageUrl: 'https://dayphache.edu.vn/wp-content/uploads/2018/06/tra-dao-cam-sa.jpg',
-        isAvailable: true,
-      ),
-    ];
+    dev.log('[MENU/REPO] Fetching foods from backend...');
+    final res = await _apiClient.get('/foods');
+    final list = res['result'] as List<dynamic>;
+    dev.log('[MENU/REPO] ✅ Got ${list.length} foods');
+    return list
+        .map((e) => FoodModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<FoodModel> createFood({
@@ -110,7 +83,8 @@ class MenuRepository {
     List<int>? imageBytes,
     String? imageFilename,
   }) async {
-    dev.log('[MENU/REPO] Creating food: $name | price=$price | categoryId=$categoryId');
+    dev.log(
+        '[MENU/REPO] Creating food: $name | price=$price | categoryId=$categoryId');
     final res = await _apiClient.multipartPost(
       '/foods',
       fields: {
@@ -137,11 +111,41 @@ class MenuRepository {
   }
 
   Future<void> toggleFoodStatus(int id, bool isAvailable) async {
-    dev.log('[MENU/REPO] Toggling food status: id=$id to isAvailable=$isAvailable');
+    dev.log(
+        '[MENU/REPO] Toggling food status: id=$id to isAvailable=$isAvailable');
     await _apiClient.patch(
       '/foods/$id/status',
       query: {'isAvailable': isAvailable.toString()},
     );
     dev.log('[MENU/REPO] ✅ Food $id status updated to $isAvailable');
+  }
+
+  Future<void> deleteFood(int id) async {
+    dev.log('[MENU/REPO] Deleting food id=$id');
+    await _apiClient.delete('/foods/$id');
+    dev.log('[MENU/REPO] ✅ Food $id deleted');
+  }
+
+  Future<FoodModel> updateFood(
+    int id, {
+    required String name,
+    required double price,
+    required int categoryId,
+    String? description,
+  }) async {
+    dev.log('[MENU/REPO] Updating food id=$id: $name | price=$price');
+    final res = await _apiClient.put(
+      '/foods/$id',
+      body: {
+        'name': name,
+        'price': price,
+        'categoryId': categoryId,
+        if (description != null && description.isNotEmpty)
+          'description': description,
+      },
+    );
+    final updated = FoodModel.fromJson(res['result'] as Map<String, dynamic>);
+    dev.log('[MENU/REPO] ✅ Food $id updated');
+    return updated;
   }
 }

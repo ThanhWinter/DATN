@@ -10,6 +10,41 @@ import '../../../orders/presentation/views/order_view.dart';
 import '../../../profile/presentation/views/profile_view.dart';
 import '../controllers/main_controller.dart';
 
+// Chỉ build tab khi user lần đầu chạm vào, giữ state sau đó —
+// tránh khởi tạo tất cả controller/API đồng loạt ngay sau login (gây ANR).
+class _LazyIndexedStack extends StatefulWidget {
+  final int index;
+  final List<Widget> children;
+
+  const _LazyIndexedStack({required this.index, required this.children});
+
+  @override
+  State<_LazyIndexedStack> createState() => _LazyIndexedStackState();
+}
+
+class _LazyIndexedStackState extends State<_LazyIndexedStack> {
+  late List<bool> _activated;
+
+  @override
+  void initState() {
+    super.initState();
+    _activated = List.filled(widget.children.length, false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Activate inline — avoids a second build pass that setState() in
+    // didUpdateWidget() would trigger.
+    _activated[widget.index] = true;
+    return IndexedStack(
+      index: widget.index,
+      children: List.generate(widget.children.length, (i) {
+        return _activated[i] ? widget.children[i] : const SizedBox.shrink();
+      }),
+    );
+  }
+}
+
 class MainView extends GetView<MainController> {
   const MainView({super.key});
 
@@ -17,7 +52,7 @@ class MainView extends GetView<MainController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(
-        () => IndexedStack(
+        () => _LazyIndexedStack(
           index: controller.selectedIndex.value,
           children: const [
             HomeView(),
@@ -51,8 +86,8 @@ class MainView extends GetView<MainController> {
         unselectedLabelStyle: AppTextStyles.bodySmall.copyWith(fontSize: 11),
         items: [
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(AppIcons.homeSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
-            activeIcon: SvgPicture.asset(AppIcons.homeSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
+            icon: SvgPicture.asset(AppIcons.homeSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
+            activeIcon: SvgPicture.asset(AppIcons.homeSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
             label: 'Thực đơn',
           ),
           BottomNavigationBarItem(
@@ -61,13 +96,13 @@ class MainView extends GetView<MainController> {
             label: 'Giỏ hàng',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
-            activeIcon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
+            icon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
+            activeIcon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
             label: 'Đơn hàng',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(AppIcons.accountSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
-            activeIcon: SvgPicture.asset(AppIcons.accountSvg, width: 22, colorFilter: ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
+            icon: SvgPicture.asset(AppIcons.accountSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
+            activeIcon: SvgPicture.asset(AppIcons.accountSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
             label: 'Tài khoản',
           ),
         ],

@@ -1,3 +1,4 @@
+import 'package:core_network/core_network.dart';
 import 'package:get/get.dart';
 
 import '../../features/notifications/data/repositories/notification_repository.dart';
@@ -7,7 +8,7 @@ class NotificationBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<NotificationRepository>(
-      () => NotificationRepository(),
+      () => NotificationRepository(Get.find<IApiClient>()),
       fenix: true,
     );
     Get.lazyPut<NotificationController>(

@@ -1,8 +1,9 @@
+import 'dart:developer' as dev;
+
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
-import '../../../cart/data/models/cart_item_model.dart';
-import '../../../cart/presentation/controllers/cart_controller.dart';
+import '../../../../app/routes/app_routes.dart';
 import '../../../notifications/presentation/controllers/notification_controller.dart';
 import '../../data/models/home_items.dart';
 import '../../data/repositories/home_repository.dart';
@@ -18,8 +19,6 @@ class HomeController extends GetxController {
 
   // ── Vị trí giao hàng ─────────────────────────────────────────────────────────
   final locationName = ''.obs;
-
-  // ── Trạng thái lấy vị trí ────────────────────────────────────────────────────
   final isLocating = false.obs;
   final pickerAddress = ''.obs;
 
@@ -28,23 +27,25 @@ class HomeController extends GetxController {
       Get.find<NotificationController>();
   final RxInt unreadNotificationCount = 0.obs;
 
-  // ── Danh mục có hình ảnh ─────────────────────────────────────────────────────
+  // ── Danh mục ─────────────────────────────────────────────────────────────────
   final categories = <CategoryItem>[].obs;
-  final selectedCategorySlug = 'all'.obs;
+  final selectedCategoryId = Rxn<int>(); // null = Tất cả
+
+  // ── Store setting ────────────────────────────────────────────────────────────
+  final storeSetting = Rxn<StoreSettingModel>();
+  bool get isStoreOpen => storeSetting.value?.isOpen ?? true;
 
   // ── Banner quảng cáo ─────────────────────────────────────────────────────────
   final promoBanners = <HomePromoBannerItem>[].obs;
 
   // ── Tất cả món ăn ────────────────────────────────────────────────────────────
   final _allFoodItems = <FoodItemModel>[];
+  List<FoodItemModel> get allFoodItems => List.unmodifiable(_allFoodItems);
   final filteredFoodItems = <FoodItemModel>[].obs;
+  final isFilteredEmpty = true.obs;
 
-  // ── Món ăn phổ biến nhất ─────────────────────────────────────────────────────
-  final popularItems = <FoodItemModel>[].obs;
-  final popularCount = 0.obs;
-  final isPopularEmpty = true.obs;
-
-  CartController get _cartController => Get.find<CartController>();
+  // ── Nổi bật (6 món đầu tiên available) ──────────────────────────────────────
+  final featuredItems = <FoodItemModel>[].obs;
 
   @override
   void onInit() {
@@ -55,28 +56,19 @@ class HomeController extends GetxController {
     _loadData();
   }
 
-  void selectCategory(String slug) {
-    selectedCategorySlug.value = slug;
+  void selectCategory(int? id) {
+    selectedCategoryId.value = id;
     _applyFilter();
   }
 
-  void addToCart(FoodItemModel item) {
-    _cartController.addItem(
-      CartItemModel(
-        id: item.id.toString(),
-        name: item.name,
-        price: item.priceVnd.toDouble(),
-        quantity: 1,
-        imageUrl: item.imageUrl,
-      ),
-    );
+  void navigateToFoodDetail(FoodItemModel item) {
+    Get.toNamed(AppRoutes.foodDetail, arguments: item.id);
   }
 
   // ── Location Picker ──────────────────────────────────────────────────────────
 
   void initPickerLocation() {
     pickerAddress.value = locationName.value;
-    // Tự động hỏi quyền & lấy GPS ngay khi sheet mở
     fetchCurrentLocation();
   }
 
@@ -105,13 +97,12 @@ class HomeController extends GetxController {
         locationSettings:
             const LocationSettings(accuracy: LocationAccuracy.high),
       );
-
-      final address = await _repository.reverseGeocode(
+      pickerAddress.value = await _repository.reverseGeocode(
         position.latitude,
         position.longitude,
       );
-      pickerAddress.value = address;
-    } catch (_) {
+    } catch (e) {
+      dev.log('[HOME] ❌ fetchCurrentLocation error: $e');
       Get.snackbar(
         'Lỗi vị trí',
         'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
@@ -132,45 +123,47 @@ class HomeController extends GetxController {
   // ── Private ──────────────────────────────────────────────────────────────────
 
   void _applyFilter() {
-    if (selectedCategorySlug.value == 'all') {
-      filteredFoodItems.assignAll(_allFoodItems);
-    } else {
-      filteredFoodItems.assignAll(
-        _allFoodItems
-            .where((item) => item.categorySlug == selectedCategorySlug.value)
-            .toList(),
-      );
-    }
+    final id = selectedCategoryId.value;
+    final filtered = id == null
+        ? _allFoodItems
+        : _allFoodItems.where((item) => item.categoryId == id).toList();
+    filteredFoodItems.assignAll(filtered);
+    isFilteredEmpty.value = filtered.isEmpty;
   }
 
   Future<void> _loadData() async {
+    isLoading.value = true;
+    error.value = null;
     try {
-      isLoading.value = true;
-      error.value = null;
-
       final results = await Future.wait([
         _repository.fetchCategories(),
         _repository.fetchPromoBanners(),
         _repository.fetchFoodItems(),
+        _repository.fetchStoreSetting(),
       ]);
 
       categories.assignAll(results[0] as List<CategoryItem>);
       promoBanners.assignAll(results[1] as List<HomePromoBannerItem>);
+      storeSetting.value = results[3] as StoreSettingModel;
 
       _allFoodItems
         ..clear()
         ..addAll(results[2] as List<FoodItemModel>);
-      filteredFoodItems.assignAll(_allFoodItems);
 
-      final popular = _allFoodItems
-          .where((item) => item.isPopular && item.isAvailable)
-          .toList();
-      popularItems.assignAll(popular);
-      popularCount.value = popular.length;
-      isPopularEmpty.value = popular.isEmpty;
+      filteredFoodItems.assignAll(_allFoodItems);
+      isFilteredEmpty.value = _allFoodItems.isEmpty;
+
+      featuredItems.assignAll(
+        _allFoodItems.where((item) => item.isAvailable).take(6),
+      );
+
+      // Yield one event-loop turn so any pending touch events (e.g. tab tap)
+      // can be processed before HomeView rebuilds from scratch.
+      await Future.delayed(Duration.zero);
+      isLoading.value = false;
     } catch (e) {
+      dev.log('[HOME] ❌ _loadData error: $e');
       error.value = e;
-    } finally {
       isLoading.value = false;
     }
   }

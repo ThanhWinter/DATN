@@ -250,6 +250,8 @@ class _OtpViewState extends State<OtpView> {
           child: TextField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],
+            expands: true,
+            maxLines: null,
             onChanged: (value) {
               if (value.isNotEmpty && index < 5) {
                 _focusNodes[index + 1].requestFocus();
@@ -258,9 +260,13 @@ class _OtpViewState extends State<OtpView> {
               }
               _onOtpChanged();
             },
-            style: AppTextStyles.h2.copyWith(color: AppColors.white),
+            style: AppTextStyles.h2.copyWith(
+              color: AppColors.white,
+              height: 1.0,
+            ),
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
+            textAlignVertical: TextAlignVertical.center,
             inputFormatters: [
               LengthLimitingTextInputFormatter(1),
               FilteringTextInputFormatter.digitsOnly,
@@ -268,6 +274,8 @@ class _OtpViewState extends State<OtpView> {
             decoration: const InputDecoration(
               border: InputBorder.none,
               counterText: '',
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
             ),
           ),
         ),

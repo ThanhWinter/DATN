@@ -1,8 +1,9 @@
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../../app/routes/app_routes.dart';
 import '../../data/models/profile_models.dart';
-import 'edit_profile_sheet.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserModel user;
@@ -38,11 +39,12 @@ class ProfileHeader extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _ProfileAvatar(initials: user.initials),
+                  _ProfileAvatar(
+                      initials: user.initials, avatarUrl: user.avatarUrl),
                   const SizedBox(width: 16),
                   Expanded(child: _UserInfo(user: user)),
                   const SizedBox(width: 12),
-                  _EditButton(user: user),
+                  const _EditButton(),
                 ],
               ),
             ),
@@ -55,8 +57,9 @@ class ProfileHeader extends StatelessWidget {
 
 class _ProfileAvatar extends StatelessWidget {
   final String initials;
+  final String? avatarUrl;
 
-  const _ProfileAvatar({required this.initials});
+  const _ProfileAvatar({required this.initials, this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -71,16 +74,29 @@ class _ProfileAvatar extends StatelessWidget {
           width: 2,
         ),
       ),
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: AppTextStyles.h2.copyWith(
-          color: AppColors.white,
-          fontWeight: FontWeight.w800,
-        ),
+      child: ClipOval(
+        child: avatarUrl != null
+            ? AppNetworkImage(
+                url: avatarUrl!,
+                fit: BoxFit.cover,
+                memCacheWidth: 100,
+                memCacheHeight: 100,
+                errorWidget: _initialsChild(),
+              )
+            : _initialsChild(),
       ),
     );
   }
+
+  Widget _initialsChild() => Center(
+        child: Text(
+          initials,
+          style: AppTextStyles.h2.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
 }
 
 class _UserInfo extends StatelessWidget {
@@ -102,10 +118,7 @@ class _UserInfo extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        _IconRow(
-          icon: Icons.phone_outlined,
-          text: user.phone,
-        ),
+        _IconRow(icon: Icons.phone_outlined, text: user.phone),
         const SizedBox(height: 3),
         _IconRow(
           icon: Icons.mail_outline_rounded,
@@ -149,14 +162,12 @@ class _IconRow extends StatelessWidget {
 }
 
 class _EditButton extends StatelessWidget {
-  final UserModel user;
-
-  const _EditButton({required this.user});
+  const _EditButton();
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => EditProfileSheet.show(user),
+      onTap: () => Get.toNamed(AppRoutes.editProfile),
       child: Container(
         width: 42,
         height: 42,

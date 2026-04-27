@@ -1,5 +1,4 @@
 import "dart:convert";
-import "dart:isolate";
 import "dart:developer" as dev;
 
 import "package:http/http.dart" as http;
@@ -50,6 +49,9 @@ abstract class IApiClient {
     Map<String, String>? fields,
     List<MultipartFileData>? files,
   });
+
+  /// Upload file và trả về raw string body (dùng cho endpoint trả về plain URL, không wrap ApiResponse).
+  Future<String> uploadRaw(String path, MultipartFileData file);
 
   void updateToken(String? token);
   void setRefreshToken(String? refreshToken);
@@ -137,6 +139,9 @@ class ApiClient implements IApiClient {
     Map<String, dynamic>? body,
   }) =>
       _withAutoRefresh(() async {
+        if (body != null && body.isNotEmpty) {
+          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        }
         final res = await _httpClient.post(
           _buildUri(path),
           headers: {...defaultHeaders, ...?headers},
@@ -156,6 +161,9 @@ class ApiClient implements IApiClient {
     Map<String, dynamic>? body,
   }) =>
       _withAutoRefresh(() async {
+        if (body != null && body.isNotEmpty) {
+          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        }
         final res = await _httpClient.put(
           _buildUri(path),
           headers: {...defaultHeaders, ...?headers},
@@ -176,6 +184,9 @@ class ApiClient implements IApiClient {
     Map<String, String>? query,
   }) =>
       _withAutoRefresh(() async {
+        if (body != null && body.isNotEmpty) {
+          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        }
         final res = await _httpClient.patch(
           _buildUri(path, query),
           headers: {...defaultHeaders, ...?headers},
@@ -229,6 +240,30 @@ class ApiClient implements IApiClient {
         return _handleResponse(res);
       });
 
+  // -----------------------------------------------------------------------
+  // UPLOAD RAW — trả về plain string body (không wrap ApiResponse)
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<String> uploadRaw(String path, MultipartFileData file) async {
+    final request = http.MultipartRequest('POST', _buildUri(path));
+    request.files.add(http.MultipartFile.fromBytes(
+      file.field,
+      file.bytes,
+      filename: file.filename,
+    ));
+    dev.log('🚀 [API UPLOAD] POST ${request.url}');
+    final streamed = await _httpClient.send(request);
+    final res = await http.Response.fromStream(streamed);
+    final ok = res.statusCode >= 200 && res.statusCode < 300;
+    dev.log('${ok ? '✅' : '❌'} [API UPLOAD] ${res.statusCode} → ${res.body}');
+    if (ok) return res.body.trim();
+    throw ApiException(
+      statusCode: res.statusCode,
+      message: res.body.trim().isNotEmpty ? res.body.trim() : 'Upload failed',
+    );
+  }
+
   // =========================================================================
   // AUTO-REFRESH: 401 → refresh token → retry một lần
   // =========================================================================
@@ -258,7 +293,7 @@ class ApiClient implements IApiClient {
       final body = res.body;
       final data = body.isEmpty
           ? <String, dynamic>{}
-          : await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
+          : jsonDecode(body) as Map<String, dynamic>;
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final result = data['result'] as Map<String, dynamic>?;
@@ -297,22 +332,30 @@ class ApiClient implements IApiClient {
     );
   }
 
-  Future<Map<String, dynamic>> _handleResponse(http.Response res) async {
+  Map<String, dynamic> _handleResponse(http.Response res) {
     final body = res.body;
-    dev.log('${res.statusCode >= 200 && res.statusCode < 300 ? '✅' : '❌'} [API] ${res.statusCode} ${res.request?.url}');
+    final ok = res.statusCode >= 200 && res.statusCode < 300;
+
+    dev.log('${ok ? '✅' : '❌'} [API] ${res.statusCode} ${res.request?.url}');
     if (body.isNotEmpty) dev.log('📝 [RESULT] $body');
 
     if (res.statusCode == 204) return <String, dynamic>{};
 
     final data = body.isEmpty
         ? <String, dynamic>{}
-        : await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
+        : jsonDecode(body) as Map<String, dynamic>;
 
-    if (res.statusCode >= 200 && res.statusCode < 300) return data;
+    if (ok) return data;
 
+    final message = data['message']?.toString() ?? 'Unexpected API error';
+    dev.log(
+      '🔴 [ERROR] ${res.statusCode} — $message',
+      error: data,
+      level: 1000, // ERROR level — nổi bật hơn trong DevTools Logging tab
+    );
     throw ApiException(
       statusCode: res.statusCode,
-      message: data['message']?.toString() ?? 'Unexpected API error',
+      message: message,
       payload: data,
     );
   }

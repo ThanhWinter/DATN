@@ -1,29 +1,75 @@
-// ── Promo Banner (hardcoded ad) ───────────────────────────────────────────────
+import 'food_option_model.dart';
+
+// ── Promo Banner ──────────────────────────────────────────────────────────────
 class HomePromoBannerItem {
+  final int id;
   final String title;
-  final String subtitle;
   final String? imageUrl;
-  final String? badgeText;
+  final String? linkUrl;
 
   const HomePromoBannerItem({
+    required this.id,
     required this.title,
-    required this.subtitle,
     this.imageUrl,
-    this.badgeText,
+    this.linkUrl,
   });
+
+  factory HomePromoBannerItem.fromJson(Map<String, dynamic> json) {
+    return HomePromoBannerItem(
+      id: (json['id'] as num).toInt(),
+      title: json['title'] as String? ?? '',
+      imageUrl: json['imageUrl']?.toString(),
+      linkUrl: json['linkUrl']?.toString(),
+    );
+  }
 }
 
-// ── Category (danh mục thực đơn có hình ảnh) ─────────────────────────────────
+// ── Store Setting ─────────────────────────────────────────────────────────────
+class StoreSettingModel {
+  final String storeName;
+  final String hotline;
+  final bool isOpen;
+  final double baseShippingFee;
+  final double freeShipThreshold;
+
+  const StoreSettingModel({
+    required this.storeName,
+    required this.hotline,
+    required this.isOpen,
+    required this.baseShippingFee,
+    required this.freeShipThreshold,
+  });
+
+  factory StoreSettingModel.fromJson(Map<String, dynamic> json) {
+    return StoreSettingModel(
+      storeName: json['storeName'] as String? ?? '',
+      hotline: json['hotline'] as String? ?? '',
+      isOpen: json['isOpen'] as bool? ?? true,
+      baseShippingFee: (json['baseShippingFee'] as num?)?.toDouble() ?? 0,
+      freeShipThreshold: (json['freeShipThreshold'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+// ── Category ──────────────────────────────────────────────────────────────────
 class CategoryItem {
+  final int id;
   final String name;
-  final String slug;
   final String? imageUrl;
 
   const CategoryItem({
+    required this.id,
     required this.name,
-    required this.slug,
     this.imageUrl,
   });
+
+  factory CategoryItem.fromJson(Map<String, dynamic> json) {
+    return CategoryItem(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      imageUrl: json['imageUrl']?.toString(),
+    );
+  }
 }
 
 // ── Món ăn ───────────────────────────────────────────────────────────────────
@@ -31,21 +77,23 @@ class FoodItemModel {
   final int id;
   final String name;
   final String? description;
-  final int priceVnd;
+  final double price;
   final String? imageUrl;
-  final String categorySlug;
+  final int categoryId;
+  final String? categoryName;
   final bool isAvailable;
-  final bool isPopular;
+  final List<OptionGroupModel> optionGroups;
 
   const FoodItemModel({
     required this.id,
     required this.name,
-    required this.priceVnd,
-    required this.categorySlug,
+    required this.price,
+    required this.categoryId,
     this.description,
     this.imageUrl,
+    this.categoryName,
     this.isAvailable = true,
-    this.isPopular = false,
+    this.optionGroups = const [],
   });
 
   factory FoodItemModel.fromJson(Map<String, dynamic> json) {
@@ -53,11 +101,14 @@ class FoodItemModel {
       id: (json['id'] as num).toInt(),
       name: (json['name'] ?? '').toString(),
       description: json['description']?.toString(),
-      priceVnd: (json['price'] as num?)?.toInt() ?? 0,
+      price: (json['price'] as num?)?.toDouble() ?? 0,
       imageUrl: json['imageUrl']?.toString(),
-      categorySlug: (json['categorySlug'] ?? 'other').toString(),
+      categoryId: (json['categoryId'] as num?)?.toInt() ?? 0,
+      categoryName: json['categoryName']?.toString(),
       isAvailable: json['isAvailable'] as bool? ?? true,
-      isPopular: json['isPopular'] as bool? ?? false,
+      optionGroups: (json['optionGroups'] as List<dynamic>? ?? [])
+          .map((e) => OptionGroupModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

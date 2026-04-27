@@ -50,6 +50,8 @@ class FoodCard extends StatelessWidget {
                             width: 84,
                             height: 84,
                             fit: BoxFit.cover,
+                            memCacheWidth: 84,
+                            memCacheHeight: 84,
                           )
                         : Container(
                             width: 84,

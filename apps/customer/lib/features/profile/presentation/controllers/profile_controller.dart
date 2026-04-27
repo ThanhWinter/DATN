@@ -54,6 +54,8 @@ class ProfileController extends GetxController {
     Get.offAllNamed(AppRoutes.login);
   }
 
+  Future<void> reloadProfile() => _loadData();
+
   Future<void> _loadData() async {
     try {
       isLoading.value = true;

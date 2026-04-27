@@ -15,8 +15,9 @@ class MainActivity: FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Khởi tạo ZaloPay SDK với AppID 553 và môi trường Sandbox
-        ZaloPaySDK.init(553, Environment.SANDBOX)
+        // Init ZaloPay off main thread — sandbox SDK makes a network call on init
+        // which can block the main thread 5-10s and trigger MIUI ANR (signal 3).
+        Thread { ZaloPaySDK.init(553, Environment.SANDBOX) }.start()
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

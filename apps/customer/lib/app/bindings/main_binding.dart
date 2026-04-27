@@ -14,6 +14,8 @@ import '../../features/orders/data/repositories/order_repository.dart';
 import '../../features/orders/presentation/controllers/order_controller.dart';
 import '../../features/profile/data/repositories/profile_repository.dart';
 import '../../features/profile/presentation/controllers/profile_controller.dart';
+import '../../features/interactions/data/repositories/interaction_repository.dart';
+import '../../features/interactions/presentation/controllers/favorite_controller.dart';
 import '../../features/main/presentation/controllers/main_controller.dart';
 
 class MainBinding extends Bindings {
@@ -27,27 +29,44 @@ class MainBinding extends Bindings {
       fenix: true,
     );
 
-    Get.lazyPut<NotificationRepository>(() => NotificationRepository(),
-        fenix: true);
+    Get.lazyPut<InteractionRepository>(
+      () => InteractionRepository(Get.find<IApiClient>()),
+      fenix: true,
+    );
+    Get.lazyPut<FavoriteController>(
+      () => FavoriteController(Get.find<InteractionRepository>()),
+      fenix: true,
+    );
+
+    Get.lazyPut<NotificationRepository>(
+      () => NotificationRepository(Get.find<IApiClient>()),
+      fenix: true,
+    );
     Get.lazyPut<NotificationController>(
       () => NotificationController(Get.find<NotificationRepository>()),
       fenix: true,
     );
 
-    Get.lazyPut<HomeRepository>(() => HomeRepository(), fenix: true);
+    Get.lazyPut<HomeRepository>(
+      () => HomeRepository(Get.find<IApiClient>()),
+      fenix: true,
+    );
     Get.lazyPut<HomeController>(
       () => HomeController(Get.find<HomeRepository>()),
       fenix: true,
     );
 
-    Get.lazyPut<OrderRepository>(() => OrderRepository(), fenix: true);
+    Get.lazyPut<OrderRepository>(
+      () => OrderRepository(Get.find<IApiClient>()),
+      fenix: true,
+    );
     Get.lazyPut<OrderController>(
       () => OrderController(Get.find<OrderRepository>()),
       fenix: true,
     );
 
     Get.lazyPut<ProfileRepository>(
-      () => ProfileRepository(Get.find<IApiClient>()),
+      () => ProfileRepository(Get.find<IApiClient>(), Get.find<AuthService>()),
       fenix: true,
     );
     Get.lazyPut<ProfileController>(

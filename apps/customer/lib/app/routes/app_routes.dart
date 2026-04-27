@@ -11,4 +11,10 @@ abstract class AppRoutes {
   static const checkout = "/checkout";
   static const otpVerification = "/otp-verification";
   static const resetPassword = "/reset-password";
+  static const foodDetail = "/food-detail";
+  static const orderDetail = "/order-detail";
+  static const editProfile = "/edit-profile";
+  static const favorites = "/favorites";
+  static const reviewOrder = "/review-order";
+  static const search = "/search";
 }

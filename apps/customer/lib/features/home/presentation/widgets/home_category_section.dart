@@ -13,22 +13,30 @@ class HomeCategorySection extends GetView<HomeController> {
       color: AppColors.white,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Obx(() {
-        final selectedSlug = controller.selectedCategorySlug.value;
+        final selectedId = controller.selectedCategoryId.value;
         return SizedBox(
           height: 96,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             scrollDirection: Axis.horizontal,
-            itemCount: controller.categories.length,
+            // +1 cho chip "Tất cả"
+            itemCount: controller.categories.length + 1,
             separatorBuilder: (_, __) => const SizedBox(width: 4),
             itemBuilder: (context, index) {
-              final cat = controller.categories[index];
-              final isSelected = selectedSlug == cat.slug;
+              if (index == 0) {
+                return _CategoryTile(
+                  name: 'Tất cả',
+                  imageUrl: null,
+                  isSelected: selectedId == null,
+                  onTap: () => controller.selectCategory(null),
+                );
+              }
+              final cat = controller.categories[index - 1];
               return _CategoryTile(
                 name: cat.name,
                 imageUrl: cat.imageUrl,
-                isSelected: isSelected,
-                onTap: () => controller.selectCategory(cat.slug),
+                isSelected: selectedId == cat.id,
+                onTap: () => controller.selectCategory(cat.id),
               );
             },
           ),
@@ -75,6 +83,8 @@ class _CategoryTile extends StatelessWidget {
                     ? AppNetworkImage(
                         url: imageUrl!,
                         fit: BoxFit.cover,
+                        memCacheWidth: 60,
+                        memCacheHeight: 60,
                         errorWidget: const Icon(
                           Icons.fastfood_rounded,
                           color: AppColors.primaryOrange,
@@ -96,9 +106,8 @@ class _CategoryTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.bodySmall.copyWith(
                 fontSize: 10,
-                color: isSelected
-                    ? AppColors.primaryOrange
-                    : AppColors.textDark,
+                color:
+                    isSelected ? AppColors.primaryOrange : AppColors.textDark,
                 fontWeight:
                     isSelected ? FontWeight.w700 : FontWeight.w400,
                 height: 1.3,

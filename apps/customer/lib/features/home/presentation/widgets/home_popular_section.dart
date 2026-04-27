@@ -11,7 +11,7 @@ class HomePopularSection extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.isPopularEmpty.value) return const SizedBox.shrink();
+      if (controller.featuredItems.isEmpty) return const SizedBox.shrink();
 
       return Container(
         color: AppColors.white,
@@ -19,7 +19,6 @@ class HomePopularSection extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Tiêu đề section ──────────────────────────────────────────
             Row(
               children: [
                 const Icon(
@@ -28,20 +27,15 @@ class HomePopularSection extends GetView<HomeController> {
                   size: 20,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  'Yêu thích nhất',
-                  style: AppTextStyles.h3.copyWith(fontSize: 16),
-                ),
+                Text('Nổi bật', style: AppTextStyles.h3.copyWith(fontSize: 16)),
                 const Spacer(),
                 Text(
-                  '${controller.popularCount.value} món',
+                  '${controller.featuredItems.length} món',
                   style: AppTextStyles.bodySmall,
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
-            // ── Lưới 2 cột ───────────────────────────────────────────────
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -51,14 +45,15 @@ class HomePopularSection extends GetView<HomeController> {
                 crossAxisSpacing: 12,
                 childAspectRatio: 0.72,
               ),
-              itemCount: controller.popularCount.value,
-              itemBuilder: (context, index) => _PopularFoodCard(
-                item: controller.popularItems[index],
-                onAddToCart: () =>
-                    controller.addToCart(controller.popularItems[index]),
+              itemCount: controller.featuredItems.length,
+              itemBuilder: (context, index) => RepaintBoundary(
+                child: _FeaturedFoodCard(
+                  item: controller.featuredItems[index],
+                  onTap: () =>
+                      controller.navigateToFoodDetail(controller.featuredItems[index]),
+                ),
               ),
             ),
-
             const SizedBox(height: 8),
           ],
         ),
@@ -67,81 +62,80 @@ class HomePopularSection extends GetView<HomeController> {
   }
 }
 
-class _PopularFoodCard extends StatelessWidget {
+class _FeaturedFoodCard extends StatelessWidget {
   final FoodItemModel item;
-  final VoidCallback onAddToCart;
+  final VoidCallback onTap;
 
-  const _PopularFoodCard({required this.item, required this.onAddToCart});
+  const _FeaturedFoodCard({required this.item, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Hình ảnh ─────────────────────────────────────────────────
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: AspectRatio(
-              aspectRatio: 1.1,
-              child: item.imageUrl != null
-                  ? AppNetworkImage(
-                      url: item.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorWidget: _imagePlaceholder(),
-                    )
-                  : _imagePlaceholder(),
+    return GestureDetector(
+      onTap: item.isAvailable ? onTap : null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-          ),
-
-          // ── Thông tin ─────────────────────────────────────────────────
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: AppTextStyles.labelLarge.copyWith(fontSize: 13),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (item.description != null) ...[
-                    const SizedBox(height: 2),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: AspectRatio(
+                aspectRatio: 1.1,
+                child: item.imageUrl != null
+                    ? AppNetworkImage(
+                        url: item.imageUrl!,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 200,
+                        errorWidget: _imagePlaceholder(),
+                      )
+                    : _imagePlaceholder(),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      item.description!,
-                      style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
-                      maxLines: 1,
+                      item.name,
+                      style: AppTextStyles.labelLarge.copyWith(fontSize: 13),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    if (item.description != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        '${item.priceVnd ~/ 1000}K',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: AppColors.primaryOrange,
-                          fontSize: 14,
-                        ),
+                        item.description!,
+                        style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      GestureDetector(
-                        onTap: item.isAvailable ? onAddToCart : null,
-                        child: Container(
+                    ],
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${(item.price / 1000).round()}K',
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: AppColors.primaryOrange,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Container(
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
@@ -151,19 +145,19 @@ class _PopularFoodCard extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.add,
+                            Icons.arrow_forward_ios_rounded,
                             color: AppColors.white,
-                            size: 18,
+                            size: 14,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -172,7 +166,8 @@ class _PopularFoodCard extends StatelessWidget {
     return Container(
       color: AppColors.grey100,
       child: const Center(
-        child: Icon(Icons.fastfood_rounded, color: AppColors.grey400, size: 40),
+        child:
+            Icon(Icons.fastfood_rounded, color: AppColors.grey400, size: 40),
       ),
     );
   }

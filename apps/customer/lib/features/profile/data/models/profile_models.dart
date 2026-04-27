@@ -1,6 +1,7 @@
 class UserModel {
   final String id;
-  final String fullName;
+  final String firstName;
+  final String lastName;
   final String email;
   final String phone;
   final String? avatarUrl;
@@ -9,13 +10,16 @@ class UserModel {
 
   const UserModel({
     required this.id,
-    required this.fullName,
+    required this.firstName,
+    required this.lastName,
     required this.email,
     required this.phone,
     this.avatarUrl,
     this.totalOrders = 0,
     this.totalSaved = 0,
   });
+
+  String get fullName => '$lastName $firstName'.trim();
 
   String get initials {
     final parts = fullName.trim().split(' ');

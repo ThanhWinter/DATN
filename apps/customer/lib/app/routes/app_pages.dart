@@ -6,18 +6,33 @@ import "../bindings/main_binding.dart";
 import "../../features/home/presentation/views/home_view.dart";
 import "../bindings/home_binding.dart";
 
+import "../../features/home/presentation/views/food_detail_view.dart";
+import "../bindings/food_detail_binding.dart";
+
 import "../../features/cart/presentation/views/cart_view.dart";
 import "../bindings/cart_binding.dart";
 
 import "../../features/orders/presentation/views/order_view.dart";
 import "../bindings/order_binding.dart";
 
+import "../../features/orders/presentation/views/order_detail_view.dart";
+import "../bindings/order_detail_binding.dart";
+
 import "../../features/notifications/presentation/views/notification_view.dart";
 import "../bindings/notification_binding.dart";
 
-
 import "../../features/payment/presentation/views/checkout_view.dart";
 import "../bindings/checkout_binding.dart";
+
+import "../../features/profile/presentation/views/edit_profile_view.dart";
+import "../bindings/edit_profile_binding.dart";
+
+import "../../features/interactions/presentation/views/favorite_view.dart";
+import "../bindings/favorite_binding.dart";
+import "../../features/interactions/presentation/views/review_view.dart";
+import "../bindings/review_binding.dart";
+import "../../features/search/presentation/views/search_view.dart";
+import "../bindings/search_binding.dart";
 
 import "../../features/auth/presentation/views/email_login_view.dart";
 import "../../features/auth/presentation/views/forgot_password_view.dart";
@@ -66,6 +81,11 @@ class AppPages {
       binding: HomeBinding(),
     ),
     GetPage(
+      name: AppRoutes.foodDetail,
+      page: () => const FoodDetailView(),
+      binding: FoodDetailBinding(),
+    ),
+    GetPage(
       name: AppRoutes.cart,
       page: () => const CartView(),
       binding: CartBinding(),
@@ -74,6 +94,11 @@ class AppPages {
       name: AppRoutes.orders,
       page: () => const OrderView(),
       binding: OrderBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.orderDetail,
+      page: () => const OrderDetailView(),
+      binding: OrderDetailBinding(),
     ),
     GetPage(
       name: AppRoutes.notifications,
@@ -86,6 +111,11 @@ class AppPages {
       binding: CheckoutBinding(),
     ),
     GetPage(
+      name: AppRoutes.editProfile,
+      page: () => const EditProfileView(),
+      binding: EditProfileBinding(),
+    ),
+    GetPage(
       name: AppRoutes.otpVerification,
       page: () => const OtpView(),
       binding: OtpBinding(),
@@ -94,6 +124,21 @@ class AppPages {
       name: AppRoutes.resetPassword,
       page: () => const ResetPasswordView(),
       binding: ResetPasswordBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.favorites,
+      page: () => const FavoriteView(),
+      binding: FavoriteBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.reviewOrder,
+      page: () => const ReviewView(),
+      binding: ReviewBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.search,
+      page: () => const SearchView(),
+      binding: SearchBinding(),
     ),
   ];
 }

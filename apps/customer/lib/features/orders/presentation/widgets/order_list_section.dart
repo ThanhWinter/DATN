@@ -7,12 +7,14 @@ class OrderListSection extends StatelessWidget {
   final List<OrderModel> orders;
   final IconData emptyIcon;
   final String emptyMessage;
+  final void Function(String orderId) onOrderTap;
 
   const OrderListSection({
     super.key,
     required this.orders,
     required this.emptyIcon,
     required this.emptyMessage,
+    required this.onOrderTap,
   });
 
   @override
@@ -36,7 +38,7 @@ class OrderListSection extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (_, index) => OrderCard(
         order: orders[index],
-        onActionPressed: () {},
+        onActionPressed: () => onOrderTap(orders[index].id),
       ),
     );
   }

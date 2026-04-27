@@ -1,4 +1,5 @@
-import 'package:core_ui/core_ui.dart';
+import 'dart:developer' as dev;
+
 import 'package:get/get.dart';
 
 import '../../data/models/notification_model.dart';
@@ -9,57 +10,73 @@ class NotificationController extends GetxController {
 
   NotificationController(this._repository);
 
-  static const _tag = 'NotificationController';
-
-  final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
+final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxInt unreadCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadData();
+    _fetchUnreadCount();
   }
 
-  Future<void> _loadData() async {
+  // Gọi lúc startup — chỉ lấy badge số, không kéo danh sách
+  Future<void> _fetchUnreadCount() async {
+    try {
+      unreadCount.value = await _repository.fetchUnreadCount();
+      dev.log('[NOTIFICATION] ✅ unreadCount: ${unreadCount.value}');
+    } catch (e) {
+      dev.log('[NOTIFICATION] ❌ fetchUnreadCount error: $e');
+    }
+  }
+
+  // Gọi khi user mở màn hình thông báo
+  Future<void> loadNotifications() async {
     try {
       isLoading.value = true;
       notifications.assignAll(await _repository.fetchNotifications());
-      _updateUnreadCount();
-      AppLogger.d(_tag,
-          'Loaded ${notifications.length} thông báo, chưa đọc: ${unreadCount.value}');
+      dev.log('[NOTIFICATION] ✅ Loaded ${notifications.length} thông báo');
+    } catch (e) {
+      dev.log('[NOTIFICATION] ❌ loadNotifications error: $e');
     } finally {
       isLoading.value = false;
     }
   }
 
-  void _updateUnreadCount() {
-    unreadCount.value = notifications.where((n) => !n.isRead).length;
-  }
-
-  void markAsRead(String id) {
+  Future<void> markAsRead(String id) async {
     final index = notifications.indexWhere((n) => n.id == id);
-    if (index != -1 && !notifications[index].isRead) {
+    if (index == -1 || notifications[index].isRead) return;
+    try {
+      await _repository.markAsRead(id);
       notifications[index] = notifications[index].copyWith(isRead: true);
-      _updateUnreadCount();
-      AppLogger.d(_tag, 'markAsRead: $id | còn chưa đọc: ${unreadCount.value}');
+      if (unreadCount.value > 0) unreadCount.value--;
+      dev.log('[NOTIFICATION] ✅ markAsRead: $id | còn chưa đọc: ${unreadCount.value}');
+    } catch (e) {
+      dev.log('[NOTIFICATION] ❌ markAsRead error: $e');
     }
   }
 
-  void markAllAsRead() {
-    for (int i = 0; i < notifications.length; i++) {
-      if (!notifications[i].isRead) {
-        notifications[i] = notifications[i].copyWith(isRead: true);
+  Future<void> markAllAsRead() async {
+    try {
+      await _repository.markAllAsRead();
+      for (int i = 0; i < notifications.length; i++) {
+        if (!notifications[i].isRead) {
+          notifications[i] = notifications[i].copyWith(isRead: true);
+        }
       }
+      unreadCount.value = 0;
+      dev.log('[NOTIFICATION] ✅ markAllAsRead');
+    } catch (e) {
+      dev.log('[NOTIFICATION] ❌ markAllAsRead error: $e');
     }
-    _updateUnreadCount();
-    AppLogger.d(_tag, 'markAllAsRead: badge = ${unreadCount.value}');
   }
 
   void deleteNotification(String id) {
+    final notif = notifications.firstWhereOrNull((n) => n.id == id);
     notifications.removeWhere((n) => n.id == id);
-    _updateUnreadCount();
-    AppLogger.d(_tag,
-        'deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
+    if (notif != null && !notif.isRead && unreadCount.value > 0) {
+      unreadCount.value--;
+    }
+    dev.log('[NOTIFICATION] 🗑️ deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
   }
 }

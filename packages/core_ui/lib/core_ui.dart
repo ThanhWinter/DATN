@@ -12,3 +12,4 @@ export "src/widgets/google_sign_in_button.dart";
 export "src/widgets/gradient_action_button.dart";
 export "src/widgets/primary_button.dart";
 export "src/widgets/snap_helper_widget.dart";
+export "src/widgets/quantity_selector.dart";

@@ -108,6 +108,8 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
+                        memCacheWidth: 48,
+                        memCacheHeight: 48,
                       ),
                     ),
                 ],

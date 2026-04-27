@@ -61,6 +61,16 @@ class CartItemCard extends GetView<CartController> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (item.selectedOptions.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      item.optionsLabel,
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: AppColors.primaryOrange),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   if (item.note != null && item.note!.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(item.note!, style: AppTextStyles.bodySmall),

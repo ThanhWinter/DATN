@@ -35,9 +35,8 @@ class OrderView extends GetView<OrderController> {
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
-            unselectedLabelStyle: AppTextStyles.bodyMedium.copyWith(
-              fontSize: 15,
-            ),
+            unselectedLabelStyle:
+                AppTextStyles.bodyMedium.copyWith(fontSize: 15),
             tabs: const [
               Tab(text: 'Đang giao'),
               Tab(text: 'Lịch sử'),
@@ -46,18 +45,22 @@ class OrderView extends GetView<OrderController> {
         ),
         body: SnapHelperWidget(
           isLoading: controller.isLoading,
+          error: controller.error,
+          onRetry: controller.loadOrders,
           onSuccess: () => TabBarView(
             children: [
-              OrderListSection(
-                orders: controller.activeOrders,
-                emptyIcon: Icons.motorcycle_outlined,
-                emptyMessage: 'Không có đơn hàng đang giao',
-              ),
-              OrderListSection(
-                orders: controller.historyOrders,
-                emptyIcon: Icons.receipt_long_outlined,
-                emptyMessage: 'Chưa có đơn hàng nào',
-              ),
+              Obx(() => OrderListSection(
+                    orders: controller.activeOrders.toList(),
+                    emptyIcon: Icons.motorcycle_outlined,
+                    emptyMessage: 'Không có đơn hàng đang giao',
+                    onOrderTap: controller.navigateToDetail,
+                  )),
+              Obx(() => OrderListSection(
+                    orders: controller.historyOrders.toList(),
+                    emptyIcon: Icons.receipt_long_outlined,
+                    emptyMessage: 'Chưa có đơn hàng nào',
+                    onOrderTap: controller.navigateToDetail,
+                  )),
             ],
           ),
         ),

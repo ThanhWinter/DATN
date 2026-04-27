@@ -74,15 +74,17 @@ class MenuView extends GetView<MenuController> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, i) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: FoodCard(
-                          food: foods[i],
-                          onToggle: (_) =>
-                              controller.toggleAvailability(foods[i]),
-                          onEdit: () => _showEditFood(foods[i]),
-                          onDelete: () =>
-                              _confirmDeleteFood(context, foods[i]),
+                      (context, i) => RepaintBoundary(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: FoodCard(
+                            food: foods[i],
+                            onToggle: (_) =>
+                                controller.toggleAvailability(foods[i]),
+                            onEdit: () => _showEditFood(foods[i]),
+                            onDelete: () =>
+                                _confirmDeleteFood(context, foods[i]),
+                          ),
                         ),
                       ),
                       childCount: foods.length,
@@ -258,6 +260,8 @@ class _CategoryFilter extends GetView<MenuController> {
                           width: 24,
                           height: 24,
                           fit: BoxFit.cover,
+                          memCacheWidth: 24,
+                          memCacheHeight: 24,
                         ),
                       )
                     : CircleAvatar(

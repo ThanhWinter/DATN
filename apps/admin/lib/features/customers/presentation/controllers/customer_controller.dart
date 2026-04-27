@@ -26,6 +26,11 @@ class CustomerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    debounce(
+      searchQuery,
+      (_) => _applySearch(searchQuery.value),
+      time: const Duration(milliseconds: 400),
+    );
     loadCustomers();
   }
 
@@ -47,7 +52,7 @@ class CustomerController extends GetxController {
 
   void search(String q) {
     searchQuery.value = q;
-    _applySearch(q);
+    // filter chạy sau 400ms qua debounce worker ở onInit
   }
 
   void _applySearch(String q) {

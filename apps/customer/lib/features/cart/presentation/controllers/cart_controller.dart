@@ -20,34 +20,36 @@ class CartController extends GetxController {
   Future<void> _loadData() async {
     final items = await _repository.fetchCartItems();
     cartItems.assignAll(items);
-    calculateTotalPrice();
+    _recalcTotal();
   }
 
   void increaseQuantity(String id) {
     final index = cartItems.indexWhere((item) => item.id == id);
     if (index != -1) {
-      final item = cartItems[index];
-      cartItems[index] = item.copyWith(quantity: item.quantity + 1);
-      calculateTotalPrice();
+      cartItems[index] = cartItems[index].copyWith(
+        quantity: cartItems[index].quantity + 1,
+      );
+      _recalcTotal();
     }
   }
 
   void decreaseQuantity(String id) {
     final index = cartItems.indexWhere((item) => item.id == id);
     if (index != -1) {
-      final item = cartItems[index];
-      if (item.quantity > 1) {
-        cartItems[index] = item.copyWith(quantity: item.quantity - 1);
+      if (cartItems[index].quantity > 1) {
+        cartItems[index] = cartItems[index].copyWith(
+          quantity: cartItems[index].quantity - 1,
+        );
       } else {
         cartItems.removeAt(index);
       }
-      calculateTotalPrice();
+      _recalcTotal();
     }
   }
 
   void removeItem(String id) {
     cartItems.removeWhere((item) => item.id == id);
-    calculateTotalPrice();
+    _recalcTotal();
   }
 
   void setQuantity(String id, int quantity) {
@@ -58,7 +60,7 @@ class CartController extends GetxController {
     final index = cartItems.indexWhere((item) => item.id == id);
     if (index != -1) {
       cartItems[index] = cartItems[index].copyWith(quantity: quantity);
-      calculateTotalPrice();
+      _recalcTotal();
     }
   }
 
@@ -67,23 +69,24 @@ class CartController extends GetxController {
     totalPrice.value = 0;
   }
 
-  void calculateTotalPrice() {
+  // Cùng key (foodId + options giống nhau) → tăng quantity
+  // Khác key (cùng food, options khác) → item mới
+  void addItem(CartItemModel newItem) {
+    final index = cartItems.indexWhere((item) => item.id == newItem.id);
+    if (index != -1) {
+      cartItems[index] = cartItems[index].copyWith(
+        quantity: cartItems[index].quantity + newItem.quantity,
+      );
+    } else {
+      cartItems.add(newItem);
+    }
+    _recalcTotal();
+  }
+
+  void _recalcTotal() {
     totalPrice.value = cartItems.fold(
       0.0,
       (sum, item) => sum + item.price * item.quantity,
     );
-  }
-
-  void addItem(CartItemModel newItem) {
-    final index = cartItems.indexWhere((item) => item.id == newItem.id);
-    if (index != -1) {
-      final item = cartItems[index];
-      cartItems[index] =
-          item.copyWith(quantity: item.quantity + newItem.quantity);
-      calculateTotalPrice();
-    } else {
-      cartItems.add(newItem);
-      calculateTotalPrice();
-    }
   }
 }
