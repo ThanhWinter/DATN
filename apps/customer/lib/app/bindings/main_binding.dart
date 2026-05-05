@@ -84,6 +84,7 @@ class MainBinding extends Bindings {
         Get.find<ProfileRepository>(),
         Get.find<AuthRepository>(),
         Get.find<AuthService>(),
+        Get.find<OrderRepository>(),
       ),
     );
   }

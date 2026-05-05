@@ -7,6 +7,8 @@ import 'package:get/get.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/services/auth_service.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
+import '../../../orders/data/models/order_model.dart';
+import '../../../orders/data/repositories/order_repository.dart';
 import '../../data/models/profile_models.dart';
 import '../../data/repositories/profile_repository.dart';
 
@@ -14,11 +16,17 @@ class ProfileController extends GetxController {
   final ProfileRepository _repository;
   final AuthRepository _authRepository;
   final AuthService _authService;
+  final OrderRepository _orderRepository;
 
-  ProfileController(this._repository, this._authRepository, this._authService);
+  ProfileController(
+    this._repository,
+    this._authRepository,
+    this._authService,
+    this._orderRepository,
+  );
 
   final user = Rxn<UserModel>();
-  final isLoading = false.obs;
+  final isLoading = true.obs;
   final error = Rxn<Object>();
   final notificationsEnabled = true.obs;
 
@@ -72,7 +80,34 @@ class ProfileController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
-      user.value = await _repository.fetchUser();
+
+      // Chạy song song — orders failure không chặn profile hiển thị
+      final userFuture = _repository.fetchUser();
+      final ordersFuture = _orderRepository.fetchMyOrders().catchError(
+        (_) => <OrderModel>[],
+      );
+
+      final rawUser = await userFuture;
+      final orders = await ordersFuture;
+
+      final completed = orders
+          .where((o) => o.status.toUpperCase() == 'COMPLETED')
+          .toList();
+      final totalSaved = completed.fold(
+        0.0,
+        (sum, o) => sum + o.discountAmount,
+      );
+
+      user.value = UserModel(
+        id: rawUser.id,
+        firstName: rawUser.firstName,
+        lastName: rawUser.lastName,
+        email: rawUser.email,
+        phone: rawUser.phone,
+        avatarUrl: rawUser.avatarUrl,
+        totalOrders: completed.length,
+        totalSaved: totalSaved,
+      );
     } catch (e, stack) {
       dev.log("[PROFILE] ❌ Load failed: $e", error: e, stackTrace: stack);
       error.value = e;
