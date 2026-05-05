@@ -4,6 +4,8 @@ import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/widgets.dart";
 import "package:get/get.dart";
 
+import "../services/auth_service.dart";
+
 /// Xin quyền + đăng ký listener FCM sau frame đầu — không chặn [runApp].
 void registerAdminFirebaseForegroundListeners() {
   WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -23,9 +25,10 @@ void registerAdminFirebaseForegroundListeners() {
           duration: const Duration(seconds: 5));
     });
 
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       try {
-        Get.find<IApiClient>().post(
+        if (!Get.find<AuthService>().isAuthenticated) return;
+        await Get.find<IApiClient>().post(
           '/user/devices/register',
           body: {'fcmToken': newToken, 'deviceType': 'ANDROID'},
         );
