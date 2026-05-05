@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
@@ -66,6 +67,10 @@ class EmailLoginController extends GetxController {
       apiClient.updateToken(tokenResponse.accessToken);
       apiClient.setRefreshToken(tokenResponse.refreshToken);
 
+      // Đăng ký FCM token + subscribe topic đơn hàng mới (fire-and-forget)
+      _registerFcmToken().ignore();
+      FirebaseMessaging.instance.subscribeToTopic('admin_orders').ignore();
+
       // Handle Remember Me
       if (rememberMe.value) {
         await _authService.saveCredentials(email.trim(), password);
@@ -119,4 +124,19 @@ class EmailLoginController extends GetxController {
         'Invalid credentials' => 'Email hoặc mật khẩu không chính xác.',
         _ => 'Đăng nhập thất bại. Vui lòng thử lại.',
       };
+
+  Future<void> _registerFcmToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null) return;
+      dev.log('[AUTH/LOGIN] Registering FCM token...');
+      await Get.find<IApiClient>().post(
+        '/user/devices/register',
+        body: {'fcmToken': token, 'deviceType': 'ANDROID'},
+      );
+      dev.log('[AUTH/LOGIN] ✅ FCM token registered');
+    } catch (e) {
+      dev.log('[AUTH/LOGIN] ⚠️ FCM registration skipped: $e');
+    }
+  }
 }

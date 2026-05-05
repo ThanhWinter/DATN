@@ -50,14 +50,36 @@ class SearchView extends GetView<FoodSearchController> {
             subMessage: 'Thử từ khóa khác nhé!',
           );
         }
-        return ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          itemCount: controller.results.length,
-          separatorBuilder: (_, __) =>
-              const Divider(height: 1, indent: 80, endIndent: 16),
-          itemBuilder: (_, i) => _ResultTile(
-            food: controller.results[i],
-            onTap: () => controller.navigateToDetail(controller.results[i]),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            if (n.metrics.pixels >= n.metrics.maxScrollExtent - 120) {
+              controller.onScrollNearEnd();
+            }
+            return false;
+          },
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: controller.results.length +
+                (controller.hasMoreResults ? 1 : 0),
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, indent: 80, endIndent: 16),
+            itemBuilder: (_, i) {
+              if (i >= controller.results.length) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Center(
+                    child: TextButton(
+                      onPressed: controller.loadMore,
+                      child: const Text('Tải thêm kết quả'),
+                    ),
+                  ),
+                );
+              }
+              return _ResultTile(
+                food: controller.results[i],
+                onTap: () => controller.navigateToDetail(controller.results[i]),
+              );
+            },
           ),
         );
       }),

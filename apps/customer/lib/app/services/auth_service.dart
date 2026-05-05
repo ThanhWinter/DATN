@@ -21,6 +21,16 @@ class AuthService extends GetxService {
   static const _savedEmailKey = 'saved_email';
   static const _savedPasswordKey = 'saved_password';
   static const _avatarUrlKey = 'avatar_url';
+  static const _userProfileKey = 'user_profile';
+
+  /// Cache the parsed `user-id` for the current access token (no repeated decode).
+  String? _cachedUserId;
+  String? _userIdCacheToken;
+
+  void _invalidateUserIdCache() {
+    _cachedUserId = null;
+    _userIdCacheToken = null;
+  }
 
   Future<AuthService> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -28,14 +38,14 @@ class AuthService extends GetxService {
     _refreshToken.value = _prefs.getString(_refreshTokenKey);
     _avatarUrl.value = _prefs.getString(_avatarUrlKey);
     _isAuthenticated.value = _token.value != null;
+    _invalidateUserIdCache();
     return this;
   }
 
-  String? getUserId() {
-    final t = _token.value;
-    if (t == null) return null;
+  /// JWT payload `user-id` — lightweight string parse (no `jsonDecode` on UI isolate).
+  static String? _parseUserIdFromJwtPayload(String jwt) {
     try {
-      final parts = t.split('.');
+      final parts = jwt.split('.');
       if (parts.length != 3) return null;
       var payload = parts[1];
       switch (payload.length % 4) {
@@ -45,11 +55,25 @@ class AuthService extends GetxService {
           payload += '=';
       }
       final decoded = utf8.decode(base64Url.decode(payload));
-      final claims = jsonDecode(decoded) as Map<String, dynamic>;
-      return claims['user-id'] as String?;
+      final m = RegExp(
+        r'''["']user-id["']\s*:\s*["']([^"']+)["']''',
+      ).firstMatch(decoded);
+      return m?.group(1);
     } catch (_) {
       return null;
     }
+  }
+
+  String? getUserId() {
+    final t = _token.value;
+    if (t == null) {
+      _invalidateUserIdCache();
+      return null;
+    }
+    if (_userIdCacheToken == t) return _cachedUserId;
+    _userIdCacheToken = t;
+    _cachedUserId = _parseUserIdFromJwtPayload(t);
+    return _cachedUserId;
   }
 
   Future<void> saveAvatarUrl(String url) async {
@@ -66,6 +90,7 @@ class AuthService extends GetxService {
     _token.value = token;
     if (refreshToken != null) _refreshToken.value = refreshToken;
     _isAuthenticated.value = true;
+    _invalidateUserIdCache();
   }
 
   Future<void> saveCredentials(String email, String password) async {
@@ -99,6 +124,21 @@ class AuthService extends GetxService {
     _refreshToken.value = null;
     _avatarUrl.value = null;
     _isAuthenticated.value = false;
+    _invalidateUserIdCache();
+  }
+
+  Future<void> saveUserProfile(Map<String, dynamic> userJson) async {
+    await _prefs.setString(_userProfileKey, jsonEncode(userJson));
+  }
+
+  Map<String, dynamic>? getUserProfile() {
+    final raw = _prefs.getString(_userProfileKey);
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
   }
 
   String? getToken() => _token.value;

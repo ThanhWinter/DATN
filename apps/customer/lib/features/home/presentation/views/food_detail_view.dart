@@ -54,7 +54,6 @@ class _FoodDetailContent extends StatelessWidget {
                 ? AppNetworkImage(
                     url: food.imageUrl!,
                     fit: BoxFit.cover,
-                    memCacheWidth: 400,
                     errorWidget: _placeholder(),
                   )
                 : _placeholder(),
@@ -85,6 +84,33 @@ class _FoodDetailContent extends StatelessWidget {
                           style: AppTextStyles.h2
                               .copyWith(color: AppColors.primaryOrange),
                         )),
+                    Obx(() {
+                      final r = controller.rating.value;
+                      if (r.avgRating <= 0) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          children: [
+                            _StarRow(rating: r.avgRating),
+                            const SizedBox(width: 6),
+                            Text(
+                              r.avgRating.toStringAsFixed(1),
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: AppColors.accentGold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${r.totalReviews})',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -108,10 +134,38 @@ class _FoodDetailContent extends StatelessWidget {
   Widget _placeholder() => Container(
         color: AppColors.grey200,
         child: const Center(
-          child: Icon(Icons.fastfood_rounded,
-              color: AppColors.grey400, size: 60),
+          child:
+              Icon(Icons.fastfood_rounded, color: AppColors.grey400, size: 60),
         ),
       );
+}
+
+// ── Star rating row ───────────────────────────────────────────────────────────
+
+class _StarRow extends StatelessWidget {
+  const _StarRow({required this.rating});
+
+  final double rating;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final full = i + 1;
+        final half = i + 0.5;
+        IconData icon;
+        if (rating >= full) {
+          icon = Icons.star_rounded;
+        } else if (rating >= half) {
+          icon = Icons.star_half_rounded;
+        } else {
+          icon = Icons.star_outline_rounded;
+        }
+        return Icon(icon, size: 16, color: AppColors.accentGold);
+      }),
+    );
+  }
 }
 
 // ── Option group section ──────────────────────────────────────────────────────
@@ -143,8 +197,8 @@ class _OptionGroupSection extends StatelessWidget {
                 ),
                 if (group.isRequired)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.errorRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -161,9 +215,7 @@ class _OptionGroupSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: Text(
-              group.isMultiSelect
-                  ? 'Chọn tối đa ${group.maxSelect}'
-                  : 'Chọn 1',
+              group.isMultiSelect ? 'Chọn tối đa ${group.maxSelect}' : 'Chọn 1',
               style: AppTextStyles.bodySmall,
             ),
           ),
@@ -172,8 +224,7 @@ class _OptionGroupSection extends StatelessWidget {
           // Danh sách options
           ...group.items.map(
             (item) => Obx(() {
-              final selected =
-                  controller.isOptionSelected(group.id, item.id);
+              final selected = controller.isOptionSelected(group.id, item.id);
               return _OptionTile(
                 item: item,
                 selected: selected,
@@ -307,7 +358,8 @@ class FoodDetailBottomBar extends GetView<FoodDetailController> {
               const SizedBox(width: 16),
               Expanded(
                 child: Obx(() => PrimaryButton(
-                      label: 'Thêm vào giỏ  •  ${controller.totalPrice.value.toVnd()}đ',
+                      label:
+                          'Thêm vào giỏ  •  ${controller.totalPrice.value.toVnd()}đ',
                       onPressed: controller.canAddToCart.value
                           ? controller.addToCart
                           : null,

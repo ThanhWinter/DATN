@@ -60,6 +60,14 @@ class NotificationPushController extends GetxController {
         colorText: AppColors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
+    } on UnsupportedError catch (e) {
+      dev.log('[NOTIF_PUSH/VM] ❌ sendBroadcast unsupported: $e');
+      Get.snackbar(
+        'Chưa đồng bộ backend',
+        e.message ?? 'Tính năng cần API từ team BE.',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 5),
+      );
     } catch (e) {
       dev.log('[NOTIF_PUSH/VM] ❌ sendBroadcast error: $e');
       Get.snackbar(

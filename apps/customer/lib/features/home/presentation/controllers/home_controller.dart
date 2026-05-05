@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
+import 'dart:math' as math;
 
+import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
@@ -38,27 +40,39 @@ class HomeController extends GetxController {
   // ── Banner quảng cáo ─────────────────────────────────────────────────────────
   final promoBanners = <HomePromoBannerItem>[].obs;
 
-  // ── Tất cả món ăn ────────────────────────────────────────────────────────────
-  final _allFoodItems = <FoodItemModel>[];
-  List<FoodItemModel> get allFoodItems => List.unmodifiable(_allFoodItems);
-  final filteredFoodItems = <FoodItemModel>[].obs;
-  final isFilteredEmpty = true.obs;
+  // ── Toàn bộ món (cache static) + phân trang ảo UI (chunk 20) ─────────────────
+  static final List<FoodItemModel> _foodsMaster = [];
+  List<FoodItemModel> _filteredView = [];
+  int _visibleCount = 0;
+  static const int _uiChunk = 20;
 
-  // ── Nổi bật (6 món đầu tiên available) ──────────────────────────────────────
-  final featuredItems = <FoodItemModel>[].obs;
+  final loadedFoodItems = <FoodItemModel>[].obs;
+  /// Số món sau khi lọc danh mục (để hiển thị "x / y món").
+  final totalFoodCount = 0.obs;
+
+  /// Toàn bộ món đã tải — dùng cho tìm kiếm client-side.
+  List<FoodItemModel> get allFoodItems => List.unmodifiable(_foodsMaster);
+
+  Worker? _unreadSyncWorker;
 
   @override
   void onInit() {
     super.onInit();
     unreadNotificationCount.value = _notificationController.unreadCount.value;
-    ever(_notificationController.unreadCount,
+    _unreadSyncWorker = ever(_notificationController.unreadCount,
         (val) => unreadNotificationCount.value = val);
-    _loadData();
+    SchedulerBinding.instance.addPostFrameCallback((_) => loadData());
+  }
+
+  @override
+  void onClose() {
+    _unreadSyncWorker?.dispose();
+    super.onClose();
   }
 
   void selectCategory(int? id) {
     selectedCategoryId.value = id;
-    _applyFilter();
+    _applyFilters(resetWindow: true);
   }
 
   void navigateToFoodDetail(FoodItemModel item) {
@@ -120,18 +134,53 @@ class HomeController extends GetxController {
     Get.back();
   }
 
-  // ── Private ──────────────────────────────────────────────────────────────────
+  // ── Client-side filtered list + UI window ───────────────────────────────────
 
-  void _applyFilter() {
+  void _computeFiltered() {
     final id = selectedCategoryId.value;
-    final filtered = id == null
-        ? _allFoodItems
-        : _allFoodItems.where((item) => item.categoryId == id).toList();
-    filteredFoodItems.assignAll(filtered);
-    isFilteredEmpty.value = filtered.isEmpty;
+    if (id == null) {
+      _filteredView = List<FoodItemModel>.from(_foodsMaster);
+    } else {
+      _filteredView =
+          _foodsMaster.where((f) => f.categoryId == id).toList();
+    }
+    totalFoodCount.value = _filteredView.length;
   }
 
-  Future<void> _loadData() async {
+  void _applyUiSlice() {
+    final end = math.min(_visibleCount, _filteredView.length);
+    if (end <= 0) {
+      loadedFoodItems.clear();
+    } else {
+      loadedFoodItems.assignAll(_filteredView.sublist(0, end));
+    }
+  }
+
+  void _applyFilters({required bool resetWindow}) {
+    _computeFiltered();
+    if (resetWindow) {
+      _visibleCount =
+          math.min(_uiChunk, math.max(_filteredView.length, 0));
+    } else {
+      _visibleCount = math.min(_visibleCount, _filteredView.length);
+    }
+    _applyUiSlice();
+  }
+
+  bool get hasMoreFoods => _visibleCount < _filteredView.length;
+
+  void loadMoreFoods() {
+    if (!hasMoreFoods) return;
+    _visibleCount = math.min(
+      _visibleCount + _uiChunk,
+      _filteredView.length,
+    );
+    _applyUiSlice();
+  }
+
+  // ── Initial load ─────────────────────────────────────────────────────────────
+
+  Future<void> loadData() async {
     isLoading.value = true;
     error.value = null;
     try {
@@ -143,22 +192,16 @@ class HomeController extends GetxController {
       ]);
 
       categories.assignAll(results[0] as List<CategoryItem>);
-      promoBanners.assignAll(results[1] as List<HomePromoBannerItem>);
+      promoBanners.assignAll(
+        (results[1] as List<HomePromoBannerItem>).where((b) => b.isActive),
+      );
       storeSetting.value = results[3] as StoreSettingModel;
 
-      _allFoodItems
+      _foodsMaster
         ..clear()
         ..addAll(results[2] as List<FoodItemModel>);
+      _applyFilters(resetWindow: true);
 
-      filteredFoodItems.assignAll(_allFoodItems);
-      isFilteredEmpty.value = _allFoodItems.isEmpty;
-
-      featuredItems.assignAll(
-        _allFoodItems.where((item) => item.isAvailable).take(6),
-      );
-
-      // Yield one event-loop turn so any pending touch events (e.g. tab tap)
-      // can be processed before HomeView rebuilds from scratch.
       await Future.delayed(Duration.zero);
       isLoading.value = false;
     } catch (e) {

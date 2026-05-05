@@ -2,17 +2,20 @@ import "dart:developer" as dev;
 
 import "package:core_network/core_network.dart";
 import "package:core_ui/core_ui.dart";
+import "package:firebase_messaging/firebase_messaging.dart";
 import "package:get/get.dart";
 
 import "../../../../app/routes/app_routes.dart";
 import "../../../../app/services/auth_service.dart";
 import "../../data/repositories/auth_repository.dart";
+import "../../../profile/data/repositories/profile_repository.dart";
 
 class EmailLoginController extends GetxController {
-  EmailLoginController(this._authRepository, this._authService);
+  EmailLoginController(this._authRepository, this._authService, this._profileRepository);
 
   final AuthRepository _authRepository;
   final AuthService _authService;
+  final ProfileRepository _profileRepository;
 
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
@@ -66,6 +69,12 @@ class EmailLoginController extends GetxController {
       apiClient.updateToken(tokenResponse.accessToken);
       apiClient.setRefreshToken(tokenResponse.refreshToken);
 
+      // Đăng ký FCM token (fire-and-forget)
+      _registerFcmToken().ignore();
+
+      // Tải và cache profile ngay lập tức để đề phòng server lỗi 500 sau này
+      _profileRepository.fetchUser().ignore();
+
       // Xử lý Ghi nhớ mật khẩu
       if (rememberMe.value) {
         await _authService.saveCredentials(email.trim(), password);
@@ -118,4 +127,19 @@ class EmailLoginController extends GetxController {
         "Unknow exception!" => "Lỗi máy chủ. Vui lòng thử lại sau.",
         _ => "Đăng nhập thất bại. Vui lòng thử lại.",
       };
+
+  Future<void> _registerFcmToken() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null) return;
+      dev.log("[AUTH/LOGIN] Registering FCM token...");
+      await Get.find<IApiClient>().post(
+        '/user/devices/register',
+        body: {'fcmToken': token, 'deviceType': 'ANDROID'},
+      );
+      dev.log("[AUTH/LOGIN] ✅ FCM token registered");
+    } catch (e) {
+      dev.log("[AUTH/LOGIN] ⚠️ FCM registration skipped: $e");
+    }
+  }
 }

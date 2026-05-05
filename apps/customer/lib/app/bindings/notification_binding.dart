@@ -9,11 +9,9 @@ class NotificationBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<NotificationRepository>(
       () => NotificationRepository(Get.find<IApiClient>()),
-      fenix: true,
     );
     Get.lazyPut<NotificationController>(
       () => NotificationController(Get.find<NotificationRepository>()),
-      fenix: true,
     );
   }
 }

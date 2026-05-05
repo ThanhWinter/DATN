@@ -21,10 +21,4 @@ class ReviewRepository {
         .map((e) => AdminReviewModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
-
-  Future<void> deleteReview(int id) async {
-    dev.log('[REVIEW/REPO] Deleting review: $id');
-    await _apiClient.delete('/interactions/reviews/$id');
-    dev.log('[REVIEW/REPO] ✅ Review $id deleted');
-  }
 }

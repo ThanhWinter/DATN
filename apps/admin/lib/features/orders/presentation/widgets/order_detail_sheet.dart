@@ -28,7 +28,8 @@ class OrderDetailSheet extends StatelessWidget {
           children: [
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.grey300,
                   borderRadius: BorderRadius.circular(2),
@@ -39,7 +40,10 @@ class OrderDetailSheet extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Đơn #${order.id}', style: AppTextStyles.h3),
+                  child: Text(
+                    'Đơn #${order.id.substring(0, 8).toUpperCase()}',
+                    style: AppTextStyles.h3,
+                  ),
                 ),
                 OrderStatusBadge(status: order.status),
               ],
@@ -50,75 +54,115 @@ class OrderDetailSheet extends StatelessWidget {
                 controller: scrollCtrl,
                 children: [
                   _Section(title: 'Khách hàng', children: [
-                    _Row(icon: Icons.person_outline, text: order.customerName ?? 'Không rõ'),
-                    _Row(icon: Icons.phone_outlined, text: order.customerPhone ?? ''),
-                    _Row(icon: Icons.location_on_outlined, text: order.deliveryAddress),
-                    _Row(icon: Icons.access_time, text: _fmt(order.orderDate)),
                     _Row(
-                      icon: order.paymentMethod == OrderModel.methodZaloPay
-                          ? Icons.account_balance_wallet_outlined
-                          : Icons.payments_outlined,
-                      text: order.paymentMethod == OrderModel.methodZaloPay
-                          ? 'Thanh toán: ZaloPay (Đã nhận tiền)'
-                          : 'Thanh toán: Tiền mặt (Thu khi giao)',
-                      color: order.paymentMethod == OrderModel.methodZaloPay
-                          ? Colors.blue
-                          : Colors.green,
-                    ),
+                        icon: Icons.person_outline,
+                        text: order.customerName ?? 'Không rõ'),
+                    _Row(
+                        icon: Icons.phone_outlined,
+                        text: order.customerPhone ?? ''),
+                    _Row(
+                        icon: Icons.location_on_outlined,
+                        text: order.deliveryAddress),
+                    _Row(icon: Icons.access_time, text: _fmt(order.orderDate)),
                     if (order.note != null)
-                      _Row(icon: Icons.sticky_note_2_outlined, text: order.note!),
+                      _Row(
+                          icon: Icons.sticky_note_2_outlined,
+                          text: order.note!),
                     if (order.couponCode != null)
-                      _Row(icon: Icons.local_offer_outlined,
+                      _Row(
+                          icon: Icons.local_offer_outlined,
                           text: 'Coupon: ${order.couponCode}',
+                          color: AppColors.successGreen),
+                    if (order.discountAmount > 0)
+                      _Row(
+                          icon: Icons.discount_outlined,
+                          text:
+                              'Giảm giá: -${order.discountAmount.toInt().toVnd()}đ',
                           color: AppColors.successGreen),
                   ]),
                   const SizedBox(height: 12),
                   _Section(title: 'Món đã đặt', children: [
                     ...order.items.map((item) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 28, height: 28,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryOrange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${item.quantity}',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.primaryOrange,
-                                fontWeight: FontWeight.w700,
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryOrange
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${item.quantity}',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.primaryOrange,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(item.name,
+                                        style: AppTextStyles.bodyMedium),
+                                    if (item.options.isNotEmpty)
+                                      Text(item.optionsLabel,
+                                          style: AppTextStyles.bodySmall),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                '${(item.unitPrice * item.quantity).toInt().toVnd()}đ',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item.name, style: AppTextStyles.bodyMedium),
-                                if (item.options != null)
-                                  Text(item.options!,
-                                      style: AppTextStyles.bodySmall),
-                              ],
-                            ),
-                          ),
+                        )),
+                    const Divider(),
+                    if (order.discountAmount > 0) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Tạm tính',
+                              style: AppTextStyles.bodyMedium),
                           Text(
-                            '${(item.unitPrice * item.quantity).toInt().toVnd()}đ',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            '${(order.totalAmount + order.discountAmount).toInt().toVnd()}đ',
+                            style: AppTextStyles.bodyMedium,
                           ),
                         ],
                       ),
-                    )),
-                    const Divider(),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            order.couponCode != null
+                                ? 'Mã ${order.couponCode}'
+                                : 'Giảm giá',
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: AppColors.successGreen),
+                          ),
+                          Text(
+                            '-${order.discountAmount.toInt().toVnd()}đ',
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: AppColors.successGreen),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Tổng cộng', style: AppTextStyles.labelLarge),
+                        const Text('Tổng cộng',
+                            style: AppTextStyles.labelLarge),
                         Text(
                           '${order.totalAmount.toInt().toVnd()}đ',
                           style: AppTextStyles.labelLarge.copyWith(
@@ -184,7 +228,6 @@ class OrderDetailSheet extends StatelessWidget {
   }
 
   String? _nextStatus(String current) => switch (current) {
-        OrderModel.statusPending => OrderModel.statusPreparing,
         OrderModel.statusPaid => OrderModel.statusPreparing,
         OrderModel.statusPreparing => OrderModel.statusDelivering,
         OrderModel.statusDelivering => OrderModel.statusCompleted,

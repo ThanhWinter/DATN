@@ -9,4 +9,7 @@ abstract class AppRoutes {
   static const settings = '/settings';
   static const reviews = '/reviews';
   static const notificationPush = '/notification-push';
+  static const dashboard = '/dashboard';
+  static const adminNotifications = '/admin-notifications';
+  static const orderDetail = '/order-detail';
 }

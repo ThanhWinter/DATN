@@ -1,22 +1,27 @@
+import 'package:core_utils/core_utils.dart';
+
 class OrderItemModel {
   const OrderItemModel({
     required this.name,
     required this.quantity,
     required this.unitPrice,
-    this.options,
+    this.options = const [],
   });
 
   final String name;
   final int quantity;
   final double unitPrice;
-  final String? options;
+  final List<String> options;
+
+  String get optionsLabel => options.join(', ');
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) => OrderItemModel(
-        // Backend trả về foodName hoặc name tuỳ implementation
         name: json['foodName'] as String? ?? json['name'] as String? ?? '',
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0,
-        options: json['options'] as String?,
+        options: (json['selectedOptions'] as List<dynamic>? ?? [])
+            .map((e) => e.toString())
+            .toList(),
       );
 }
 
@@ -33,6 +38,8 @@ class OrderModel {
     this.customerPhone,
     this.note,
     this.couponCode,
+    this.discountAmount = 0.0,
+    this.shippingFee = 0.0,
     this.paymentMethod = methodCash,
   });
 
@@ -43,6 +50,8 @@ class OrderModel {
   final String deliveryAddress;
   final DateTime orderDate;
   final double totalAmount;
+  final double discountAmount;
+  final double shippingFee;
   String status;
   final List<OrderItemModel> items;
   final String? note;
@@ -101,13 +110,15 @@ class OrderModel {
       customerPhone: json['customerPhone'] as String?,
       deliveryAddress: json['deliveryAddress'] as String? ?? '',
       orderDate: json['orderDate'] != null
-          ? DateTime.parse(json['orderDate'] as String)
+          ? parseApiDateTime(json['orderDate'])
           : DateTime.now(),
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0,
       status: json['status'] as String? ?? statusPending,
       items: items,
       note: json['note'] as String?,
       couponCode: json['couponCode'] as String?,
+      discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0,
+      shippingFee: (json['shippingFee'] as num?)?.toDouble() ?? 0.0,
       paymentMethod: json['paymentMethod'] as String? ?? methodCash,
     );
   }

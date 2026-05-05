@@ -1,3 +1,5 @@
+import 'package:core_utils/core_utils.dart';
+
 class CustomerModel {
   const CustomerModel({
     required this.id,
@@ -38,7 +40,7 @@ class CustomerModel {
         email: json['email'] as String,
         phone: json['phone'] as String? ?? '',
         createdAt: json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'] as String)
+            ? parseApiDateTime(json['createdAt'])
             : DateTime.now(),
         gender: (json['gender'] as num?)?.toInt() ?? 0,
         totalOrders: (json['totalOrders'] as num?)?.toInt() ?? 0,

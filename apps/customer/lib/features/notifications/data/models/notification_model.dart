@@ -1,3 +1,5 @@
+import 'package:core_utils/core_utils.dart';
+
 class NotificationModel {
   final String id;
   final String title;
@@ -23,7 +25,7 @@ class NotificationModel {
       id: json['id'].toString(),
       title: json['title'] as String? ?? '',
       message: json['body'] as String? ?? '',
-      timestamp: DateTime.parse(json['createdAt'] as String),
+      timestamp: parseApiDateTime(json['createdAt']),
       isRead: json['isRead'] as bool? ?? false,
       orderId: orderId,
       type: orderId != null ? 'order' : 'system',

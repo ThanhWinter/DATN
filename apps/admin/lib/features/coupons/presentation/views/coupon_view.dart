@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../data/models/coupon_model.dart';
 import '../controllers/coupon_controller.dart';
 import '../widgets/add_coupon_sheet.dart';
+import '../widgets/edit_coupon_sheet.dart';
 
 class CouponView extends GetView<CouponController> {
   const CouponView({super.key});
@@ -37,18 +38,30 @@ class CouponView extends GetView<CouponController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        onSuccess: () => Obx(() => controller.coupons.isEmpty
-            ? const AppEmptyState(
-                icon: Icons.local_offer_outlined,
-                message: 'Chưa có mã khuyến mãi',
-              )
-            : ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                itemCount: controller.coupons.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (_, i) =>
-                    _CouponCard(coupon: controller.coupons[i], fmtDate: _fmtDate),
-              )),
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadCoupons,
+          color: AppColors.primaryOrange,
+          child: Obx(() => controller.coupons.isEmpty
+              ? const CustomScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverFillRemaining(
+                      child: AppEmptyState(
+                        icon: Icons.local_offer_outlined,
+                        message: 'Chưa có mã khuyến mãi',
+                      ),
+                    ),
+                  ],
+                )
+              : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  itemCount: controller.coupons.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) =>
+                      _CouponCard(coupon: controller.coupons[i], fmtDate: _fmtDate),
+                )),
+        ),
       ),
     );
   }
@@ -59,6 +72,52 @@ class _CouponCard extends StatelessWidget {
 
   final CouponModel coupon;
   final String Function(DateTime) fmtDate;
+
+  void _confirmDelete() {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Xoá mã khuyến mãi', style: AppTextStyles.h3),
+        content: Text(
+          'Xoá mã "${coupon.code}"? Hành động này không thể hoàn tác.',
+          style: AppTextStyles.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: Get.back,
+            child: Text('Huỷ',
+                style: AppTextStyles.labelLarge
+                    .copyWith(color: AppColors.textGrey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              Get.find<CouponController>().deleteCoupon(coupon.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorRed,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('Xoá'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openEdit() {
+    Get.bottomSheet(
+      EditCouponSheet(coupon: coupon),
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +165,34 @@ class _CouponCard extends StatelessWidget {
                           ? 'Hết lượt'
                           : 'Đang dùng',
                   color: active ? AppColors.successGreen : AppColors.errorRed,
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: IconButton.outlined(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.edit_outlined, size: 16),
+                    color: AppColors.primaryOrange,
+                    style: IconButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primaryOrange),
+                    ),
+                    onPressed: _openEdit,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: IconButton.outlined(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    color: AppColors.errorRed,
+                    style: IconButton.styleFrom(
+                      side: const BorderSide(color: AppColors.errorRed),
+                    ),
+                    onPressed: _confirmDelete,
+                  ),
                 ),
               ],
             ),

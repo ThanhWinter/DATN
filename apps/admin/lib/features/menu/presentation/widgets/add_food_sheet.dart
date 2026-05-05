@@ -1,12 +1,14 @@
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart' hide MenuController;
 import 'package:get/get.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/category_model.dart';
 import '../controllers/menu_controller.dart';
+import '../utils/picked_image_preview.dart';
 
 class AddFoodSheet extends StatefulWidget {
   const AddFoodSheet({super.key});
@@ -20,7 +22,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
   final _priceCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   CategoryModel? _selectedCategory;
-  Uint8List? _imageBytes;
+  File? _previewImageFile;
   String? _imageFilename;
 
   @override
@@ -43,21 +45,39 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
   }
 
   Future<void> _pickImage() async {
-    final file = await ImagePicker().pickImage(
+    final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 85,
+      maxWidth: 1080,
+      maxHeight: 1080,
+      imageQuality: 100,
     );
-    if (file == null) return;
-    final bytes = await file.readAsBytes();
+    if (picked == null) return;
+
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: picked.path,
+      compressQuality: 95,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Cắt ảnh món ăn',
+          toolbarColor: AppColors.primaryOrange,
+          activeControlsWidgetColor: AppColors.primaryOrange,
+          lockAspectRatio: true,
+        ),
+      ],
+    );
+    if (cropped == null) return;
+
+    final compressed =
+        await compressPickedImageToTempJpeg(File(cropped.path));
+    if (compressed == null) return;
     setState(() {
-      _imageBytes = bytes;
-      _imageFilename = file.name;
+      _previewImageFile = compressed;
+      _imageFilename = picked.name;
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final name = _nameCtrl.text.trim();
     final priceRaw = _priceCtrl.text.replaceAll('.', '').trim();
     final price = double.tryParse(priceRaw);
@@ -78,9 +98,10 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
       name,
       price,
       _selectedCategory!.id,
-      description:
-          _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes: _imageBytes != null ? List<int>.from(_imageBytes!) : null,
+      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
+      imageBytes: _previewImageFile != null
+          ? await _previewImageFile!.readAsBytes()
+          : null,
       imageFilename: _imageFilename,
     );
   }
@@ -120,6 +141,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
           TextField(
             controller: _priceCtrl,
             keyboardType: TextInputType.number,
+            inputFormatters: [ThousandsSeparatorInputFormatter()],
             decoration: const InputDecoration(
               labelText: 'Giá (VNĐ) *',
               prefixIcon: Icon(Icons.payments_outlined),
@@ -134,8 +156,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
                 items: controller.categories
-                    .map((c) =>
-                        DropdownMenuItem(value: c, child: Text(c.name)))
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
                     .toList(),
                 onChanged: (v) => setState(() => _selectedCategory = v),
               )),
@@ -148,15 +169,13 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
                 decoration: const InputDecoration(
                   labelText: 'Mô tả (tuỳ chọn)',
                   alignLabelWithHint: true,
-                  contentPadding:
-                      EdgeInsets.fromLTRB(48, 16, 12, 16),
+                  contentPadding: EdgeInsets.fromLTRB(48, 16, 12, 16),
                 ),
               ),
               const Positioned(
                 left: 12,
                 top: 16,
-                child: Icon(Icons.notes_outlined,
-                    color: AppColors.grey600),
+                child: Icon(Icons.notes_outlined, color: AppColors.grey600),
               ),
             ],
           ),
@@ -168,24 +187,32 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
               width: double.infinity,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: _imageBytes != null
+                  color: _previewImageFile != null
                       ? AppColors.primaryOrange
                       : AppColors.grey300,
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
               clipBehavior: Clip.antiAlias,
-              child: _imageBytes != null
+              child: _previewImageFile != null
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.memory(_imageBytes!, fit: BoxFit.cover),
+                        Image.file(
+                          _previewImageFile!,
+                          fit: BoxFit.cover,
+                          cacheWidth: 600,
+                        ),
                         Positioned(
                           top: 6,
                           right: 6,
                           child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _imageBytes = null),
+                            onTap: () async {
+                              try {
+                                await _previewImageFile?.delete();
+                              } catch (_) {}
+                              setState(() => _previewImageFile = null);
+                            },
                             child: Container(
                               decoration: const BoxDecoration(
                                 color: Colors.black54,
@@ -205,8 +232,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
                         Icon(Icons.add_photo_alternate_outlined,
                             size: 32, color: AppColors.grey400),
                         SizedBox(height: 6),
-                        Text('Chọn ảnh món ăn',
-                            style: AppTextStyles.bodySmall),
+                        Text('Chọn ảnh món ăn', style: AppTextStyles.bodySmall),
                       ],
                     ),
             ),

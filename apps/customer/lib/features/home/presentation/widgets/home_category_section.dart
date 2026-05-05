@@ -83,8 +83,8 @@ class _CategoryTile extends StatelessWidget {
                     ? AppNetworkImage(
                         url: imageUrl!,
                         fit: BoxFit.cover,
-                        memCacheWidth: 60,
-                        memCacheHeight: 60,
+                        width: 60,
+                        height: 60,
                         errorWidget: const Icon(
                           Icons.fastfood_rounded,
                           color: AppColors.primaryOrange,

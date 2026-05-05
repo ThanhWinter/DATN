@@ -83,6 +83,61 @@ class _LocationBar extends GetView<HomeController> {
                 size: 18,
               ),
             ),
+            const SizedBox(width: 10),
+            const _NotificationBell(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationBell extends GetView<HomeController> {
+  const _NotificationBell();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.notifications),
+      child: SizedBox(
+        width: 32,
+        height: 32,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Center(
+              child: Icon(
+                Icons.notifications_outlined,
+                color: AppColors.textDark,
+                size: 24,
+              ),
+            ),
+            Obx(() {
+              final count = controller.unreadNotificationCount.value;
+              if (count == 0) return const SizedBox.shrink();
+              return Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorRed,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    count > 99 ? '99+' : '$count',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }),
           ],
         ),
       ),

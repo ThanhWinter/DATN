@@ -35,20 +35,32 @@ class InteractionRepository {
     dev.log('[INTERACTION] ✅ Toggled favorite for food $foodId');
   }
 
+  // ── Ratings ───────────────────────────────────────────────────────────────
+
+  Future<FoodRatingModel> getFoodRating(int foodId) async {
+    final response =
+        await _apiClient.get('/interactions/foods/$foodId/rating');
+    dev.log('[INTERACTION] ✅ Rating loaded for food $foodId');
+    return FoodRatingModel.fromJson(
+        response['result'] as Map<String, dynamic>);
+  }
+
   // ── Reviews ────────────────────────────────────────────────────────────────
 
   Future<ReviewModel> createReview({
     required String orderId,
+    required int foodId,
     required int rating,
     String? comment,
   }) async {
     final body = <String, dynamic>{
       'orderId': orderId,
+      'foodId': foodId,
       'rating': rating,
       if (comment != null && comment.isNotEmpty) 'comment': comment,
     };
     final response = await _apiClient.post('/interactions/reviews', body: body);
-    dev.log('[INTERACTION] ✅ Review created for order $orderId');
+    dev.log('[INTERACTION] ✅ Review created for order $orderId food $foodId');
     return ReviewModel.fromJson(response['result'] as Map<String, dynamic>);
   }
 }

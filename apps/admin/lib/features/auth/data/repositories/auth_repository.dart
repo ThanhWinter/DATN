@@ -73,9 +73,17 @@ class AuthRepository {
     );
   }
 
-  Future<void> logout() async {
+  Future<void> logout({required String token}) async {
     dev.log('[AUTH/REPO] Admin logout request');
-    await _apiClient.post('/auth/logout');
+    await _apiClient.post('/auth/logout', body: {'token': token});
+  }
+
+  Future<void> unregisterDevice(String fcmToken) async {
+    dev.log('[AUTH/REPO] Unregistering FCM device token');
+    await _apiClient.delete(
+      '/user/devices/unregister?fcmToken=${Uri.encodeQueryComponent(fcmToken)}',
+    );
+    dev.log('[AUTH/REPO] ✅ Device unregistered');
   }
 
   Future<void> forgotPassword({required String email}) async {

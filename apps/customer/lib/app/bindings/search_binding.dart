@@ -5,6 +5,6 @@ import '../../features/search/presentation/controllers/food_search_controller.da
 class SearchBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => FoodSearchController());
+    Get.lazyPut(FoodSearchController.new);
   }
 }

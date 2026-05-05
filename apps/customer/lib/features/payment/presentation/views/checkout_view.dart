@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:core_ui/core_ui.dart';
 
+import '../../../../app/routes/app_routes.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../controllers/checkout_controller.dart';
 
@@ -47,11 +48,44 @@ class CheckoutView extends GetView<CheckoutController> {
                   // ── Địa chỉ giao hàng ──────────────────────────────────────
                   _SectionCard(
                     title: 'Địa chỉ giao hàng',
-                    child: _FormField(
-                      controller: controller.addressController,
-                      hintText: 'Nhập địa chỉ nhận hàng...',
-                      icon: Icons.location_on_outlined,
-                      maxLines: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FormField(
+                          controller: controller.addressController,
+                          hintText: 'Nhập địa chỉ nhận hàng...',
+                          icon: Icons.location_on_outlined,
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () async {
+                            final result = await Get.toNamed(
+                              AppRoutes.addresses,
+                              arguments: {'isPicker': true},
+                            );
+                            if (result is String) {
+                              controller.applySelectedAddress(result);
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.bookmarks_outlined,
+                                  size: 14,
+                                  color: AppColors.primaryOrange),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Chọn từ địa chỉ đã lưu',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.primaryOrange,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -147,24 +181,6 @@ class CheckoutView extends GetView<CheckoutController> {
                           }
                           return const SizedBox.shrink();
                         }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Phương thức thanh toán ──────────────────────────────────
-                  _SectionCard(
-                    title: 'Phương thức thanh toán',
-                    child: Row(
-                      children: [
-                        Image.asset(
-                          AppIcons.iconZalopay,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('ZaloPay', style: AppTextStyles.bodyLarge),
                       ],
                     ),
                   ),

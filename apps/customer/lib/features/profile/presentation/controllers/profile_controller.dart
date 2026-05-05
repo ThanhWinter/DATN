@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:core_network/core_network.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
@@ -18,6 +19,7 @@ class ProfileController extends GetxController {
 
   final user = Rxn<UserModel>();
   final isLoading = false.obs;
+  final error = Rxn<Object>();
   final notificationsEnabled = true.obs;
 
   @override
@@ -34,6 +36,14 @@ class ProfileController extends GetxController {
     dev.log("[PROFILE] Logging out — calling server to invalidate token");
 
     try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) await _authRepository.unregisterDevice(fcmToken);
+      dev.log("[PROFILE] ✅ FCM token unregistered");
+    } catch (e) {
+      dev.log("[PROFILE] ⚠️ FCM unregister skipped: $e");
+    }
+
+    try {
       final token = _authService.getToken();
       if (token != null && token.isNotEmpty) {
         await _authRepository.logout(token: token);
@@ -45,9 +55,11 @@ class ProfileController extends GetxController {
     }
 
     await _authService.clearAuth();
-    final apiClient = Get.find<IApiClient>();
-    apiClient.updateToken(null);
-    apiClient.setRefreshToken(null);
+    if (Get.isRegistered<IApiClient>()) {
+      final apiClient = Get.find<IApiClient>();
+      apiClient.updateToken(null);
+      apiClient.setRefreshToken(null);
+    }
     dev.log("[PROFILE] ✅ Local auth cleared — navigating to login");
 
     await Future.delayed(const Duration(milliseconds: 500));
@@ -59,7 +71,11 @@ class ProfileController extends GetxController {
   Future<void> _loadData() async {
     try {
       isLoading.value = true;
+      error.value = null;
       user.value = await _repository.fetchUser();
+    } catch (e, stack) {
+      dev.log("[PROFILE] ❌ Load failed: $e", error: e, stackTrace: stack);
+      error.value = e;
     } finally {
       isLoading.value = false;
     }

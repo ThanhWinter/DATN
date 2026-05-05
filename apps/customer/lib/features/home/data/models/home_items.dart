@@ -6,12 +6,14 @@ class HomePromoBannerItem {
   final String title;
   final String? imageUrl;
   final String? linkUrl;
+  final bool isActive;
 
   const HomePromoBannerItem({
     required this.id,
     required this.title,
     this.imageUrl,
     this.linkUrl,
+    this.isActive = true,
   });
 
   factory HomePromoBannerItem.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class HomePromoBannerItem {
       title: json['title'] as String? ?? '',
       imageUrl: json['imageUrl']?.toString(),
       linkUrl: json['linkUrl']?.toString(),
+      isActive: json['isActive'] as bool? ?? true,
     );
   }
 }

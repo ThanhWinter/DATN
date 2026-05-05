@@ -1,4 +1,3 @@
-import 'package:core_network/core_network.dart';
 import 'package:get/get.dart';
 
 import '../../features/notifications/data/repositories/notification_push_repository.dart';
@@ -9,7 +8,7 @@ class NotificationPushBinding extends Bindings {
   void dependencies() {
     Get.lazyPut(
       () => NotificationPushController(
-        NotificationPushRepository(Get.find<IApiClient>()),
+        NotificationPushRepository(),
       ),
     );
   }

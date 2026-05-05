@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter pub *)"
+      "Bash(flutter pub *)",
+      "Bash(find c:\\\\\\\\Documents\\\\\\\\FOOD\\\\\\\\food_hit\\\\\\\\apps\\\\\\\\admin\\\\\\\\lib\\\\\\\\features\\\\\\\\coupons -type f -name \"*.dart\")",
+      "Bash(xargs grep *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Documents\\\\FOOD\" -Directory -Recurse | Where-Object {$_.Name -match \"backend|server|api\"} | Select-Object -First 20)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\customer\" -Recurse -Name)"
     ]
   }
 }

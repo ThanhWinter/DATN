@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1075769660490",
+    "project_id": "food-hit-b2cca",
+    "storage_bucket": "food-hit-b2cca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075769660490:android:14f65df9870c25842a82b3",
+        "android_client_info": {
+          "package_name": "com.example.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2cdGlEqV5g8LgFR0kMYcL9LMkDg0swDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075769660490:android:8906580e846af9be2a82b3",
+        "android_client_info": {
+          "package_name": "com.example.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2cdGlEqV5g8LgFR0kMYcL9LMkDg0swDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

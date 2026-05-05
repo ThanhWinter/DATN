@@ -44,21 +44,33 @@ class CustomerView extends GetView<CustomerController> {
             child: SnapHelperWidget(
               isLoading: controller.isLoading,
               error: controller.error,
-              onSuccess: () => Obx(() {
-                final list = controller.filteredCustomers;
-                if (list.isEmpty) {
-                  return const AppEmptyState(
-                    icon: Icons.people_outline,
-                    message: 'Không tìm thấy khách hàng',
+              onSuccess: () => RefreshIndicator(
+                onRefresh: controller.loadCustomers,
+                color: AppColors.primaryOrange,
+                child: Obx(() {
+                  final list = controller.filteredCustomers;
+                  if (list.isEmpty) {
+                    return const CustomScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          child: AppEmptyState(
+                            icon: Icons.people_outline,
+                            message: 'Không tìm thấy khách hàng',
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (_, i) => _CustomerCard(customer: list[i]),
                   );
-                }
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) => _CustomerCard(customer: list[i]),
-                );
-              }),
+                }),
+              ),
             ),
           ),
         ],

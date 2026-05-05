@@ -5,7 +5,6 @@ import 'package:core_ui/core_ui.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../app/routes/app_routes.dart';
 import '../../data/repositories/auth_repository.dart';
 
 class RegisterController extends GetxController {
@@ -27,6 +26,9 @@ class RegisterController extends GetxController {
 
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
+  final registerSuccess = false.obs;
+  String _pendingEmail = '';
+  String get pendingEmail => _pendingEmail;
 
   static final _passwordRegex = RegExp(
     r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,16}$',
@@ -54,6 +56,7 @@ class RegisterController extends GetxController {
     required String password,
     required String confirmPassword,
   }) async {
+    registerSuccess.value = false;
     if (!_validate(
       firstName: firstName,
       lastName: lastName,
@@ -79,14 +82,8 @@ class RegisterController extends GetxController {
       );
 
       dev.log('[REGISTER] Admin OTP sent to ${email.trim()}');
-      await Future.delayed(const Duration(milliseconds: 500));
-      Get.toNamed(
-        AppRoutes.otp,
-        arguments: {
-          'email': email.trim(),
-          'type': 'REGISTER',
-        },
-      );
+      _pendingEmail = email.trim();
+      registerSuccess.value = true;
     } catch (e) {
       dev.log('[REGISTER] Admin failed: $e');
       final message = e is ApiException

@@ -10,23 +10,23 @@ class NotificationController extends GetxController {
 
   NotificationController(this._repository);
 
-final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
+  final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxInt unreadCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _fetchUnreadCount();
+    refreshUnreadCount();
   }
 
-  // Gọi lúc startup — chỉ lấy badge số, không kéo danh sách
-  Future<void> _fetchUnreadCount() async {
+  /// Luôn đồng bộ badge với server — tránh lệch local (+1 mãi / không giảm sau đọc).
+  Future<void> refreshUnreadCount() async {
     try {
       unreadCount.value = await _repository.fetchUnreadCount();
-      dev.log('[NOTIFICATION] ✅ unreadCount: ${unreadCount.value}');
+      dev.log('[NOTIFICATION] ✅ unreadCount (server): ${unreadCount.value}');
     } catch (e) {
-      dev.log('[NOTIFICATION] ❌ fetchUnreadCount error: $e');
+      dev.log('[NOTIFICATION] ❌ refreshUnreadCount error: $e');
     }
   }
 
@@ -35,6 +35,7 @@ final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
     try {
       isLoading.value = true;
       notifications.assignAll(await _repository.fetchNotifications());
+      await refreshUnreadCount();
       dev.log('[NOTIFICATION] ✅ Loaded ${notifications.length} thông báo');
     } catch (e) {
       dev.log('[NOTIFICATION] ❌ loadNotifications error: $e');
@@ -49,7 +50,7 @@ final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
     try {
       await _repository.markAsRead(id);
       notifications[index] = notifications[index].copyWith(isRead: true);
-      if (unreadCount.value > 0) unreadCount.value--;
+      await refreshUnreadCount();
       dev.log('[NOTIFICATION] ✅ markAsRead: $id | còn chưa đọc: ${unreadCount.value}');
     } catch (e) {
       dev.log('[NOTIFICATION] ❌ markAsRead error: $e');
@@ -64,7 +65,7 @@ final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
           notifications[i] = notifications[i].copyWith(isRead: true);
         }
       }
-      unreadCount.value = 0;
+      await refreshUnreadCount();
       dev.log('[NOTIFICATION] ✅ markAllAsRead');
     } catch (e) {
       dev.log('[NOTIFICATION] ❌ markAllAsRead error: $e');
@@ -72,11 +73,9 @@ final RxList<NotificationModel> notifications = <NotificationModel>[].obs;
   }
 
   void deleteNotification(String id) {
-    final notif = notifications.firstWhereOrNull((n) => n.id == id);
     notifications.removeWhere((n) => n.id == id);
-    if (notif != null && !notif.isRead && unreadCount.value > 0) {
-      unreadCount.value--;
-    }
-    dev.log('[NOTIFICATION] 🗑️ deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
+    refreshUnreadCount().then((_) {
+      dev.log('[NOTIFICATION] 🗑️ deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
+    });
   }
 }

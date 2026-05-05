@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../main/presentation/controllers/main_controller.dart';
 import '../../data/models/cart_item_model.dart';
 import '../../data/repositories/cart_repository.dart';
 
@@ -11,6 +12,10 @@ class CartController extends GetxController {
   final RxList<CartItemModel> cartItems = <CartItemModel>[].obs;
   final RxDouble totalPrice = 0.0.obs;
 
+  /// Tránh race: user thêm món trước khi snapshot server về → không ghi đè giỏ local.
+  bool _initialHydrationApplied = false;
+  bool _cartMutatedBeforeHydration = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -19,11 +24,24 @@ class CartController extends GetxController {
 
   Future<void> _loadData() async {
     final items = await _repository.fetchCartItems();
-    cartItems.assignAll(items);
+    if (!_initialHydrationApplied) {
+      if (!_cartMutatedBeforeHydration) {
+        cartItems.assignAll(items);
+      }
+      _initialHydrationApplied = true;
+    }
     _recalcTotal();
+    _syncMainCartBadge();
+  }
+
+  void _notifyCartMutationBeforeHydration() {
+    if (!_initialHydrationApplied) {
+      _cartMutatedBeforeHydration = true;
+    }
   }
 
   void increaseQuantity(String id) {
+    _notifyCartMutationBeforeHydration();
     final index = cartItems.indexWhere((item) => item.id == id);
     if (index != -1) {
       cartItems[index] = cartItems[index].copyWith(
@@ -34,6 +52,7 @@ class CartController extends GetxController {
   }
 
   void decreaseQuantity(String id) {
+    _notifyCartMutationBeforeHydration();
     final index = cartItems.indexWhere((item) => item.id == id);
     if (index != -1) {
       if (cartItems[index].quantity > 1) {
@@ -48,11 +67,13 @@ class CartController extends GetxController {
   }
 
   void removeItem(String id) {
+    _notifyCartMutationBeforeHydration();
     cartItems.removeWhere((item) => item.id == id);
     _recalcTotal();
   }
 
   void setQuantity(String id, int quantity) {
+    _notifyCartMutationBeforeHydration();
     if (quantity <= 0) {
       removeItem(id);
       return;
@@ -65,13 +86,16 @@ class CartController extends GetxController {
   }
 
   void clearCart() {
+    _notifyCartMutationBeforeHydration();
     cartItems.clear();
     totalPrice.value = 0;
+    _syncMainCartBadge();
   }
 
   // Cùng key (foodId + options giống nhau) → tăng quantity
   // Khác key (cùng food, options khác) → item mới
   void addItem(CartItemModel newItem) {
+    _notifyCartMutationBeforeHydration();
     final index = cartItems.indexWhere((item) => item.id == newItem.id);
     if (index != -1) {
       cartItems[index] = cartItems[index].copyWith(
@@ -88,5 +112,12 @@ class CartController extends GetxController {
       0.0,
       (sum, item) => sum + item.price * item.quantity,
     );
+    _syncMainCartBadge();
+  }
+
+  void _syncMainCartBadge() {
+    if (!Get.isRegistered<MainController>()) return;
+    final sum = cartItems.fold<int>(0, (a, b) => a + b.quantity);
+    Get.find<MainController>().cartItemBadgeCount.value = sum;
   }
 }

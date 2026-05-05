@@ -40,7 +40,7 @@ class OrderCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '#${order.id}',
+                    '#${order.id.substring(0, 8).toUpperCase()}',
                     style: AppTextStyles.labelLarge.copyWith(
                       color: AppColors.primaryOrange,
                     ),
@@ -53,24 +53,24 @@ class OrderCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    order.paymentMethod == OrderModel.methodZaloPay
-                        ? Icons.account_balance_wallet_outlined
-                        : Icons.payments_outlined,
+                    order.status == OrderModel.statusPending
+                        ? Icons.error_outline
+                        : Icons.account_balance_wallet_outlined,
                     size: 12,
-                    color: order.paymentMethod == OrderModel.methodZaloPay
-                        ? Colors.blue
-                        : Colors.green,
+                    color: order.status == OrderModel.statusPending
+                        ? AppColors.errorRed
+                        : Colors.blue,
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    order.paymentMethod == OrderModel.methodZaloPay
-                        ? 'Đã thanh toán (ZaloPay)'
-                        : 'Thanh toán tiền mặt',
+                    order.status == OrderModel.statusPending
+                        ? 'Chưa thanh toán'
+                        : 'Đã thanh toán (ZaloPay)',
                     style: AppTextStyles.bodySmall.copyWith(
                       fontSize: 11,
-                      color: order.paymentMethod == OrderModel.methodZaloPay
-                          ? Colors.blue
-                          : Colors.green,
+                      color: order.status == OrderModel.statusPending
+                          ? AppColors.errorRed
+                          : Colors.blue,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -79,19 +79,24 @@ class OrderCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 14, color: AppColors.grey600),
+                  const Icon(Icons.person_outline,
+                      size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
-                  Text(order.customerName ?? 'Không rõ', style: AppTextStyles.bodyMedium),
+                  Text(order.customerName ?? 'Không rõ',
+                      style: AppTextStyles.bodyMedium),
                   const SizedBox(width: 12),
-                  const Icon(Icons.phone_outlined, size: 14, color: AppColors.grey600),
+                  const Icon(Icons.phone_outlined,
+                      size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
-                  Text(order.customerPhone ?? '', style: AppTextStyles.bodySmall),
+                  Text(order.customerPhone ?? '',
+                      style: AppTextStyles.bodySmall),
                 ],
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 14, color: AppColors.grey600),
+                  const Icon(Icons.location_on_outlined,
+                      size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -108,7 +113,8 @@ class OrderCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 14, color: AppColors.grey600),
+                  const Icon(Icons.access_time,
+                      size: 14, color: AppColors.grey600),
                   const SizedBox(width: 4),
                   Text(_fmt(order.orderDate), style: AppTextStyles.bodySmall),
                   const Spacer(),
@@ -154,7 +160,6 @@ class OrderCard extends StatelessWidget {
   }
 
   String? _nextStatus(String current) => switch (current) {
-        OrderModel.statusPending => OrderModel.statusPreparing,
         OrderModel.statusPaid => OrderModel.statusPreparing,
         OrderModel.statusPreparing => OrderModel.statusDelivering,
         OrderModel.statusDelivering => OrderModel.statusCompleted,

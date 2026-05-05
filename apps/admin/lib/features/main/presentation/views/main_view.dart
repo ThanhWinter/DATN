@@ -27,22 +27,12 @@ class _LazyIndexedStackState extends State<_LazyIndexedStack> {
   @override
   void initState() {
     super.initState();
-    _activated = List.generate(
-      widget.children.length,
-      (i) => i == widget.index,
-    );
-  }
-
-  @override
-  void didUpdateWidget(_LazyIndexedStack old) {
-    super.didUpdateWidget(old);
-    if (!_activated[widget.index]) {
-      setState(() => _activated[widget.index] = true);
-    }
+    _activated = List.filled(widget.children.length, false);
   }
 
   @override
   Widget build(BuildContext context) {
+    _activated[widget.index] = true;
     return IndexedStack(
       index: widget.index,
       children: List.generate(widget.children.length, (i) {
@@ -71,45 +61,56 @@ class MainView extends GetView<MainController> {
         ),
       ),
       bottomNavigationBar: Obx(
-        () => NavigationBar(
-          selectedIndex: controller.currentIndex.value,
-          onDestinationSelected: controller.changePage,
-          backgroundColor: AppColors.white,
-          indicatorColor: AppColors.primaryOrange.withValues(alpha: 0.12),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.restaurant_menu_outlined),
-              selectedIcon:
-                  Icon(Icons.restaurant_menu, color: AppColors.primaryOrange),
-              label: 'Thực đơn',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon:
-                  Icon(Icons.receipt_long, color: AppColors.primaryOrange),
-              label: 'Đơn hàng',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.local_offer_outlined),
-              selectedIcon:
-                  Icon(Icons.local_offer, color: AppColors.primaryOrange),
-              label: 'Khuyến mãi',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.people_outline),
-              selectedIcon:
-                  Icon(Icons.people, color: AppColors.primaryOrange),
-              label: 'Khách hàng',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.manage_accounts_outlined),
-              selectedIcon: Icon(Icons.manage_accounts,
-                  color: AppColors.primaryOrange),
-              label: 'Hồ sơ',
-            ),
-          ],
-        ),
+        () {
+          final pendingCount = controller.pendingOrderBadgeCount.value;
+          return NavigationBar(
+            selectedIndex: controller.currentIndex.value,
+            onDestinationSelected: controller.changePage,
+            backgroundColor: AppColors.white,
+            indicatorColor: AppColors.primaryOrange.withValues(alpha: 0.12),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              const NavigationDestination(
+                icon: Icon(Icons.restaurant_menu_outlined),
+                selectedIcon: Icon(Icons.restaurant_menu,
+                    color: AppColors.primaryOrange),
+                label: 'Thực đơn',
+              ),
+              NavigationDestination(
+                icon: Badge(
+                  isLabelVisible: pendingCount > 0,
+                  label: Text('$pendingCount'),
+                  child: const Icon(Icons.receipt_long_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: pendingCount > 0,
+                  label: Text('$pendingCount'),
+                  child: const Icon(Icons.receipt_long,
+                      color: AppColors.primaryOrange),
+                ),
+                label: 'Đơn hàng',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.local_offer_outlined),
+                selectedIcon:
+                    Icon(Icons.local_offer, color: AppColors.primaryOrange),
+                label: 'Khuyến mãi',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.people_outline),
+                selectedIcon:
+                    Icon(Icons.people, color: AppColors.primaryOrange),
+                label: 'Khách hàng',
+              ),
+              const NavigationDestination(
+                icon: Icon(Icons.manage_accounts_outlined),
+                selectedIcon: Icon(Icons.manage_accounts,
+                    color: AppColors.primaryOrange),
+                label: 'Hồ sơ',
+              ),
+            ],
+          );
+        },
       ),
     );
   }

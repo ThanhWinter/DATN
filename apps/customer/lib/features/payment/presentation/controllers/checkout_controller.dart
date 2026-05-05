@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
-import '../../../../app/services/auth_service.dart';
 import '../../../../app/services/zalopay_service.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
@@ -43,6 +42,8 @@ class CheckoutController extends GetxController {
   final subtotal = 0.0.obs;
   final finalTotal = 0.0.obs;
 
+  Worker? _cartTotalWorker;
+
   List<CartItemModel> get cartItems => Get.find<CartController>().cartItems;
 
   @override
@@ -51,8 +52,7 @@ class CheckoutController extends GetxController {
     final cart = Get.find<CartController>();
     subtotal.value = cart.totalPrice.value;
     _updateFinalTotal();
-    // Đồng bộ subtotal khi giỏ hàng thay đổi
-    ever(cart.totalPrice, (val) {
+    _cartTotalWorker = ever(cart.totalPrice, (val) {
       subtotal.value = val;
       _updateFinalTotal();
     });
@@ -60,6 +60,7 @@ class CheckoutController extends GetxController {
 
   @override
   void onClose() {
+    _cartTotalWorker?.dispose();
     addressController.dispose();
     noteController.dispose();
     couponCodeController.dispose();
@@ -159,33 +160,44 @@ class CheckoutController extends GetxController {
 
       // Thử thanh toán ZaloPay sau khi tạo đơn thành công
       try {
-        final authService = Get.find<AuthService>();
-        final zpToken = await _paymentRepository.createZaloPayOrder(
-          appUser: authService.getToken() ?? 'customer',
-          amount: order.totalAmount.toInt(),
-          items: cartItems.map((e) => e.toJson()).toList(),
-        );
-
-        final result = await ZaloPayService.payOrder(zpToken);
+        final payment = await _paymentRepository.createZaloPayOrder(orderId: order.id);
+        final result = await ZaloPayService.payOrder(payment.zpTransToken);
         dev.log('[CHECKOUT/ZALOPAY] Result: $result');
 
         if (result == 'SUCCESS') {
-          _onOrderSuccess(order.id);
+          try {
+            final confirmed = await _paymentRepository.queryPaymentStatus(payment.appTransId);
+            dev.log('[CHECKOUT/ZALOPAY] Backend query confirmed: $confirmed');
+          } catch (e) {
+            dev.log('[CHECKOUT/ZALOPAY] ⚠️ queryPaymentStatus failed: $e');
+          }
+          await _onOrderSuccess(order.id);
           return;
         }
-        if (result == 'ERROR') {
-          dev.log('[CHECKOUT/ZALOPAY] ⚠️ Payment failed, order still created');
-          Get.snackbar(
-            'Lưu ý',
-            'Đặt hàng thành công nhưng thanh toán chưa hoàn tất.',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-        }
+
+        // CANCELED hoặc ERROR — đơn đã tạo, để trạng thái PENDING để user retry
+        final isCanceled = result == 'CANCELED';
+        dev.log('[CHECKOUT/ZALOPAY] ${isCanceled ? "CANCELED" : "ERROR"} — order ${order.id} left PENDING');
+        Get.find<CartController>().clearCart();
+        Get.snackbar(
+          isCanceled ? 'Đã huỷ thanh toán' : 'Thanh toán thất bại',
+          'Đơn hàng đã được đặt. Vào chi tiết đơn để thanh toán lại.',
+          backgroundColor: isCanceled ? null : AppColors.errorRed,
+          colorText: isCanceled ? null : AppColors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(AppRoutes.main);
+        Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        return;
       } catch (e) {
         dev.log('[CHECKOUT/ZALOPAY] ⚠️ ZaloPay exception (order created): $e');
+        Get.find<CartController>().clearCart();
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(AppRoutes.main);
+        Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        return;
       }
-
-      _onOrderSuccess(order.id);
     } on ApiException catch (e) {
       dev.log('[CHECKOUT/ORDER] ❌ ApiException: ${e.statusCode} ${e.message}');
       errorMessage.value = e.message;
@@ -209,13 +221,17 @@ class CheckoutController extends GetxController {
     }
   }
 
+  void applySelectedAddress(String address) {
+    addressController.text = address;
+  }
+
   // ── Private ──────────────────────────────────────────────────────────────────
 
   void _updateFinalTotal() {
     finalTotal.value = subtotal.value - discountAmount.value;
   }
 
-  void _onOrderSuccess(String orderId) {
+  Future<void> _onOrderSuccess(String orderId) async {
     Get.find<CartController>().clearCart();
     dev.log('[CHECKOUT/ORDER] ✅ Cart cleared, navigating to order detail: $orderId');
     Get.snackbar(
@@ -225,6 +241,8 @@ class CheckoutController extends GetxController {
       colorText: AppColors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
-    Get.offAllNamed(AppRoutes.orderDetail, arguments: orderId);
+    await Future.delayed(const Duration(milliseconds: 500));
+    Get.offAllNamed(AppRoutes.main);
+    Get.toNamed(AppRoutes.orderDetail, arguments: orderId);
   }
 }

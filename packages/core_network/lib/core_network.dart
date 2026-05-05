@@ -2,6 +2,16 @@ import "dart:convert";
 import "dart:developer" as dev;
 
 import "package:http/http.dart" as http;
+import "package:http_parser/http_parser.dart";
+
+/// Tránh log response JSON khổng lồ trong bản release (RAM / chồng log DevTools).
+const bool _isReleaseMode = bool.fromEnvironment("dart.vm.product");
+const int _maxLoggedBodyChars = 2500;
+
+Future<Map<String, dynamic>> _parseResponseBodyToMap(String body) async {
+  if (body.isEmpty) return <String, dynamic>{};
+  return jsonDecode(body) as Map<String, dynamic>;
+}
 
 /// Record dùng cho multipart file upload.
 typedef MultipartFileData = ({
@@ -45,6 +55,13 @@ abstract class IApiClient {
 
   /// Upload multipart/form-data. Bytes đã có trong RAM nên retry an toàn khi token hết hạn.
   Future<Map<String, dynamic>> multipartPost(
+    String path, {
+    Map<String, String>? fields,
+    List<MultipartFileData>? files,
+  });
+
+  /// Tương tự multipartPost nhưng dùng HTTP PUT (dùng để cập nhật resource có file).
+  Future<Map<String, dynamic>> multipartPut(
     String path, {
     Map<String, String>? fields,
     List<MultipartFileData>? files,
@@ -123,7 +140,10 @@ class ApiClient implements IApiClient {
       _withAutoRefresh(() async {
         final res = await _httpClient.get(
           _buildUri(path, query),
-          headers: {...defaultHeaders, ...?headers},
+          headers: {
+            'Accept': 'application/json',
+            ...?headers,
+          },
         );
         return _handleResponse(res);
       });
@@ -139,15 +159,22 @@ class ApiClient implements IApiClient {
     Map<String, dynamic>? body,
   }) =>
       _withAutoRefresh(() async {
-        if (body != null && body.isNotEmpty) {
-          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        if (body != null && body.isNotEmpty && !_isReleaseMode) {
+          final raw = jsonEncode(body);
+          dev.log(
+            '📤 [BODY] ${raw.length > _maxLoggedBodyChars ? '${raw.substring(0, _maxLoggedBodyChars)}…' : raw}',
+          );
         }
         final res = await _httpClient.post(
           _buildUri(path),
-          headers: {...defaultHeaders, ...?headers},
+          headers: {
+            'Accept': 'application/json',
+            ...defaultHeaders,
+            ...?headers,
+          },
           body: jsonEncode(body ?? <String, dynamic>{}),
         );
-        return _handleResponse(res);
+        return await _handleResponse(res);
       });
 
   // -----------------------------------------------------------------------
@@ -161,15 +188,18 @@ class ApiClient implements IApiClient {
     Map<String, dynamic>? body,
   }) =>
       _withAutoRefresh(() async {
-        if (body != null && body.isNotEmpty) {
-          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        if (body != null && body.isNotEmpty && !_isReleaseMode) {
+          final raw = jsonEncode(body);
+          dev.log(
+            '📤 [BODY] ${raw.length > _maxLoggedBodyChars ? '${raw.substring(0, _maxLoggedBodyChars)}…' : raw}',
+          );
         }
         final res = await _httpClient.put(
           _buildUri(path),
           headers: {...defaultHeaders, ...?headers},
           body: jsonEncode(body ?? <String, dynamic>{}),
         );
-        return _handleResponse(res);
+        return await _handleResponse(res);
       });
 
   // -----------------------------------------------------------------------
@@ -184,8 +214,11 @@ class ApiClient implements IApiClient {
     Map<String, String>? query,
   }) =>
       _withAutoRefresh(() async {
-        if (body != null && body.isNotEmpty) {
-          dev.log('📤 [BODY] ${jsonEncode(body)}');
+        if (body != null && body.isNotEmpty && !_isReleaseMode) {
+          final raw = jsonEncode(body);
+          dev.log(
+            '📤 [BODY] ${raw.length > _maxLoggedBodyChars ? '${raw.substring(0, _maxLoggedBodyChars)}…' : raw}',
+          );
         }
         final res = await _httpClient.patch(
           _buildUri(path, query),
@@ -207,9 +240,12 @@ class ApiClient implements IApiClient {
       _withAutoRefresh(() async {
         final res = await _httpClient.delete(
           _buildUri(path),
-          headers: {...defaultHeaders, ...?headers},
+          headers: {
+            'Accept': 'application/json',
+            ...?headers,
+          },
         );
-        return _handleResponse(res);
+        return await _handleResponse(res);
       });
 
   // -----------------------------------------------------------------------
@@ -231,13 +267,43 @@ class ApiClient implements IApiClient {
               f.field,
               f.bytes,
               filename: f.filename,
+              contentType: MediaType.parse(f.contentType),
             ));
           }
         }
         dev.log('🚀 [API MULTIPART] POST ${request.url} | fields: ${request.fields.keys.toList()}');
         final streamed = await _httpClient.send(request);
         final res = await http.Response.fromStream(streamed);
-        return _handleResponse(res);
+        return await _handleResponse(res);
+      });
+
+  // -----------------------------------------------------------------------
+  // MULTIPART PUT
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<Map<String, dynamic>> multipartPut(
+    String path, {
+    Map<String, String>? fields,
+    List<MultipartFileData>? files,
+  }) =>
+      _withAutoRefresh(() async {
+        final request = http.MultipartRequest('PUT', _buildUri(path));
+        if (fields != null) request.fields.addAll(fields);
+        if (files != null) {
+          for (final f in files) {
+            request.files.add(http.MultipartFile.fromBytes(
+              f.field,
+              f.bytes,
+              filename: f.filename,
+              contentType: MediaType.parse(f.contentType),
+            ));
+          }
+        }
+        dev.log('🚀 [API MULTIPART] PUT ${request.url} | fields: ${request.fields.keys.toList()}');
+        final streamed = await _httpClient.send(request);
+        final res = await http.Response.fromStream(streamed);
+        return await _handleResponse(res);
       });
 
   // -----------------------------------------------------------------------
@@ -285,23 +351,23 @@ class ApiClient implements IApiClient {
   Future<bool> _tryRefreshToken() async {
     _isRefreshing = true;
     try {
-      final res = await _httpClient.post(
+      final cleanClient = http.Client();
+      final res = await cleanClient.post(
         _buildUri('/auth/refresh-token'),
         headers: defaultHeaders,
         body: jsonEncode({'refreshToken': _refreshToken}),
       );
+      cleanClient.close();
       final body = res.body;
-      final data = body.isEmpty
-          ? <String, dynamic>{}
-          : jsonDecode(body) as Map<String, dynamic>;
+      final data = await _parseResponseBodyToMap(body);
 
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final result = data['result'] as Map<String, dynamic>?;
         final newAccess = result?['accessToken'] as String?;
         final newRefresh = result?['refreshToken'] as String?;
         if (newAccess != null && newAccess.isNotEmpty) {
-          _httpClient.token = newAccess;
-          if (newRefresh != null) _refreshToken = newRefresh;
+          updateToken(newAccess);
+          setRefreshToken(newRefresh);
           dev.log('✅ [TOKEN] Refresh thành công');
           await onTokenRefreshed?.call(newAccess, newRefresh);
           return true;
@@ -332,18 +398,21 @@ class ApiClient implements IApiClient {
     );
   }
 
-  Map<String, dynamic> _handleResponse(http.Response res) {
+  Future<Map<String, dynamic>> _handleResponse(http.Response res) async {
     final body = res.body;
     final ok = res.statusCode >= 200 && res.statusCode < 300;
 
     dev.log('${ok ? '✅' : '❌'} [API] ${res.statusCode} ${res.request?.url}');
-    if (body.isNotEmpty) dev.log('📝 [RESULT] $body');
+    if (body.isNotEmpty && !_isReleaseMode) {
+      final preview = body.length > _maxLoggedBodyChars
+          ? '${body.substring(0, _maxLoggedBodyChars)}… (${body.length} chars)'
+          : body;
+      dev.log('📝 [RESULT] $preview');
+    }
 
     if (res.statusCode == 204) return <String, dynamic>{};
 
-    final data = body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(body) as Map<String, dynamic>;
+    final data = await _parseResponseBodyToMap(body);
 
     if (ok) return data;
 

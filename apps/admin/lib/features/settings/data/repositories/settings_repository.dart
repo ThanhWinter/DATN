@@ -10,7 +10,7 @@ class SettingsRepository {
   final IApiClient _apiClient;
 
   Future<List<BannerModel>> fetchBanners() async {
-    final res = await _apiClient.get('/settings/banners');
+    final res = await _apiClient.get('/settings/banners/all');
     final list = res['result'] as List<dynamic>? ?? [];
     dev.log('[SETTINGS/REPO] ✅ Loaded ${list.length} banners');
     return list
@@ -43,6 +43,43 @@ class SettingsRepository {
         BannerModel.fromJson(res['result'] as Map<String, dynamic>);
     dev.log('[SETTINGS/REPO] ✅ Banner created: id=${created.id}');
     return created;
+  }
+
+  Future<BannerModel> updateBanner({
+    required int id,
+    required String title,
+    String? linkUrl,
+    List<int>? imageBytes,
+    String? filename,
+  }) async {
+    dev.log('[SETTINGS/REPO] Updating banner: $id');
+    final fields = <String, String>{'title': title};
+    if (linkUrl != null && linkUrl.isNotEmpty) fields['linkUrl'] = linkUrl;
+    final files = imageBytes != null
+        ? [
+            (
+              field: 'file',
+              bytes: imageBytes,
+              filename: filename ?? 'banner.jpg',
+              contentType: 'image/jpeg',
+            )
+          ]
+        : <({String field, List<int> bytes, String filename, String contentType})>[];
+    final res = await _apiClient.multipartPut(
+      '/settings/banners/$id',
+      fields: fields,
+      files: files,
+    );
+    final updated = BannerModel.fromJson(res['result'] as Map<String, dynamic>);
+    dev.log('[SETTINGS/REPO] ✅ Banner updated: id=${updated.id}');
+    return updated;
+  }
+
+  Future<void> toggleBannerStatus(int id, {required bool isActive}) async {
+    dev.log('[SETTINGS/REPO] Toggle banner $id → isActive=$isActive');
+    await _apiClient
+        .patch('/settings/banners/$id/status?isActive=$isActive');
+    dev.log('[SETTINGS/REPO] ✅ Banner $id status updated');
   }
 
   Future<void> deleteBanner(int id) async {

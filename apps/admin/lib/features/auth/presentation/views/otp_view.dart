@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/routes/app_routes.dart';
 import '../controllers/otp_controller.dart';
+import '../widgets/register_success_dialog.dart';
 
 class OtpView extends StatefulWidget {
   const OtpView({super.key});
@@ -22,11 +24,11 @@ class _OtpViewState extends State<OtpView> {
   void initState() {
     super.initState();
     controller = Get.find<OtpController>();
+    controller.onRegisterSuccess = _showSuccessDialog;
 
     for (int i = 0; i < 6; i++) {
       final index = i;
 
-      // Backspace trên ô trống → xóa ô trước và lùi focus
       _focusNodes[index].onKeyEvent = (_, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.backspace &&
@@ -40,7 +42,6 @@ class _OtpViewState extends State<OtpView> {
         return KeyEventResult.ignored;
       };
 
-      // Select-all khi focus vào ô đã có số → gõ đè ngay
       _focusNodes[index].addListener(() {
         if (_focusNodes[index].hasFocus &&
             _controllers[index].text.isNotEmpty) {
@@ -49,7 +50,10 @@ class _OtpViewState extends State<OtpView> {
             extentOffset: _controllers[index].text.length,
           );
         }
+        setState(() {});
       });
+
+      _controllers[index].addListener(() => setState(() {}));
     }
   }
 
@@ -64,6 +68,21 @@ class _OtpViewState extends State<OtpView> {
     super.dispose();
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: AppColors.black.withValues(alpha: 0.4),
+      builder: (_) => RegisterSuccessDialog(
+        onContinue: () async {
+          Get.back();
+          await Future.delayed(const Duration(milliseconds: 500));
+          Get.offAllNamed(AppRoutes.login);
+        },
+      ),
+    );
+  }
+
   void _onOtpChanged() {
     final otp = _controllers.map((c) => c.text).join();
     controller.otpTextCtrl.text = otp;
@@ -76,125 +95,27 @@ class _OtpViewState extends State<OtpView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.mintBg,
       body: Stack(
         children: [
-          // ── Background Gradient ────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primaryOrangeDark,
-                  AppColors.primaryOrange,
-                  AppColors.primaryOrangeLight,
-                ],
-              ),
-            ),
-          ),
-
-          // ── Nội dung chính ─────────────────────────────────────────────────
+          _buildWatermarks(),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAppBar(),
-
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 32),
-
-                        Text(
-                          'Xác thực OTP',
-                          style: AppTextStyles.h1.copyWith(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.white,
-                          ),
-                        ),
-
                         const SizedBox(height: 12),
-
-                        Obx(() => RichText(
-                              text: TextSpan(
-                                style: AppTextStyles.bodyLarge.copyWith(
-                                  color: AppColors.white.withValues(alpha: 0.8),
-                                ),
-                                children: [
-                                  const TextSpan(
-                                      text:
-                                          'Mã xác thực đã được gửi đến email '),
-                                  TextSpan(
-                                    text: controller.email.value,
-                                    style: const TextStyle(
-                                      color: AppColors.accentGold,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-
-                        const SizedBox(height: 48),
-
-                        // ── OTP Input Fields ──────────────────────────────────
-                        _buildOtpInput(),
-
-                        const SizedBox(height: 48),
-
-                        // ── Nút Xác thực ─────────────────────────────────────
-                        Obx(() => GradientActionButton(
-                              icon: Icons.verified_user_outlined,
-                              iconColor: AppColors.primaryOrange,
-                              text: 'Xác thực ngay',
-                              isPrimary: true,
-                              onTap: controller.isLoading.value
-                                  ? () {}
-                                  : controller.verify,
-                            )),
-
-                        const SizedBox(height: 32),
-
-                        // ── Gửi lại mã OTP ────────────────────────────────────
-                        Obx(() {
-                          final secs = controller.countdown.value;
-                          final canResend =
-                              secs <= 0 && !controller.isResending.value;
-
-                          return Center(
-                            child: TextButton(
-                              onPressed: canResend ? controller.resendOtp : null,
-                              child: controller.isResending.value
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: AppColors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      secs > 0
-                                          ? 'Gửi lại sau ${secs}s'
-                                          : 'Chưa nhận được mã? Gửi lại',
-                                      style: AppTextStyles.labelLarge.copyWith(
-                                        color: canResend
-                                            ? AppColors.white
-                                            : AppColors.white
-                                                .withValues(alpha: 0.5),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
-                          );
-                        }),
-
+                        _buildTitle(),
+                        const SizedBox(height: 28),
+                        _buildHeroIcon(),
+                        const SizedBox(height: 28),
+                        _buildOtpCard(),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -203,48 +124,208 @@ class _OtpViewState extends State<OtpView> {
               ],
             ),
           ),
-
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          Obx(() => _buildLoadingOverlay(controller.isLoading.value)),
         ],
       ),
     );
   }
 
+  Widget _buildWatermarks() {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            Positioned(
+              top: -20,
+              right: -20,
+              child: _watermark(Icons.eco_rounded, 180),
+            ),
+            Positioned(
+              top: 160,
+              left: -30,
+              child: _watermark(Icons.restaurant_menu_rounded, 120),
+            ),
+            Positioned(
+              bottom: 80,
+              right: -10,
+              child: _watermark(Icons.local_dining_rounded, 140),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _watermark(IconData icon, double size) =>
+      Icon(icon, size: size, color: AppColors.emerald.withValues(alpha: 0.05));
+
   Widget _buildAppBar() {
     return Padding(
-      padding: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.only(top: 4, left: 8),
       child: IconButton(
-        icon: const Icon(AppIcons.backArrowSimple, color: AppColors.white),
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.8),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.emerald.withValues(alpha: 0.1),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.emerald,
+            size: 18,
+          ),
+        ),
         onPressed: Get.back,
       ),
     );
   }
 
-  Widget _buildOtpInput() {
+  Widget _buildTitle() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Xác thực ',
+              style: AppTextStyles.h1.copyWith(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
+            ShaderMask(
+              shaderCallback: (b) => const LinearGradient(
+                colors: [AppColors.emeraldDark, AppColors.emeraldLight],
+              ).createShader(b),
+              child: Text(
+                'OTP',
+                style: AppTextStyles.h1.copyWith(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Obx(() => RichText(
+              text: TextSpan(
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textGrey,
+                  height: 1.5,
+                ),
+                children: [
+                  const TextSpan(text: 'Mã 6 số đã được gửi tới email\n'),
+                  TextSpan(
+                    text: controller.email.value,
+                    style: const TextStyle(
+                      color: AppColors.emerald,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ],
+    );
+  }
+
+  Widget _buildHeroIcon() {
+    return Center(
+      child: Container(
+        width: 88,
+        height: 88,
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.7),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.emerald.withValues(alpha: 0.35),
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.emerald.withValues(alpha: 0.18),
+              blurRadius: 24,
+              spreadRadius: 4,
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.verified_rounded,
+          size: 42,
+          color: AppColors.emerald,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtpCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: AppColors.emerald.withValues(alpha: 0.18),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildOtpBoxes(),
+          const SizedBox(height: 28),
+          Obx(() => _buildVerifyButton()),
+          const SizedBox(height: 20),
+          Obx(() => _buildResendRow()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpBoxes() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(
-        6,
-        (index) => Container(
-          width: 45,
-          height: 55,
+      children: List.generate(6, (index) {
+        final isFocused = _focusNodes[index].hasFocus;
+        final isFilled = _controllers[index].text.isNotEmpty;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 44,
+          height: 52,
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.15),
+            color: isFocused
+                ? AppColors.emerald.withValues(alpha: 0.04)
+                : AppColors.grey100,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.white.withValues(alpha: 0.3),
-              width: 1,
+              color: isFocused
+                  ? AppColors.emerald
+                  : isFilled
+                      ? AppColors.emerald.withValues(alpha: 0.5)
+                      : AppColors.grey300,
+              width: isFocused ? 2 : 1,
             ),
           ),
           child: TextField(
@@ -261,7 +342,8 @@ class _OtpViewState extends State<OtpView> {
               _onOtpChanged();
             },
             style: AppTextStyles.h2.copyWith(
-              color: AppColors.white,
+              color: isFilled ? AppColors.emerald : AppColors.textDark,
+              fontWeight: FontWeight.w800,
               height: 1.0,
             ),
             keyboardType: TextInputType.number,
@@ -277,6 +359,123 @@ class _OtpViewState extends State<OtpView> {
               contentPadding: EdgeInsets.zero,
               isDense: true,
             ),
+            cursorColor: AppColors.emerald,
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildVerifyButton() {
+    final isLoading = controller.isLoading.value;
+    return GestureDetector(
+      onTap: isLoading ? null : controller.verify,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: isLoading
+              ? null
+              : const LinearGradient(
+                  colors: [
+                    AppColors.emeraldDark,
+                    AppColors.emerald,
+                    AppColors.emeraldLight,
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+          color: isLoading ? AppColors.grey300 : null,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: isLoading
+              ? null
+              : [
+                  BoxShadow(
+                    color: AppColors.emerald.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.verified_user_rounded,
+                color: AppColors.white, size: 20),
+            const SizedBox(width: 10),
+            Text(
+              'Xác thực ngay',
+              style: AppTextStyles.button.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResendRow() {
+    final secs = controller.countdown.value;
+    final canResend = secs <= 0 && !controller.isResending.value;
+
+    return Center(
+      child: controller.isResending.value
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: AppColors.emerald,
+                strokeWidth: 2,
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Chưa nhận được mã? ',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textGrey,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: canResend ? controller.resendOtp : null,
+                  child: Text(
+                    secs > 0 ? 'Gửi lại (${secs}s)' : 'Gửi lại',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: canResend
+                          ? AppColors.emerald
+                          : AppColors.textLight,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(bool isLoading) {
+    if (!isLoading) return const SizedBox.shrink();
+    return Container(
+      color: AppColors.black.withValues(alpha: 0.25),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.emerald.withValues(alpha: 0.15),
+                blurRadius: 24,
+              ),
+            ],
+          ),
+          child: const CircularProgressIndicator(
+            color: AppColors.emerald,
+            strokeWidth: 3,
           ),
         ),
       ),

@@ -37,6 +37,66 @@ class CouponController extends GetxController {
     }
   }
 
+  Future<void> deleteCoupon(String id) async {
+    dev.log('[COUPON/VM] Deleting coupon: $id');
+    isMutating.value = true;
+    try {
+      await _repository.deleteCoupon(id);
+      coupons.removeWhere((c) => c.id == id);
+      Get.snackbar(
+        'Đã xoá',
+        'Mã khuyến mãi đã được xoá',
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.white,
+      );
+    } catch (e) {
+      dev.log('[COUPON/VM] ❌ deleteCoupon error: $e');
+      Get.snackbar(
+        'Lỗi',
+        'Không thể xoá mã: $e',
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.white,
+      );
+    } finally {
+      isMutating.value = false;
+    }
+  }
+
+  Future<void> updateCoupon(String id, CouponModel request) async {
+    dev.log('[COUPON/VM] Updating coupon: $id');
+    isMutating.value = true;
+    try {
+      final updated = await _repository.updateCoupon(
+        id: id,
+        code: request.code,
+        discountType: request.discountType,
+        discountValue: request.discountValue,
+        minOrderValue: request.minOrderValue,
+        maxDiscount: request.maxDiscount,
+        expiresAt: request.expiresAt,
+        usageLimit: request.usageLimit,
+      );
+      final idx = coupons.indexWhere((c) => c.id == id);
+      if (idx != -1) coupons[idx] = updated;
+      Get.snackbar(
+        'Thành công',
+        'Đã cập nhật mã "${updated.code}"',
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.white,
+      );
+    } catch (e) {
+      dev.log('[COUPON/VM] ❌ updateCoupon error: $e');
+      Get.snackbar(
+        'Lỗi',
+        'Không thể cập nhật mã: $e',
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.white,
+      );
+    } finally {
+      isMutating.value = false;
+    }
+  }
+
   /// View truyền vào CouponModel chứa dữ liệu từ form, controller gọi API.
   Future<void> addCoupon(CouponModel request) async {
     dev.log('[COUPON/VM] Creating coupon: ${request.code}');

@@ -19,6 +19,28 @@ class UserModel {
     this.totalSaved = 0,
   });
 
+  factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
+        id: json['id'] as String,
+        firstName: json['firstName'] as String,
+        lastName: json['lastName'] as String,
+        email: json['email'] as String,
+        phone: json['phone'] as String,
+        avatarUrl: json['avatarUrl'] as String?,
+        totalOrders: json['totalOrders'] as int? ?? 0,
+        totalSaved: (json['totalSaved'] as num?)?.toDouble() ?? 0.0,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phone': phone,
+        'avatarUrl': avatarUrl,
+        'totalOrders': totalOrders,
+        'totalSaved': totalSaved,
+      };
+
   String get fullName => '$lastName $firstName'.trim();
 
   String get initials {

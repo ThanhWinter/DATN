@@ -1,6 +1,7 @@
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../app/routes/app_routes.dart';
 import '../controllers/profile_controller.dart';
@@ -40,6 +41,13 @@ class ProfileView extends GetView<ProfileController> {
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
+                      icon: Icons.inbox_outlined,
+                      label: 'Hộp thư thông báo',
+                      onTap: () =>
+                          Get.toNamed(AppRoutes.adminNotifications),
+                    ),
+                    const AppMenuDivider(),
+                    AppMenuTile(
                       icon: Icons.notifications_outlined,
                       label: 'Gửi thông báo',
                       onTap: () => Get.toNamed(AppRoutes.notificationPush),
@@ -51,9 +59,8 @@ class ProfileView extends GetView<ProfileController> {
                   AppMenuCard(children: [
                     AppMenuTile(
                       icon: Icons.bar_chart_outlined,
-                      label: 'Thống kê doanh thu',
-                      onTap: () {},
-                      trailing: const _ComingSoonBadge(),
+                      label: 'Thống kê & Xuất báo cáo',
+                      onTap: () => Get.toNamed(AppRoutes.dashboard),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
@@ -203,30 +210,73 @@ class _AdminHeader extends GetView<ProfileController> {
   }
 }
 
-class _StatsRow extends StatelessWidget {
+class _StatsRow extends GetView<ProfileController> {
   const _StatsRow();
+
+  String _fmtRevenue(double v) {
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toInt().toString();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          _StatCard(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Obx(() {
+        if (controller.isStatsLoading.value) {
+          return const Row(
+            children: [
+              _StatCardSkeleton(),
+              SizedBox(width: 10),
+              _StatCardSkeleton(),
+              SizedBox(width: 10),
+              _StatCardSkeleton(),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            _StatCard(
               label: 'Đơn hôm nay',
-              value: '12',
-              icon: Icons.receipt_outlined),
-          SizedBox(width: 10),
-          _StatCard(
+              value: '${controller.todayOrders.value}',
+              icon: Icons.receipt_outlined,
+            ),
+            const SizedBox(width: 10),
+            _StatCard(
               label: 'Doanh thu',
-              value: '1.2M',
-              icon: Icons.trending_up),
-          SizedBox(width: 10),
-          _StatCard(
+              value: _fmtRevenue(controller.todayRevenue.value),
+              icon: Icons.trending_up,
+            ),
+            const SizedBox(width: 10),
+            _StatCard(
               label: 'Món ăn',
-              value: '9',
-              icon: Icons.restaurant_menu_outlined),
-        ],
+              value: '${controller.totalFoods.value}',
+              icon: Icons.restaurant_menu_outlined,
+            ),
+          ],
+        );
+      }),
+    );
+  }
+}
+
+class _StatCardSkeleton extends StatelessWidget {
+  const _StatCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Shimmer.fromColors(
+        baseColor: AppColors.grey300,
+        highlightColor: AppColors.grey100,
+        child: Container(
+          height: 90,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }
@@ -273,19 +323,3 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _ComingSoonBadge extends StatelessWidget {
-  const _ComingSoonBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.grey200,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text('Sắp có',
-          style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
-    );
-  }
-}

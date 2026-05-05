@@ -79,8 +79,6 @@ class _ProfileAvatar extends StatelessWidget {
             ? AppNetworkImage(
                 url: avatarUrl!,
                 fit: BoxFit.cover,
-                memCacheWidth: 100,
-                memCacheHeight: 100,
                 errorWidget: _initialsChild(),
               )
             : _initialsChild(),

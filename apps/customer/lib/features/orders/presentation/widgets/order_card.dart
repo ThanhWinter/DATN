@@ -14,7 +14,7 @@ class OrderCard extends StatelessWidget {
     required this.onActionPressed,
   });
 
-  static const _activeStatuses = {'PENDING', 'PROCESSING', 'DELIVERING'};
+  static const _activeStatuses = {'PENDING', 'PAID', 'PREPARING', 'DELIVERING'};
 
   bool get _isActive => _activeStatuses.contains(order.status.toUpperCase());
 
@@ -40,7 +40,7 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                order.id,
+                '#${order.id.substring(0, 8).toUpperCase()}',
                 style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w800),
               ),
               _OrderStatusBadge(status: order.status),
@@ -140,7 +140,9 @@ class _OrderStatusBadge extends StatelessWidget {
     switch (status.toUpperCase()) {
       case 'PENDING':
         return 'Chờ xác nhận';
-      case 'PROCESSING':
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'PREPARING':
         return 'Đang chuẩn bị';
       case 'DELIVERING':
         return 'Đang giao';
@@ -156,7 +158,10 @@ class _OrderStatusBadge extends StatelessWidget {
   Color get _bgColor {
     switch (status.toUpperCase()) {
       case 'PENDING':
-      case 'PROCESSING':
+        return AppColors.primaryOrange.withValues(alpha: 0.15);
+      case 'PAID':
+        return Colors.blue.withValues(alpha: 0.12);
+      case 'PREPARING':
       case 'DELIVERING':
         return AppColors.primaryOrange.withValues(alpha: 0.15);
       case 'COMPLETED':
@@ -171,9 +176,11 @@ class _OrderStatusBadge extends StatelessWidget {
   Color get _textColor {
     switch (status.toUpperCase()) {
       case 'PENDING':
-      case 'PROCESSING':
+      case 'PREPARING':
       case 'DELIVERING':
         return AppColors.primaryOrangeDark;
+      case 'PAID':
+        return Colors.blue[700]!;
       case 'COMPLETED':
         return Colors.green[800]!;
       case 'CANCELLED':

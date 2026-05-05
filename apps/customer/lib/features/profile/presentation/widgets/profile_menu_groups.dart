@@ -6,6 +6,33 @@ import '../../../main/presentation/controllers/main_controller.dart';
 import '../controllers/profile_controller.dart';
 import 'profile_menu_section.dart';
 
+class _CouponBadge extends StatelessWidget {
+  const _CouponBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final count = Get.find<MainController>().availableCouponCount.value;
+      if (count == 0) return const SizedBox.shrink();
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.primaryOrange,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          '$count',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 11,
+          ),
+        ),
+      );
+    });
+  }
+}
+
 class AccountSection extends StatelessWidget {
   const AccountSection({super.key});
 
@@ -33,12 +60,14 @@ class AccountSection extends StatelessWidget {
             ProfileMenuItem(
               svgPath: AppIcons.sellSvg,
               label: 'Ưu đãi',
-              trailing: const ProfileMenuBadge(count: '2'),
-              onTap: () => Get.snackbar(
-                'Sắp ra mắt',
-                'Tính năng đang được phát triển',
-                snackPosition: SnackPosition.TOP,
-              ),
+              trailing: const _CouponBadge(),
+              onTap: () => Get.toNamed(AppRoutes.coupons),
+            ),
+            const ProfileMenuDivider(),
+            ProfileMenuItem(
+              icon: Icons.location_on_outlined,
+              label: 'Địa chỉ giao hàng',
+              onTap: () => Get.toNamed(AppRoutes.addresses),
             ),
           ],
         ),

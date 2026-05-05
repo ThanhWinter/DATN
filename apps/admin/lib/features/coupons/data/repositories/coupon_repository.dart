@@ -48,4 +48,38 @@ class CouponRepository {
         '[COUPON/REPO] ✅ Coupon created: id=${created.id} code=${created.code}');
     return created;
   }
+
+  Future<CouponModel> updateCoupon({
+    required String id,
+    required String code,
+    required String discountType,
+    required double discountValue,
+    double? minOrderValue,
+    double? maxDiscount,
+    required DateTime expiresAt,
+    int? usageLimit,
+  }) async {
+    dev.log('[COUPON/REPO] Updating coupon: $id');
+    final res = await _apiClient.put(
+      '/coupons/$id',
+      body: {
+        'code': code,
+        'discountType': discountType,
+        'discountValue': discountValue,
+        if (minOrderValue != null) 'minOrderValue': minOrderValue,
+        if (maxDiscount != null) 'maxDiscount': maxDiscount,
+        'expiresAt': expiresAt.toIso8601String(),
+        if (usageLimit != null) 'usageLimit': usageLimit,
+      },
+    );
+    final updated = CouponModel.fromJson(res['result'] as Map<String, dynamic>);
+    dev.log('[COUPON/REPO] ✅ Coupon updated: ${updated.code}');
+    return updated;
+  }
+
+  Future<void> deleteCoupon(String id) async {
+    dev.log('[COUPON/REPO] Deleting coupon: $id');
+    await _apiClient.delete('/coupons/$id');
+    dev.log('[COUPON/REPO] ✅ Coupon deleted: $id');
+  }
 }

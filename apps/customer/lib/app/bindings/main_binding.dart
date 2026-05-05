@@ -17,57 +17,67 @@ import '../../features/profile/presentation/controllers/profile_controller.dart'
 import '../../features/interactions/data/repositories/interaction_repository.dart';
 import '../../features/interactions/presentation/controllers/favorite_controller.dart';
 import '../../features/main/presentation/controllers/main_controller.dart';
+import '../../features/profile/data/repositories/address_repository.dart';
+import '../../features/payment/data/repositories/coupon_repository.dart';
+import '../../features/coupons/presentation/controllers/coupon_list_controller.dart';
 
 class MainBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<MainController>(() => MainController(), fenix: true);
+    Get.lazyPut<OrderRepository>(
+      () => OrderRepository(Get.find<IApiClient>()),
+    );
+    Get.lazyPut<CouponRepository>(
+      () => CouponRepository(Get.find<IApiClient>()),
+    );
 
-    Get.lazyPut<CartRepository>(() => CartRepository(), fenix: true);
+    Get.lazyPut<MainController>(
+      () => MainController(
+        Get.find<OrderRepository>(),
+        Get.find<CouponRepository>(),
+      ),
+    );
+
+    Get.lazyPut<CartRepository>(() => CartRepository());
     Get.lazyPut<CartController>(
       () => CartController(Get.find<CartRepository>()),
-      fenix: true,
     );
 
     Get.lazyPut<InteractionRepository>(
       () => InteractionRepository(Get.find<IApiClient>()),
-      fenix: true,
     );
     Get.lazyPut<FavoriteController>(
       () => FavoriteController(Get.find<InteractionRepository>()),
-      fenix: true,
     );
 
     Get.lazyPut<NotificationRepository>(
       () => NotificationRepository(Get.find<IApiClient>()),
-      fenix: true,
     );
     Get.lazyPut<NotificationController>(
       () => NotificationController(Get.find<NotificationRepository>()),
-      fenix: true,
     );
 
     Get.lazyPut<HomeRepository>(
       () => HomeRepository(Get.find<IApiClient>()),
-      fenix: true,
     );
     Get.lazyPut<HomeController>(
       () => HomeController(Get.find<HomeRepository>()),
-      fenix: true,
     );
 
-    Get.lazyPut<OrderRepository>(
-      () => OrderRepository(Get.find<IApiClient>()),
-      fenix: true,
-    );
     Get.lazyPut<OrderController>(
       () => OrderController(Get.find<OrderRepository>()),
-      fenix: true,
+    );
+
+    Get.lazyPut<CouponListController>(
+      () => CouponListController(Get.find<CouponRepository>()),
+    );
+
+    Get.lazyPut<AddressRepository>(
+      () => AddressRepository(Get.find<IApiClient>()),
     );
 
     Get.lazyPut<ProfileRepository>(
       () => ProfileRepository(Get.find<IApiClient>(), Get.find<AuthService>()),
-      fenix: true,
     );
     Get.lazyPut<ProfileController>(
       () => ProfileController(
@@ -75,7 +85,6 @@ class MainBinding extends Bindings {
         Get.find<AuthRepository>(),
         Get.find<AuthService>(),
       ),
-      fenix: true,
     );
   }
 }

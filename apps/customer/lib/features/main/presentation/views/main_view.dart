@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
-import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../../cart/presentation/views/cart_view.dart';
+import '../../../coupons/presentation/views/coupon_list_view.dart';
 import '../../../home/presentation/views/home_view.dart';
 import '../../../orders/presentation/views/order_view.dart';
 import '../../../profile/presentation/views/profile_view.dart';
@@ -57,6 +57,7 @@ class MainView extends GetView<MainController> {
           children: const [
             HomeView(),
             CartView(),
+            CouponListView(isTab: true),
             OrderView(),
             ProfileView(),
           ],
@@ -68,9 +69,8 @@ class MainView extends GetView<MainController> {
 
   Widget _buildBottomNav() {
     return Obx(() {
-      final cartController = Get.find<CartController>();
-      final cartCount =
-          cartController.cartItems.fold(0, (sum, item) => sum + item.quantity);
+      final cartCount = controller.cartItemBadgeCount.value;
+      final activeOrderCount = controller.activeOrderBadgeCount.value;
 
       return BottomNavigationBar(
         currentIndex: controller.selectedIndex.value,
@@ -96,8 +96,13 @@ class MainView extends GetView<MainController> {
             label: 'Giỏ hàng',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.textGrey, BlendMode.srcIn)),
-            activeIcon: SvgPicture.asset(AppIcons.orderSvg, width: 22, colorFilter: const ColorFilter.mode(AppColors.primaryOrange, BlendMode.srcIn)),
+            icon: _buildCouponIcon(isSelected: false),
+            activeIcon: _buildCouponIcon(isSelected: true),
+            label: 'Ưu đãi',
+          ),
+          BottomNavigationBarItem(
+            icon: _buildOrderIcon(activeOrderCount, isSelected: false),
+            activeIcon: _buildOrderIcon(activeOrderCount, isSelected: true),
             label: 'Đơn hàng',
           ),
           BottomNavigationBarItem(
@@ -108,6 +113,79 @@ class MainView extends GetView<MainController> {
         ],
       );
     });
+  }
+
+  Widget _buildCouponIcon({required bool isSelected}) {
+    final color = isSelected ? AppColors.primaryOrange : AppColors.textGrey;
+    final couponCount = controller.availableCouponCount.value;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SvgPicture.asset(
+          AppIcons.sellSvg,
+          width: 22,
+          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        ),
+        if (couponCount > 0)
+          Positioned(
+            right: -6,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(
+                color: AppColors.errorRed,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              alignment: Alignment.center,
+              child: Text(
+                couponCount > 99 ? '99+' : '$couponCount',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildOrderIcon(int count, {required bool isSelected}) {
+    final color = isSelected ? AppColors.primaryOrange : AppColors.textGrey;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        SvgPicture.asset(
+          AppIcons.orderSvg,
+          width: 22,
+          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        ),
+        if (count > 0)
+          Positioned(
+            right: -6,
+            top: -4,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(
+                color: AppColors.errorRed,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+              alignment: Alignment.center,
+              child: Text(
+                count > 99 ? '99+' : '$count',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildCartIcon(int cartCount, {required bool isSelected}) {

@@ -16,74 +16,44 @@ class AdminReviewView extends GetView<AdminReviewController> {
         title: const Text('Quản lý đánh giá', style: AppTextStyles.h3),
         backgroundColor: AppColors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: controller.loadReviews,
-            icon: const Icon(Icons.refresh, color: AppColors.primaryOrange),
-            tooltip: 'Tải lại',
-          ),
-        ],
+        actions: const [],
       ),
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        isEmpty: () => controller.isEmpty.value,
-        emptyWidget: const AppEmptyState(
-          icon: Icons.star_border_rounded,
-          message: 'Chưa có đánh giá nào từ khách hàng',
-        ),
-        onSuccess: () => Obx(
-          () => ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: controller.reviews.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) => _ReviewCard(
-              review: controller.reviews[i],
-              onDelete: () =>
-                  _confirmDelete(context, controller.reviews[i]),
-            ),
-          ),
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadReviews,
+          color: AppColors.primaryOrange,
+          child: Obx(() => controller.reviews.isEmpty
+              ? const CustomScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverFillRemaining(
+                      child: AppEmptyState(
+                        icon: Icons.star_border_rounded,
+                        message: 'Chưa có đánh giá nào từ khách hàng',
+                      ),
+                    ),
+                  ],
+                )
+              : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: controller.reviews.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) =>
+                      _ReviewCard(review: controller.reviews[i]),
+                )),
         ),
       ),
     );
   }
-
-  void _confirmDelete(BuildContext context, AdminReviewModel review) {
-    Get.dialog(AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Xoá đánh giá', style: AppTextStyles.h3),
-      content: Text(
-          'Xoá đánh giá của "${review.userFullName}"?\nHành động này không thể hoàn tác.'),
-      actions: [
-        TextButton(
-          onPressed: Get.back,
-          child:
-              const Text('Huỷ', style: TextStyle(color: AppColors.textGrey)),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Get.back();
-            controller.deleteReview(review.id);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.errorRed,
-            foregroundColor: AppColors.white,
-            elevation: 0,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          child: const Text('Xoá ngay'),
-        ),
-      ],
-    ));
-  }
 }
 
 class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({required this.review, required this.onDelete});
+  const _ReviewCard({required this.review});
 
   final AdminReviewModel review;
-  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -122,15 +92,17 @@ class _ReviewCard extends StatelessWidget {
                     Text('Đơn: ${review.orderId}',
                         style: AppTextStyles.bodySmall
                             .copyWith(color: AppColors.textGrey)),
+                    if (review.foodName != null &&
+                        review.foodName!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Món: ${review.foodName}',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.textGrey),
+                      ),
+                    ],
                   ],
                 ),
-              ),
-              IconButton(
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline,
-                    color: AppColors.errorRed, size: 20),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ],
           ),

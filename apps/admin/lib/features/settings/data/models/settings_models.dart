@@ -3,12 +3,16 @@ class BannerModel {
   final String title;
   final String? imageUrl;
   final String? linkUrl;
+  final bool isActive;
+  final int displayOrder;
 
   const BannerModel({
     required this.id,
     required this.title,
     this.imageUrl,
     this.linkUrl,
+    this.isActive = true,
+    this.displayOrder = 0,
   });
 
   factory BannerModel.fromJson(Map<String, dynamic> json) => BannerModel(
@@ -16,6 +20,17 @@ class BannerModel {
         title: json['title'] as String? ?? '',
         imageUrl: json['imageUrl'] as String?,
         linkUrl: json['linkUrl'] as String?,
+        isActive: json['isActive'] as bool? ?? true,
+        displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
+      );
+
+  BannerModel copyWith({bool? isActive}) => BannerModel(
+        id: id,
+        title: title,
+        imageUrl: imageUrl,
+        linkUrl: linkUrl,
+        isActive: isActive ?? this.isActive,
+        displayOrder: displayOrder,
       );
 }
 
@@ -38,7 +53,7 @@ class StoreSettingModel {
       StoreSettingModel(
         storeName: json['storeName'] as String? ?? '',
         hotline: json['hotline'] as String? ?? '',
-        isOpen: json['isOpen'] as bool? ?? false,
+        isOpen: json['isOpen'] as bool? ?? true,
         baseShippingFee:
             (json['baseShippingFee'] as num?)?.toDouble() ?? 0.0,
         freeShipThreshold:

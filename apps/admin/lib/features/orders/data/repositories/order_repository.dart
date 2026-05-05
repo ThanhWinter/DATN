@@ -4,23 +4,81 @@ import 'package:core_network/core_network.dart';
 
 import '../models/order_model.dart';
 
+/// Kết quả phân trang (Spring [Page]) cho [GET /orders].
+class OrdersPageResult {
+  const OrdersPageResult({
+    required this.items,
+    required this.last,
+    required this.pageIndex,
+    required this.totalPages,
+    required this.totalElements,
+  });
+
+  final List<OrderModel> items;
+  final bool last;
+  final int pageIndex;
+  final int totalPages;
+  final int totalElements;
+}
+
 class OrderRepository {
   OrderRepository(this._apiClient);
 
   final IApiClient _apiClient;
 
-  Future<List<OrderModel>> fetchOrders({int page = 0, int size = 50}) async {
-    dev.log('[ORDER/REPO] Fetching orders page=$page...');
-    final res = await _apiClient.get(
-      '/orders',
-      query: {'page': page.toString(), 'size': size.toString()},
-    );
+  /// [status]: một giá trị [OrderStatus] backend; bỏ qua hoặc null = tất cả (admin).
+  Future<OrdersPageResult> fetchOrdersPage({
+    String? status,
+    int page = 0,
+    int size = 25,
+  }) async {
+    dev.log('[ORDER/REPO] Fetching orders status=$status page=$page size=$size');
+    final query = <String, String>{
+      'page': page.toString(),
+      'size': size.toString(),
+    };
+    if (status != null && status.isNotEmpty) {
+      query['status'] = status;
+    }
+
+    final res = await _apiClient.get('/orders', query: query);
     final pageData = res['result'] as Map<String, dynamic>;
     final list = pageData['content'] as List<dynamic>? ?? [];
-    dev.log('[ORDER/REPO] ✅ Loaded ${list.length} orders');
-    return list
+    final items = list
         .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    final last = pageData['last'] as bool? ?? true;
+    final number = (pageData['number'] as num?)?.toInt() ?? page;
+    final totalPages = (pageData['totalPages'] as num?)?.toInt() ?? 0;
+    final totalElements = (pageData['totalElements'] as num?)?.toInt() ??
+        items.length;
+
+    dev.log(
+        '[ORDER/REPO] ✅ page $number/${totalPages > 0 ? totalPages - 1 : 0} — ${items.length} orders (last=$last)');
+
+    return OrdersPageResult(
+      items: items,
+      last: last,
+      pageIndex: number,
+      totalPages: totalPages,
+      totalElements: totalElements,
+    );
+  }
+
+  /// Badge tab Đơn hàng: PENDING + PAID (cùng bucket “chờ xử lý” như [OrderController]).
+  Future<int> fetchPendingBucketBadgeCount() async {
+    final r1 = await fetchOrdersPage(
+      status: OrderModel.statusPending,
+      page: 0,
+      size: 1,
+    );
+    final r2 = await fetchOrdersPage(
+      status: OrderModel.statusPaid,
+      page: 0,
+      size: 1,
+    );
+    return r1.totalElements + r2.totalElements;
   }
 
   Future<OrderModel> getOrderDetail(String orderId) async {

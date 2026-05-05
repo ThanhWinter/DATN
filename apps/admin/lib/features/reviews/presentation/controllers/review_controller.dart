@@ -36,17 +36,4 @@ class AdminReviewController extends GetxController {
       isLoading.value = false;
     }
   }
-
-  Future<void> deleteReview(int id) async {
-    try {
-      await _repository.deleteReview(id);
-      reviews.removeWhere((r) => r.id == id);
-      isEmpty.value = reviews.isEmpty;
-      dev.log('[REVIEW/VM] ✅ Review $id deleted');
-      Get.snackbar('Đã xoá', 'Đánh giá đã được xoá.', snackPosition: SnackPosition.BOTTOM);
-    } catch (e) {
-      dev.log('[REVIEW/VM] ❌ deleteReview error: $e');
-      Get.snackbar('Lỗi', 'Không thể xoá đánh giá.', snackPosition: SnackPosition.BOTTOM);
-    }
-  }
 }

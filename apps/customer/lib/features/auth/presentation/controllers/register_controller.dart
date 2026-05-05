@@ -128,8 +128,11 @@ class RegisterController extends GetxController {
       isValid = false;
     }
     if (!RegExp(_passwordRegex).hasMatch(password)) {
-      passwordError.value = "8–16 ký tự, gồm chữ HOA, thường, số và @\$!%*?&";
-      return false;
+      passwordError.value =
+          "Mật khẩu phải từ 8 đến 16 ký tự, có ít nhất một chữ hoa (A-Z), "
+          "một chữ thường (a-z), một chữ số và một ký tự đặc biệt trong nhóm "
+          "@\$!%*?&. Không được chứa khoảng trắng.";
+      isValid = false;
     }
     if (password != confirmPassword) {
       confirmPasswordError.value = "Mật khẩu không khớp";

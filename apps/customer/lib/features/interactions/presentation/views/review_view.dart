@@ -23,6 +23,8 @@ class ReviewView extends GetView<ReviewController> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
+            _FoodSelector(controller: controller),
+            const SizedBox(height: 24),
             const Text('Bạn cảm thấy thế nào?', style: AppTextStyles.h3),
             const SizedBox(height: 24),
             _StarRating(controller: controller),
@@ -34,6 +36,75 @@ class ReviewView extends GetView<ReviewController> {
         ),
       ),
     );
+  }
+}
+
+class _FoodSelector extends StatelessWidget {
+  const _FoodSelector({required this.controller});
+
+  final ReviewController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final items = controller.items;
+      if (items.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Chọn món cần đánh giá', style: AppTextStyles.h3),
+          const SizedBox(height: 12),
+          ...items.map((item) {
+            final isSelected = controller.selectedFoodId.value == item.foodId;
+            return GestureDetector(
+              onTap: () => controller.selectFood(item.foodId, item.foodName),
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primaryOrange.withValues(alpha: 0.12)
+                      : AppColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primaryOrange : AppColors.grey300,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      isSelected
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_unchecked_rounded,
+                      size: 20,
+                      color: isSelected
+                          ? AppColors.primaryOrange
+                          : AppColors.grey400,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '${item.quantity}x ${item.foodName}',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: isSelected
+                              ? AppColors.primaryOrange
+                              : AppColors.textDark,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      );
+    });
   }
 }
 

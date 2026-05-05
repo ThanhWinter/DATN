@@ -27,26 +27,40 @@ class OrderDetailView extends GetView<OrderDetailController> {
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: Get.back,
+        ),
       ),
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        onSuccess: () {
-          final order = controller.order.value!;
-          return _OrderDetailContent(order: order);
-        },
+        onSuccess: () => Obx(() {
+          final order = controller.order.value;
+          if (order == null) return const SizedBox.shrink();
+          return _OrderDetailContent(order: order, controller: controller);
+        }),
       ),
     );
   }
 }
 
 class _OrderDetailContent extends StatelessWidget {
-  const _OrderDetailContent({required this.order});
+  const _OrderDetailContent({required this.order, required this.controller});
 
   final OrderModel order;
+  final OrderDetailController controller;
+
+  static const _cancellableStatuses = {'PENDING'};
 
   @override
   Widget build(BuildContext context) {
+    final isPending = order.status.toUpperCase() == 'PENDING';
+    final isCancellable = _cancellableStatuses.contains(order.status.toUpperCase());
+    final idShort = order.id.length >= 8
+        ? order.id.substring(0, 8).toUpperCase()
+        : order.id.toUpperCase();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -55,18 +69,30 @@ class _OrderDetailContent extends StatelessWidget {
           // ── Mã đơn + trạng thái ──────────────────────────────────────────
           _Card(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Mã đơn hàng', style: AppTextStyles.bodySmall),
-                    const SizedBox(height: 2),
-                    Text(order.id,
-                        style: AppTextStyles.h3
-                            .copyWith(fontWeight: FontWeight.w800)),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Mã đơn hàng', style: AppTextStyles.bodySmall),
+                      const SizedBox(height: 2),
+                      Text(
+                        '#$idShort',
+                        style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        order.id,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey600,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 12),
                 _StatusBadge(status: order.status),
               ],
             ),
@@ -118,40 +144,194 @@ class _OrderDetailContent extends StatelessWidget {
 
           // ── Tổng tiền ────────────────────────────────────────────────────
           _Card(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                const Text('Tổng cộng', style: AppTextStyles.h3),
-                Text(
-                  '${order.totalAmount.toVnd()} ₫',
-                  style: AppTextStyles.h2
-                      .copyWith(color: AppColors.primaryOrange),
+                if (order.discountAmount > 0 || order.shippingFee > 0) ...[
+                  if (order.discountAmount > 0) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Tạm tính', style: AppTextStyles.bodyMedium),
+                        Text(
+                          '${(order.totalAmount + order.discountAmount - order.shippingFee).toVnd()} ₫',
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.local_offer_outlined,
+                                size: 14, color: AppColors.successGreen),
+                            const SizedBox(width: 4),
+                            Text(
+                              order.couponCode != null
+                                  ? 'Mã ${order.couponCode}'
+                                  : 'Giảm giá',
+                              style: AppTextStyles.bodyMedium
+                                  .copyWith(color: AppColors.successGreen),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '-${order.discountAmount.toVnd()} ₫',
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: AppColors.successGreen),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  if (order.shippingFee > 0) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.delivery_dining_outlined,
+                                size: 14, color: AppColors.primaryOrange),
+                            SizedBox(width: 4),
+                            Text('Phí giao hàng',
+                                style: AppTextStyles.bodyMedium),
+                          ],
+                        ),
+                        Text(
+                          '+${order.shippingFee.toVnd()} ₫',
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  const Divider(height: 16, color: AppColors.grey200),
+                ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Tổng cộng', style: AppTextStyles.h3),
+                    Text(
+                      '${order.totalAmount.toVnd()} ₫',
+                      style: AppTextStyles.h2.copyWith(color: AppColors.primaryOrange),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 12),
 
-          // ── Đánh giá (chỉ hiện khi COMPLETED) ───────────────────────────
-          if (order.status.toUpperCase() == 'COMPLETED') ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    Get.toNamed(AppRoutes.reviewOrder, arguments: order.id),
-                icon: const Icon(Icons.star_rounded, color: AppColors.white),
-                label: const Text('Đánh giá đơn hàng',
-                    style: AppTextStyles.bodyLarge),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryOrange,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          // ── Nút hành động ────────────────────────────────────────────────
+          Obx(() {
+            final loading = controller.isMutating.value;
+            return Column(
+              children: [
+                if (isPending) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: loading ? null : controller.retryPayment,
+                      icon: loading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.white,
+                              ),
+                            )
+                          : const Icon(Icons.payment_outlined,
+                              color: AppColors.white),
+                      label: const Text('Thanh toán ngay',
+                          style: AppTextStyles.bodyLarge),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                  const SizedBox(height: 10),
+                ],
+                if (isCancellable) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: loading
+                          ? null
+                          : () => _confirmCancel(context),
+                      icon: const Icon(Icons.cancel_outlined,
+                          color: AppColors.errorRed),
+                      label: const Text('Huỷ đơn hàng'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.errorRed,
+                        side: const BorderSide(color: AppColors.errorRed),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                if (order.status.toUpperCase() == 'COMPLETED') ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Get.toNamed(
+                        AppRoutes.reviewOrder,
+                        arguments: {
+                          'orderId': order.id,
+                          'items': order.orderItems,
+                        },
+                      ),
+                      icon: const Icon(Icons.star_rounded, color: AppColors.white),
+                      label: const Text('Đánh giá đơn hàng',
+                          style: AppTextStyles.bodyLarge),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancel(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Huỷ đơn hàng?'),
+        content: const Text('Bạn có chắc muốn huỷ đơn này không?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Không'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.cancelOrder();
+            },
+            child: const Text(
+              'Huỷ đơn',
+              style: TextStyle(color: AppColors.errorRed),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -172,8 +352,7 @@ class _OrderItemRow extends StatelessWidget {
         children: [
           Text(
             '${item.quantity}x',
-            style:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -279,8 +458,10 @@ class _StatusBadge extends StatelessWidget {
   String get _label {
     switch (status.toUpperCase()) {
       case 'PENDING':
-        return 'Chờ xác nhận';
-      case 'PROCESSING':
+        return 'Chờ thanh toán';
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'PREPARING':
         return 'Đang chuẩn bị';
       case 'DELIVERING':
         return 'Đang giao';
@@ -296,7 +477,10 @@ class _StatusBadge extends StatelessWidget {
   Color get _bg {
     switch (status.toUpperCase()) {
       case 'PENDING':
-      case 'PROCESSING':
+        return AppColors.primaryOrange.withValues(alpha: 0.15);
+      case 'PAID':
+        return Colors.blue.withValues(alpha: 0.12);
+      case 'PREPARING':
       case 'DELIVERING':
         return AppColors.primaryOrange.withValues(alpha: 0.15);
       case 'COMPLETED':
@@ -311,9 +495,11 @@ class _StatusBadge extends StatelessWidget {
   Color get _fg {
     switch (status.toUpperCase()) {
       case 'PENDING':
-      case 'PROCESSING':
+      case 'PREPARING':
       case 'DELIVERING':
         return AppColors.primaryOrangeDark;
+      case 'PAID':
+        return Colors.blue[700]!;
       case 'COMPLETED':
         return Colors.green[800]!;
       case 'CANCELLED':

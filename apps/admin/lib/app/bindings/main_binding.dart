@@ -1,4 +1,5 @@
 import 'package:core_network/core_network.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 import '../../features/auth/data/repositories/auth_repository.dart';
@@ -7,6 +8,7 @@ import '../../features/coupons/data/repositories/coupon_repository.dart';
 import '../../features/coupons/presentation/controllers/coupon_controller.dart';
 import '../../features/customers/data/repositories/customer_repository.dart';
 import '../../features/customers/presentation/controllers/customer_controller.dart';
+import '../../features/dashboard/data/repositories/statistic_repository.dart';
 import '../../features/main/presentation/controllers/main_controller.dart';
 import '../../features/menu/data/repositories/menu_repository.dart';
 import '../../features/menu/presentation/controllers/menu_controller.dart';
@@ -19,21 +21,31 @@ class MainBinding extends Bindings {
   @override
   void dependencies() {
     final api = Get.find<IApiClient>();
+    final baseUrl = dotenv.env['API_BASE_URL'] ?? '';
 
-    // AuthController — cần cho ProfileController.logout()
     Get.lazyPut(
       () => AuthController(
         Get.find<AuthRepository>(),
         Get.find<AuthService>(),
       ),
-      fenix: true,
     );
 
-    Get.lazyPut(() => MainController(), fenix: true);
-    Get.lazyPut(() => MenuController(MenuRepository(api)), fenix: true);
-    Get.lazyPut(() => OrderController(OrderRepository(api)), fenix: true);
-    Get.lazyPut(() => CouponController(CouponRepository(api)), fenix: true);
-    Get.lazyPut(() => CustomerController(CustomerRepository(api)), fenix: true);
-    Get.lazyPut(() => ProfileController(api), fenix: true);
+    Get.lazyPut(
+      () => StatisticRepository(api, baseUrl),
+    );
+
+    Get.lazyPut<OrderRepository>(() => OrderRepository(api));
+
+    Get.lazyPut(
+      () => MainController(Get.find<OrderRepository>()),
+    );
+
+    Get.lazyPut(() => MenuController(MenuRepository(api)));
+    Get.lazyPut(() => OrderController(Get.find<OrderRepository>()));
+    Get.lazyPut(() => CouponController(CouponRepository(api)));
+    Get.lazyPut(() => CustomerController(CustomerRepository(api)));
+    Get.lazyPut(
+      () => ProfileController(api, Get.find<StatisticRepository>()),
+    );
   }
 }

@@ -9,6 +9,12 @@ class AppColors {
   static const Color primaryOrangeLight = Color(0xFFFF9B40);
   static const Color accentGold = Color(0xFFFFD700);
 
+  // ── Emerald / Teal (Admin theme) ──────────────────────────────────────────
+  static const Color emerald = Color(0xFF10B981);
+  static const Color emeraldLight = Color(0xFF34D399);
+  static const Color emeraldDark = Color(0xFF059669);
+  static const Color mintBg = Color(0xFFF0FFF8);
+
   // ── Neutral ───────────────────────────────────────────────────────────────
   static const Color white = Colors.white;
   static const Color black = Colors.black;
@@ -27,9 +33,10 @@ class AppColors {
   static const Color textLight = Color(0xFF9E9E9E);
 
   // ── Feedback ──────────────────────────────────────────────────────────────
-  static const Color errorRed = Colors.redAccent;
-  static const Color successGreen = Color(0xFF2E7D32);
-  static const Color warningYellow = Color(0xFFF9A825);
+  static const Color errorRed = Color(0xFFEF4444);
+  static const Color errorRedBg = Color(0xFFFEF2F2);
+  static const Color successGreen = Color(0xFF059669);
+  static const Color warningYellow = Color(0xFFF59E0B);
 
   // ── Third-party brand ─────────────────────────────────────────────────────
   static const Color googleBlue = Color(0xFF4285F4);

@@ -22,6 +22,8 @@ class OtpController extends GetxController {
   final countdown = 0.obs;
   Timer? _timer;
 
+  VoidCallback? onRegisterSuccess;
+
   @override
   void onInit() {
     super.onInit();
@@ -63,15 +65,22 @@ class OtpController extends GetxController {
         );
 
         dev.log('[OTP] ✅ Verified Registration — ${email.value}');
-        Get.snackbar(
-          'Thành công',
-          'Tài khoản đã được kích hoạt. Vui lòng đăng nhập.',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: AppColors.successGreen,
-          colorText: AppColors.white,
-        );
-        await Future.delayed(const Duration(milliseconds: 500));
-        Get.offAllNamed(AppRoutes.login);
+        if (onRegisterSuccess != null) {
+          onRegisterSuccess!();
+        } else {
+          Get.snackbar(
+            'Thành công',
+            'Tài khoản đã được kích hoạt. Vui lòng đăng nhập.',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: AppColors.emerald,
+            colorText: AppColors.white,
+            borderRadius: 12,
+            margin: const EdgeInsets.all(16),
+            icon: const Icon(Icons.check_circle_rounded, color: AppColors.white),
+          );
+          await Future.delayed(const Duration(milliseconds: 1200));
+          Get.offAllNamed(AppRoutes.login);
+        }
       } else {
         // FORGOT_PASSWORD flow - just proceed to Reset Password view
         // The verification will happen at resetPassword API call, or we could verify here if there was a separate verify-forgot-otp endpoint.

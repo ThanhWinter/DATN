@@ -21,21 +21,29 @@ class FavoriteView extends GetView<FavoriteController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        isEmpty: () => controller.isEmpty.value,
-        emptyWidget: const _EmptyFavorite(),
-        onSuccess: () => Obx(
-          () => ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: controller.favorites.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) => _FavoriteTile(
-              item: controller.favorites[i],
-              onTap: () =>
-                  controller.navigateToFoodDetail(controller.favorites[i].foodId),
-              onRemove: () =>
-                  controller.removeFavorite(controller.favorites[i].foodId),
-            ),
-          ),
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadFavorites,
+          color: AppColors.primaryOrange,
+          child: Obx(() => controller.favorites.isEmpty
+              ? const CustomScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverFillRemaining(child: _EmptyFavorite()),
+                  ],
+                )
+              : ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: controller.favorites.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (_, i) => _FavoriteTile(
+                    item: controller.favorites[i],
+                    onTap: () => controller
+                        .navigateToFoodDetail(controller.favorites[i].foodId),
+                    onRemove: () =>
+                        controller.removeFavorite(controller.favorites[i].foodId),
+                  ),
+                )),
         ),
       ),
     );
@@ -74,8 +82,6 @@ class _FavoriteTile extends StatelessWidget {
                       width: 64,
                       height: 64,
                       fit: BoxFit.cover,
-                      memCacheWidth: 64,
-                      memCacheHeight: 64,
                     )
                   : Container(
                       width: 64,

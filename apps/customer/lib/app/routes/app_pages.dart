@@ -34,11 +34,15 @@ import "../bindings/review_binding.dart";
 import "../../features/search/presentation/views/search_view.dart";
 import "../bindings/search_binding.dart";
 
+import "../../features/coupons/presentation/views/coupon_list_view.dart";
+import "../bindings/coupon_list_binding.dart";
+import "../../features/profile/presentation/views/address_view.dart";
+import "../bindings/address_binding.dart";
+
 import "../../features/auth/presentation/views/email_login_view.dart";
 import "../../features/auth/presentation/views/forgot_password_view.dart";
 import "../../features/auth/presentation/views/login_view.dart";
 import "../../features/auth/presentation/views/register_view.dart";
-import "../bindings/auth_binding.dart";
 import "../bindings/email_login_binding.dart";
 import "../bindings/forgot_password_binding.dart";
 import "../bindings/register_binding.dart";
@@ -53,7 +57,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginView(),
-      binding: AuthBinding(),
     ),
     GetPage(
       name: AppRoutes.emailLogin,
@@ -139,6 +142,16 @@ class AppPages {
       name: AppRoutes.search,
       page: () => const SearchView(),
       binding: SearchBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.coupons,
+      page: () => const CouponListView(),
+      binding: CouponListBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.addresses,
+      page: () => const AddressView(),
+      binding: AddressBinding(),
     ),
   ];
 }

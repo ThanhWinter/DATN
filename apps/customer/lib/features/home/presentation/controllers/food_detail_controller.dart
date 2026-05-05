@@ -7,6 +7,7 @@ import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../data/models/food_option_model.dart';
 import '../../data/models/home_items.dart';
 import '../../data/repositories/food_repository.dart';
+import '../../../interactions/data/models/interaction_models.dart';
 import '../../../interactions/data/repositories/interaction_repository.dart';
 
 class FoodDetailController extends GetxController {
@@ -25,6 +26,7 @@ class FoodDetailController extends GetxController {
   // Explicit RxBool — không dùng computed getter trong Obx (Rule #2)
   final canAddToCart = false.obs;
   final isFavorite = false.obs; // Rule #2 — explicit RxBool
+  final rating = Rx<FoodRatingModel>(FoodRatingModel.empty);
 
   @override
   void onInit() {
@@ -130,11 +132,22 @@ class FoodDetailController extends GetxController {
       food.value = await _repository.getFoodById(id);
       dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
       _recalc();
-      try {
-        isFavorite.value = await _interactionRepository.checkFavorite(id);
-      } catch (e) {
-        dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
-      }
+      await Future.wait([
+        _interactionRepository
+            .checkFavorite(id)
+            .then((v) => isFavorite.value = v)
+            .catchError((e) {
+          dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
+          return false;
+        }),
+        _interactionRepository
+            .getFoodRating(id)
+            .then((v) => rating.value = v)
+            .catchError((e) {
+          dev.log('[FOOD_DETAIL] ⚠️ getRating error: $e');
+          return FoodRatingModel.empty;
+        }),
+      ]);
     } catch (e) {
       dev.log('[FOOD_DETAIL] ❌ Failed to load food id=$id: $e');
       error.value = e;

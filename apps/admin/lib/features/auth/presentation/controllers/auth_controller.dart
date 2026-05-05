@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -60,6 +61,11 @@ class AuthController extends GetxController {
         refreshToken: tokenResponse.refreshToken,
       );
 
+      // Đồng bộ token vào ApiClient để các API call tiếp theo có auth
+      final apiClient = Get.find<IApiClient>();
+      apiClient.updateToken(tokenResponse.accessToken);
+      apiClient.setRefreshToken(tokenResponse.refreshToken);
+
       if (rememberMe.value) {
         await _authService.saveCredentials(
           emailCtrl.text.trim(),
@@ -92,12 +98,30 @@ class AuthController extends GetxController {
 
   Future<void> logout() async {
     try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) await _repository.unregisterDevice(fcmToken);
+      await FirebaseMessaging.instance.unsubscribeFromTopic('admin_orders');
+      dev.log('[AUTH] ✅ FCM token unregistered + unsubscribed admin_orders');
+    } catch (e) {
+      dev.log('[AUTH] ⚠️ FCM unregister skipped: $e');
+    }
+
+    try {
       dev.log('[AUTH] Admin logging out...');
-      await _repository.logout();
+      final t = _authService.getToken();
+      if (t != null && t.isNotEmpty) {
+        await _repository.logout(token: t);
+      }
     } catch (e) {
       dev.log('[AUTH] Logout API failed (continuing local logout): $e');
     } finally {
       await _authService.clearAuth();
+      // Xoá token cũ khỏi ApiClient để tránh gửi token hết hạn khi đăng nhập lại
+      if (Get.isRegistered<IApiClient>()) {
+        final apiClient = Get.find<IApiClient>();
+        apiClient.updateToken(null);
+        apiClient.setRefreshToken(null);
+      }
       // Rule 17: Prepend Get.offAllNamed with 500ms delay
       await Future.delayed(const Duration(milliseconds: 500));
       Get.offAllNamed(AppRoutes.login);

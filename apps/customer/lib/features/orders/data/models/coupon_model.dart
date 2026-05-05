@@ -1,3 +1,5 @@
+import 'package:core_utils/core_utils.dart';
+
 class CouponModel {
   final String id;
   final String code;
@@ -7,6 +9,11 @@ class CouponModel {
   final double? maxDiscount;
   final DateTime expiresAt;
   final bool isActive;
+  final int? usageLimit;
+  final int usedCount;
+
+  static const typePercent = 'PERCENTAGE';
+  static const typeFixed = 'FIXED_AMOUNT';
 
   const CouponModel({
     required this.id,
@@ -17,6 +24,8 @@ class CouponModel {
     this.maxDiscount,
     required this.expiresAt,
     required this.isActive,
+    this.usageLimit,
+    this.usedCount = 0,
   });
 
   factory CouponModel.fromJson(Map<String, dynamic> json) {
@@ -27,8 +36,11 @@ class CouponModel {
       discountValue: (json['discountValue'] as num).toDouble(),
       minOrderValue: (json['minOrderValue'] as num?)?.toDouble(),
       maxDiscount: (json['maxDiscount'] as num?)?.toDouble(),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-      isActive: json['isActive'] as bool? ?? false,
+      expiresAt: parseApiDateTime(json['expiresAt']),
+      // GET /coupons/{code} có thể không trả isActive; xác thực đã xong trên server.
+      isActive: json['isActive'] != false,
+      usageLimit: (json['usageLimit'] as num?)?.toInt(),
+      usedCount: (json['usedCount'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -36,7 +48,7 @@ class CouponModel {
     if (!isActive || DateTime.now().isAfter(expiresAt)) return 0;
     if (minOrderValue != null && subtotal < minOrderValue!) return 0;
 
-    final double raw = discountType == 'PERCENTAGE'
+    final double raw = discountType == typePercent
         ? subtotal * discountValue / 100
         : discountValue;
 

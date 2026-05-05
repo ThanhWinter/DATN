@@ -7,17 +7,22 @@ import '../../features/auth/presentation/views/otp_view.dart';
 import '../../features/auth/presentation/views/register_view.dart';
 import '../../features/auth/presentation/views/reset_password_view.dart';
 import '../../features/main/presentation/views/main_view.dart';
-import '../bindings/auth_binding.dart';
 import '../bindings/email_login_binding.dart';
 import '../bindings/forgot_password_binding.dart';
 import '../bindings/main_binding.dart';
 import '../bindings/otp_binding.dart';
 import '../bindings/register_binding.dart';
 import '../bindings/reset_password_binding.dart';
+import '../../features/dashboard/presentation/views/dashboard_view.dart';
+import '../../features/notifications/presentation/views/notification_list_view.dart';
 import '../../features/notifications/presentation/views/notification_push_view.dart';
 import '../../features/reviews/presentation/views/review_view.dart';
 import '../../features/settings/presentation/views/settings_view.dart';
+import '../bindings/dashboard_binding.dart';
+import '../bindings/notification_list_binding.dart';
 import '../bindings/notification_push_binding.dart';
+import '../bindings/order_detail_binding.dart';
+import '../../features/orders/presentation/views/order_detail_page.dart';
 import '../bindings/review_binding.dart';
 import '../bindings/settings_binding.dart';
 import 'app_routes.dart';
@@ -27,7 +32,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.login,
       page: () => const LoginView(),
-      binding: AuthBinding(),
     ),
     GetPage(
       name: AppRoutes.emailLogin,
@@ -73,6 +77,21 @@ class AppPages {
       name: AppRoutes.notificationPush,
       page: () => const NotificationPushView(),
       binding: NotificationPushBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.dashboard,
+      page: () => const DashboardView(),
+      binding: DashboardBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.adminNotifications,
+      page: () => const NotificationListView(),
+      binding: NotificationListBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.orderDetail,
+      page: () => const OrderDetailPage(),
+      binding: OrderDetailBinding(),
     ),
   ];
 }

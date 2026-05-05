@@ -40,12 +40,12 @@ class CartItemCard extends GetView<CartController> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: item.imageUrl != null
-                  ? Image.network(
-                      item.imageUrl!,
+                  ? AppNetworkImage(
+                      url: item.imageUrl!,
                       width: 68,
                       height: 68,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      errorWidget: _placeholder(),
                     )
                   : _placeholder(),
             ),

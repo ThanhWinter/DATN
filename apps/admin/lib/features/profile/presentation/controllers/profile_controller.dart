@@ -4,11 +4,13 @@ import 'package:core_network/core_network.dart';
 import 'package:get/get.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../dashboard/data/repositories/statistic_repository.dart';
 
 class ProfileController extends GetxController {
-  ProfileController(this._apiClient);
+  ProfileController(this._apiClient, this._statisticRepository);
 
   final IApiClient _apiClient;
+  final StatisticRepository _statisticRepository;
 
   final isLoading = false.obs;
   final adminName = ''.obs;
@@ -16,10 +18,17 @@ class ProfileController extends GetxController {
   final adminPhone = ''.obs;
   final adminRoles = <String>[].obs;
 
+  // Dashboard stats — displayed on profile tab
+  final todayOrders = 0.obs;
+  final todayRevenue = 0.0.obs;
+  final totalFoods = 0.obs;
+  final isStatsLoading = true.obs;
+
   @override
   void onInit() {
     super.onInit();
     loadMyInfo();
+    _loadStats();
   }
 
   Future<void> loadMyInfo() async {
@@ -39,12 +48,26 @@ class ProfileController extends GetxController {
                 .toList() ??
             [],
       );
-      dev.log('[PROFILE/VM] ✅ Admin info loaded: ${adminEmail.value} | roles=$adminRoles');
+      dev.log('[PROFILE/VM] ✅ loaded: ${adminEmail.value}');
     } catch (e) {
-      dev.log('[PROFILE/VM] ❌ loadMyInfo error: $e');
-      // Không hiển thị lỗi toàn màn hình — profile vẫn render với giá trị rỗng
+      dev.log('[PROFILE/VM] ❌ loadMyInfo: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      isStatsLoading.value = true;
+      final stats = await _statisticRepository.getDashboard();
+      todayOrders.value = stats.todayOrders;
+      todayRevenue.value = stats.todayRevenue;
+      totalFoods.value = stats.totalFoods;
+      dev.log('[PROFILE/VM] ✅ stats loaded');
+    } catch (e) {
+      dev.log('[PROFILE/VM] ⚠️ stats load skipped: $e');
+    } finally {
+      isStatsLoading.value = false;
     }
   }
 

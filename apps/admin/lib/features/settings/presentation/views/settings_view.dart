@@ -25,8 +25,8 @@ class SettingsView extends GetView<SettingsController> {
             labelColor: AppColors.primaryOrange,
             unselectedLabelColor: AppColors.textGrey,
             indicatorColor: AppColors.primaryOrange,
-            labelStyle: AppTextStyles.bodyMedium
-                .copyWith(fontWeight: FontWeight.w700),
+            labelStyle:
+                AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
             tabs: const [
               Tab(text: 'Banner quảng cáo'),
               Tab(text: 'Thông tin cửa hàng'),
@@ -111,81 +111,15 @@ class _BannerCard extends GetView<SettingsController> {
 
   final BannerModel banner;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (banner.imageUrl != null)
-            AppNetworkImage(
-              url: banner.imageUrl!,
-              width: double.infinity,
-              height: 140,
-              fit: BoxFit.cover,
-              memCacheHeight: 140,
-            )
-          else
-            Container(
-              width: double.infinity,
-              height: 80,
-              color: AppColors.grey200,
-              child: const Icon(Icons.image_outlined,
-                  size: 36, color: AppColors.grey400),
-            ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(banner.title, style: AppTextStyles.bodyLarge),
-                      if (banner.linkUrl != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          banner.linkUrl!,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: AppColors.primaryOrange),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _confirmDelete(context),
-                  icon: const Icon(Icons.delete_outline,
-                      color: AppColors.errorRed),
-                  tooltip: 'Xoá banner',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context) {
+  void _confirmDelete() {
     Get.dialog(AlertDialog(
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text('Xoá banner', style: AppTextStyles.h3),
       content: Text('Bạn chắc chắn muốn xoá banner "${banner.title}"?'),
       actions: [
         TextButton(
           onPressed: Get.back,
-          child: const Text('Huỷ',
-              style: TextStyle(color: AppColors.textGrey)),
+          child: const Text('Huỷ', style: TextStyle(color: AppColors.textGrey)),
         ),
         ElevatedButton(
           onPressed: () {
@@ -196,13 +130,255 @@ class _BannerCard extends GetView<SettingsController> {
             backgroundColor: AppColors.errorRed,
             foregroundColor: AppColors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text('Xoá ngay'),
         ),
       ],
     ));
+  }
+
+  void _openEdit() {
+    Get.bottomSheet(
+      _EditBannerSheet(banner: banner),
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      isScrollControlled: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final active = banner.isActive;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: active ? AppColors.grey200 : AppColors.grey300,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Opacity(
+        opacity: active ? 1.0 : 0.6,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                if (banner.imageUrl != null)
+                  AppNetworkImage(
+                    url: banner.imageUrl!,
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                  )
+                else
+                  Container(
+                    width: double.infinity,
+                    height: 80,
+                    color: AppColors.grey200,
+                    child: const Icon(Icons.image_outlined,
+                        size: 36, color: AppColors.grey400),
+                  ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color:
+                          active ? AppColors.successGreen : AppColors.grey600,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      active ? 'Đang hiện' : 'Đã ẩn',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(banner.title, style: AppTextStyles.bodyLarge),
+                        if (banner.linkUrl != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            banner.linkUrl!,
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: AppColors.primaryOrange),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // Toggle
+                  Switch(
+                    value: banner.isActive,
+                    onChanged: (_) => controller.toggleBannerStatus(banner),
+                    activeThumbColor: AppColors.successGreen,
+                    activeTrackColor:
+                        AppColors.successGreen.withValues(alpha: 0.4),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  // Edit
+                  IconButton(
+                    onPressed: _openEdit,
+                    icon: const Icon(Icons.edit_outlined,
+                        color: AppColors.primaryOrange, size: 20),
+                    tooltip: 'Sửa',
+                  ),
+                  // Delete
+                  IconButton(
+                    onPressed: _confirmDelete,
+                    icon: const Icon(Icons.delete_outline,
+                        color: AppColors.errorRed, size: 20),
+                    tooltip: 'Xoá',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EditBannerSheet extends GetView<SettingsController> {
+  const _EditBannerSheet({required this.banner});
+
+  final BannerModel banner;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleCtrl = TextEditingController(text: banner.title);
+    final linkCtrl = TextEditingController(text: banner.linkUrl ?? '');
+    final pickedBytes = Rxn<Uint8List>();
+    final pickedName = ''.obs;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 20,
+        right: 20,
+        top: 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Sửa banner', style: AppTextStyles.h3),
+            const SizedBox(height: 20),
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Tiêu đề banner *',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: linkCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Đường dẫn (tuỳ chọn)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Obx(() => GestureDetector(
+                  onTap: () async {
+                    final img = await ImagePicker().pickImage(
+                        source: ImageSource.gallery, imageQuality: 85);
+                    if (img == null) return;
+                    pickedBytes.value = await img.readAsBytes();
+                    pickedName.value = img.name;
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: pickedBytes.value != null ? 160 : 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.grey300),
+                    ),
+                    child: pickedBytes.value != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(pickedBytes.value!,
+                                fit: BoxFit.cover),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.image_outlined,
+                                  size: 20, color: AppColors.grey400),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Đổi ảnh (tuỳ chọn)',
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(color: AppColors.textGrey),
+                              ),
+                            ],
+                          ),
+                  ),
+                )),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final title = titleCtrl.text.trim();
+                  if (title.isEmpty) {
+                    Get.snackbar('Thiếu thông tin', 'Vui lòng nhập tiêu đề.',
+                        snackPosition: SnackPosition.BOTTOM);
+                    return;
+                  }
+                  Get.back();
+                  await controller.updateBanner(
+                    id: banner.id,
+                    title: title,
+                    linkUrl: linkCtrl.text.trim().isNotEmpty
+                        ? linkCtrl.text.trim()
+                        : null,
+                    imageBytes: pickedBytes.value,
+                    filename:
+                        pickedName.value.isNotEmpty ? pickedName.value : null,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryOrange,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Lưu thay đổi',
+                    style: TextStyle(
+                        color: AppColors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -254,8 +430,8 @@ class _AddBannerSheet extends GetView<SettingsController> {
             // Chọn ảnh
             Obx(() => GestureDetector(
                   onTap: () async {
-                    final img = await ImagePicker()
-                        .pickImage(source: ImageSource.gallery, imageQuality: 85);
+                    final img = await ImagePicker().pickImage(
+                        source: ImageSource.gallery, imageQuality: 85);
                     if (img == null) return;
                     pickedBytes.value = await img.readAsBytes();
                     pickedName.value = img.name;
@@ -295,8 +471,8 @@ class _AddBannerSheet extends GetView<SettingsController> {
                   final bytes = pickedBytes.value;
                   final title = titleCtrl.text.trim();
                   if (title.isEmpty || bytes == null) {
-                    Get.snackbar('Thiếu thông tin',
-                        'Vui lòng nhập tiêu đề và chọn ảnh.',
+                    Get.snackbar(
+                        'Thiếu thông tin', 'Vui lòng nhập tiêu đề và chọn ảnh.',
                         snackPosition: SnackPosition.BOTTOM);
                     return;
                   }
@@ -367,7 +543,8 @@ class _StoreTab extends GetView<SettingsController> {
                       value: controller.isOpen.value,
                       onChanged: (v) => controller.isOpen.value = v,
                       activeThumbColor: AppColors.successGreen,
-                      activeTrackColor: AppColors.successGreen.withValues(alpha: 0.4),
+                      activeTrackColor:
+                          AppColors.successGreen.withValues(alpha: 0.4),
                     )),
               ],
             ),
@@ -461,8 +638,7 @@ class _FormField extends StatelessWidget {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle:
-            AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
+        labelStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

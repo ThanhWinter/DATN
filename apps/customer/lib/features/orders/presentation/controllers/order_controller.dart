@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:developer' as dev;
 
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
+import '../../../main/presentation/controllers/main_controller.dart';
 import '../../data/models/order_model.dart';
 import '../../data/repositories/order_repository.dart';
 
@@ -16,12 +18,24 @@ class OrderController extends GetxController {
   final isLoading = false.obs;
   final error = Rxn<Object>();
 
-  static const _activeStatuses = {'PENDING', 'PROCESSING', 'DELIVERING'};
+  static const _activeStatuses = {'PENDING', 'PAID', 'PREPARING', 'DELIVERING'};
+
+  Timer? _pollTimer;
 
   @override
   void onInit() {
     super.onInit();
     loadOrders();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => loadOrders(),
+    );
+  }
+
+  @override
+  void onClose() {
+    _pollTimer?.cancel();
+    super.onClose();
   }
 
   Future<void> loadOrders() async {
@@ -40,6 +54,10 @@ class OrderController extends GetxController {
 
       activeOrders.assignAll(active);
       historyOrders.assignAll(history);
+      if (Get.isRegistered<MainController>()) {
+        Get.find<MainController>()
+            .syncActiveOrderBadgeFromOrderTab(activeOrders.length);
+      }
     } catch (e) {
       dev.log('[ORDER] ❌ loadOrders error: $e');
       error.value = e;

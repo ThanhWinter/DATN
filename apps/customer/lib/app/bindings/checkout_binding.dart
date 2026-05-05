@@ -15,7 +15,7 @@ class CheckoutBinding extends Bindings {
     Get.lazyPut<CouponRepository>(
       () => CouponRepository(Get.find<IApiClient>()),
     );
-    Get.lazyPut<PaymentRepository>(() => PaymentRepository());
+    Get.lazyPut<PaymentRepository>(() => PaymentRepository(Get.find<IApiClient>()));
     Get.lazyPut<CheckoutController>(
       () => CheckoutController(
         Get.find<OrderRepository>(),

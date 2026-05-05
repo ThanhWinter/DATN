@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/edit_profile_controller.dart';
+import '../controllers/profile_controller.dart';
 
 class EditProfileView extends GetView<EditProfileController> {
   const EditProfileView({super.key});
@@ -35,7 +36,16 @@ class EditProfileView extends GetView<EditProfileController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _AvatarPicker(controller: controller),
+              const _AvatarDisplay(),
+              const SizedBox(height: 8),
+              Text(
+                'Ảnh đại diện chỉ đọc — không đổi ảnh trên app khách (upload media chỉ dành cho quản trị viên).',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textGrey,
+                  height: 1.35,
+                ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 20),
               const Text('Họ', style: AppTextStyles.labelLarge),
               const SizedBox(height: 8),
@@ -83,70 +93,43 @@ class EditProfileView extends GetView<EditProfileController> {
   }
 }
 
-class _AvatarPicker extends StatelessWidget {
-  const _AvatarPicker({required this.controller});
-
-  final EditProfileController controller;
+class _AvatarDisplay extends StatelessWidget {
+  const _AvatarDisplay();
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: GestureDetector(
-        onTap: controller.pickImage,
-        child: Obx(() {
-          final bytes = controller.avatarBytes.value;
-          final url = controller.currentAvatarUrl.value;
-          return Stack(
-            children: [
-              Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.grey200,
-                  border: Border.all(
-                      color: AppColors.primaryOrange, width: 2),
-                ),
-                child: ClipOval(
-                  child: bytes != null
-                      ? Image.memory(bytes, fit: BoxFit.cover)
-                      : url != null
-                          ? AppNetworkImage(
-                              url: url,
-                              fit: BoxFit.cover,
-                              memCacheWidth: 100,
-                              memCacheHeight: 100,
-                              errorWidget: const Icon(
-                                Icons.person,
-                                size: 40,
-                                color: AppColors.grey400,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.person,
-                              size: 40,
-                              color: AppColors.grey400,
-                            ),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primaryOrange,
+      child: Obx(() {
+        final profileController = Get.find<ProfileController>();
+        final url = profileController.user.value?.avatarUrl;
+        
+        return Container(
+          width: 90,
+          height: 90,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.grey200,
+            border: Border.all(color: AppColors.primaryOrange, width: 2),
+          ),
+          child: ClipOval(
+            child: url != null && url.isNotEmpty
+                ? AppNetworkImage(
+                    url: url,
+                    fit: BoxFit.cover,
+                    errorWidget: const Icon(
+                      Icons.person,
+                      size: 40,
+                      color: AppColors.grey400,
+                    ),
+                  )
+                : const Icon(
+                    Icons.person,
+                    size: 40,
+                    color: AppColors.grey400,
                   ),
-                  child: const Icon(Icons.camera_alt,
-                      size: 16, color: AppColors.white),
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 }

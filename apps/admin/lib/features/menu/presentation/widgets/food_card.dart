@@ -9,6 +9,7 @@ class FoodCard extends StatelessWidget {
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
+    required this.onManageOptions,
     super.key,
   });
 
@@ -16,6 +17,7 @@ class FoodCard extends StatelessWidget {
   final ValueChanged<bool> onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onManageOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +52,6 @@ class FoodCard extends StatelessWidget {
                             width: 84,
                             height: 84,
                             fit: BoxFit.cover,
-                            memCacheWidth: 84,
-                            memCacheHeight: 84,
                           )
                         : Container(
                             width: 84,
@@ -144,6 +144,17 @@ class FoodCard extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: IconButton(
+                          icon: const Icon(Icons.tune_rounded,
+                              size: 18, color: AppColors.primaryOrange),
+                          onPressed: onManageOptions,
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Tuỳ chọn',
+                        ),
+                      ),
                       SizedBox(
                         width: 36,
                         height: 36,

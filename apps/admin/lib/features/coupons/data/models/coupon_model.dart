@@ -1,3 +1,5 @@
+import 'package:core_utils/core_utils.dart';
+
 class CouponModel {
   CouponModel({
     required this.id,
@@ -37,7 +39,7 @@ class CouponModel {
         code: json['code'] as String,
         discountType: json['discountType'] as String,
         discountValue: (json['discountValue'] as num).toDouble(),
-        expiresAt: DateTime.parse(json['expiresAt'] as String),
+        expiresAt: parseApiDateTime(json['expiresAt']),
         minOrderValue: (json['minOrderValue'] as num?)?.toDouble(),
         maxDiscount: (json['maxDiscount'] as num?)?.toDouble(),
         usageLimit: (json['usageLimit'] as num?)?.toInt(),

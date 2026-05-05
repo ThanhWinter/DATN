@@ -55,10 +55,29 @@ class OrderRepository {
         .toList();
   }
 
+  /// Đếm đơn đang xử lý — một request, không khởi tạo [OrderController].
+  static const _badgeActiveStatuses = {
+    'PENDING',
+    'PAID',
+    'PREPARING',
+    'DELIVERING',
+  };
+
+  Future<int> countActiveOrdersForBadge() async {
+    final orders = await fetchMyOrders();
+    return orders
+        .where((o) => _badgeActiveStatuses.contains(o.status.toUpperCase()))
+        .length;
+  }
+
   Future<OrderModel> getOrderById(String id) async {
     final response = await _apiClient.get('/orders/$id');
     final result = response['result'] as Map<String, dynamic>;
     return OrderModel.fromJson(result);
+  }
+
+  Future<void> cancelOrder(String id) async {
+    await _apiClient.post('/orders/$id/cancel');
   }
 
   Future<OrderModel> createOrder(OrderCreateRequest request) async {
