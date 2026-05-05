@@ -127,7 +127,7 @@ class _NotificationBell extends GetView<HomeController> {
                   ),
                   child: Text(
                     count > 99 ? '99+' : '$count',
-                    style: const TextStyle(
+                    style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.white,
                       fontSize: 9,
                       fontWeight: FontWeight.w700,

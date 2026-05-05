@@ -5,7 +5,13 @@
       "Bash(find c:\\\\\\\\Documents\\\\\\\\FOOD\\\\\\\\food_hit\\\\\\\\apps\\\\\\\\admin\\\\\\\\lib\\\\\\\\features\\\\\\\\coupons -type f -name \"*.dart\")",
       "Bash(xargs grep *)",
       "PowerShell(Get-ChildItem \"C:\\\\Documents\\\\FOOD\" -Directory -Recurse | Where-Object {$_.Name -match \"backend|server|api\"} | Select-Object -First 20)",
-      "Bash(Get-ChildItem -Path \"c:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\customer\" -Recurse -Name)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\customer\" -Recurse -Name)",
+      "Bash(./gradlew --stop)",
+      "Bash(pkill -f gradle)",
+      "PowerShell($buildDir = \"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\"; if \\(Test-Path $buildDir\\) { Remove-Item -Recurse -Force $buildDir -ErrorAction SilentlyContinue; Write-Host \"Deleted: $buildDir\" } else { Write-Host \"Not found: $buildDir\" })",
+      "Bash(flutter clean *)",
+      "Bash(cmd /c \"rd /s /q \\\\\"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\\\\app\\\\intermediates\\\\incremental\\\\debug\\\\mergeDebugResources\\\\\"\")",
+      "Bash(cmd /c \"rd /s /q \\\\\"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\\\\app\\\\\"\")"
     ]
   }
 }

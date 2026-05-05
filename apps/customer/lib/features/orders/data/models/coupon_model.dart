@@ -13,7 +13,7 @@ class CouponModel {
   final int usedCount;
 
   static const typePercent = 'PERCENTAGE';
-  static const typeFixed = 'FIXED_AMOUNT';
+  static const typeFixed = 'FIXED';
 
   const CouponModel({
     required this.id,
@@ -45,7 +45,7 @@ class CouponModel {
   }
 
   double calculateDiscount(double subtotal) {
-    if (!isActive || DateTime.now().isAfter(expiresAt)) return 0;
+    if (!isActive || DateTime.now().toUtc().isAfter(expiresAt.toUtc())) return 0;
     if (minOrderValue != null && subtotal < minOrderValue!) return 0;
 
     final double raw = discountType == typePercent

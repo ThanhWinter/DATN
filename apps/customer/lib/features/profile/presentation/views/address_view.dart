@@ -181,9 +181,9 @@ class _AddressTile extends StatelessWidget {
                             color: AppColors.primaryOrange,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Mặc định',
-                            style: TextStyle(
+                            style: AppTextStyles.bodySmall.copyWith(
                               color: AppColors.white,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,

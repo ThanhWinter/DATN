@@ -26,9 +26,9 @@ class CouponModel {
   bool isActive;
 
   static const typePercent = 'PERCENTAGE';
-  static const typeFixed = 'FIXED_AMOUNT';
+  static const typeFixed = 'FIXED';
 
-  bool get isExpired => expiresAt.isBefore(DateTime.now());
+  bool get isExpired => expiresAt.toUtc().isBefore(DateTime.now().toUtc());
 
   String get displayValue => discountType == typePercent
       ? '${discountValue.toInt()}%'

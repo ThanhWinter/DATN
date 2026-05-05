@@ -19,13 +19,14 @@ class MenuView extends GetView<MenuController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey100,
+      backgroundColor: AppColors.mintBg,
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
         onSuccess: () => RefreshIndicator(
           onRefresh: controller.loadData,
-          color: AppColors.primaryOrange,
+          color: AppColors.emerald,
+          backgroundColor: AppColors.white,
           child: NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification n) {
               if (n.metrics.pixels >= n.metrics.maxScrollExtent - 360) {
@@ -40,19 +41,56 @@ class MenuView extends GetView<MenuController> {
                 SliverAppBar(
                   floating: true,
                   pinned: true,
-                  backgroundColor: AppColors.white,
+                  backgroundColor: AppColors.mintBg,
+                  surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   expandedHeight: 120,
-                  title:
-                      const Text('Quản lý Thực đơn', style: AppTextStyles.h3),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Quản lý ',
+                        style: AppTextStyles.h3.copyWith(
+                          color: AppColors.textDark,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      ShaderMask(
+                        shaderCallback: (b) => const LinearGradient(
+                          colors: [
+                            AppColors.emeraldDark,
+                            AppColors.emeraldLight,
+                          ],
+                        ).createShader(b),
+                        child: Text(
+                          'Thực đơn',
+                          style: AppTextStyles.h3.copyWith(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline,
-                          color: AppColors.primaryOrange),
-                      onPressed: _showAddCategory,
-                      tooltip: 'Thêm danh mục',
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: 0.8),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.emerald.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.add_rounded,
+                            color: AppColors.emerald, size: 20),
+                        onPressed: _showAddCategory,
+                        tooltip: 'Thêm danh mục',
+                        padding: const EdgeInsets.all(6),
+                        constraints: const BoxConstraints(),
+                      ),
                     ),
-                    const SizedBox(width: 8),
                   ],
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
@@ -105,13 +143,51 @@ class MenuView extends GetView<MenuController> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddFood,
-        backgroundColor: AppColors.primaryOrange,
-        icon: const Icon(Icons.add, color: AppColors.white),
-        label: const Text('Thêm món mới',
-            style: TextStyle(
-                color: AppColors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: _buildFab(),
+    );
+  }
+
+  Widget _buildFab() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.emeraldDark, AppColors.emerald, AppColors.emeraldLight],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.emerald.withValues(alpha: 0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _showAddFood,
+          borderRadius: BorderRadius.circular(28),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add_rounded, color: AppColors.white, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Thêm món mới',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -159,28 +235,64 @@ class MenuView extends GetView<MenuController> {
   void _confirmDeleteFood(BuildContext context, FoodModel food) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Xoá món ăn', style: AppTextStyles.h3),
-        content: Text('Bạn chắc chắn muốn xoá "${food.name}"?'),
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.errorRed.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.delete_outline_rounded,
+                  color: AppColors.errorRed, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text('Xoá món ăn',
+                style: AppTextStyles.h3.copyWith(color: AppColors.textDark)),
+          ],
+        ),
+        content: RichText(
+          text: TextSpan(
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textGrey,
+              height: 1.5,
+            ),
+            children: [
+              const TextSpan(text: 'Bạn chắc chắn muốn xoá '),
+              TextSpan(
+                text: '"${food.name}"',
+                style: const TextStyle(
+                  color: AppColors.textDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const TextSpan(text: '?'),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: Get.back,
-            child: const Text('Huỷ',
-                style: TextStyle(color: AppColors.textGrey)),
+            child: Text('Huỷ',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textGrey, fontWeight: FontWeight.w600)),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              controller.deleteFood(food.id);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorRed,
-              foregroundColor: AppColors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.errorRed,
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text('Xoá ngay'),
+            child: TextButton(
+              onPressed: () {
+                Get.back();
+                controller.deleteFood(food.id);
+              },
+              child: Text('Xoá ngay',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.white, fontWeight: FontWeight.w700)),
+            ),
           ),
         ],
       ),

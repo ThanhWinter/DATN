@@ -19,7 +19,7 @@ class _HomeAdBanner extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          colors: [AppColors.primaryOrangeDark, AppColors.primaryOrange],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -28,7 +28,7 @@ class _HomeAdBanner extends StatelessWidget {
       child: Row(
         children: [
           const Icon(Icons.delivery_dining_rounded,
-              color: Colors.white, size: 36),
+              color: AppColors.white, size: 36),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -37,17 +37,17 @@ class _HomeAdBanner extends StatelessWidget {
                 const Text(
                   'Giao hàng tận nơi',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
+                    height: 1.5,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'Đặt hàng ngay — nhanh chóng & tiện lợi',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontSize: 12,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.white.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -57,13 +57,13 @@ class _HomeAdBanner extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Text(
               'Đặt ngay',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
               ),

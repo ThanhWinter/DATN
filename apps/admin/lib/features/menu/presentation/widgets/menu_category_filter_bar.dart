@@ -6,18 +6,17 @@ import '../../data/models/category_model.dart';
 import '../controllers/menu_controller.dart';
 import 'edit_category_sheet.dart';
 
-/// Chip lọc danh mục + avatar (ảnh decode đủ DPR qua [AppNetworkImage]).
 class MenuCategoryFilterBar extends GetView<MenuController> {
   const MenuCategoryFilterBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68,
-      color: AppColors.white,
+      height: 64,
+      color: AppColors.mintBg,
       child: Obx(() => ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: controller.categories.length + 1,
             itemBuilder: (context, index) {
               final isAll = index == 0;
@@ -33,25 +32,28 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                     ? ClipOval(
                         child: AppNetworkImage(
                           url: url,
-                          width: 24,
-                          height: 24,
+                          width: 22,
+                          height: 22,
                           fit: BoxFit.cover,
                         ),
                       )
                     : CircleAvatar(
-                        radius: 12,
+                        radius: 11,
                         backgroundColor: isSelected
-                            ? AppColors.white.withValues(alpha: 0.3)
-                            : AppColors.grey300,
-                        child: Icon(Icons.fastfood,
-                            size: 13,
-                            color: isSelected
-                                ? AppColors.white
-                                : AppColors.grey600),
+                            ? AppColors.white.withValues(alpha: 0.35)
+                            : AppColors.emerald.withValues(alpha: 0.12),
+                        child: Icon(
+                          Icons.fastfood_rounded,
+                          size: 12,
+                          color: isSelected
+                              ? AppColors.white
+                              : AppColors.emerald,
+                        ),
                       );
               }
+
               final chip = Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 3),
                 child: InputChip(
                   avatar: avatar,
                   label: Text(isAll ? 'Tất cả' : cat!.name),
@@ -61,30 +63,36 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                   onDeleted: !isAll
                       ? () => _confirmDelete(context, cat!.id, cat.name)
                       : null,
-                  deleteIcon: Icon(Icons.cancel,
-                      size: 16,
-                      color: isSelected
-                          ? AppColors.white
-                          : AppColors.grey400),
-                  selectedColor: AppColors.primaryOrange,
+                  deleteIcon: Icon(
+                    Icons.cancel_rounded,
+                    size: 15,
+                    color: isSelected
+                        ? AppColors.white.withValues(alpha: 0.8)
+                        : AppColors.grey400,
+                  ),
+                  selectedColor: AppColors.emerald,
                   checkmarkColor: AppColors.white,
                   labelStyle: AppTextStyles.bodySmall.copyWith(
                     color: isSelected ? AppColors.white : AppColors.textGrey,
                     fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                        isSelected ? FontWeight.w700 : FontWeight.normal,
                   ),
-                  backgroundColor: AppColors.grey100,
+                  backgroundColor: AppColors.white.withValues(alpha: 0.75),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
                       color: isSelected
-                          ? AppColors.primaryOrange
-                          : Colors.transparent,
+                          ? AppColors.emerald
+                          : AppColors.emerald.withValues(alpha: 0.15),
+                      width: isSelected ? 1.5 : 1,
                     ),
                   ),
                   showCheckmark: false,
+                  elevation: 0,
+                  pressElevation: 0,
                 ),
               );
+
               if (isAll) return chip;
               return GestureDetector(
                 onLongPress: () => _openEditCategory(cat!),
@@ -108,29 +116,65 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
   void _confirmDelete(BuildContext context, int id, String name) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Xoá danh mục', style: AppTextStyles.h3),
-        content: Text(
-            'Bạn chắc chắn muốn xoá danh mục "$name"?\n(Lưu ý: Các món ăn trong danh mục này sẽ không bị xoá)'),
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.errorRed.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.category_outlined,
+                  color: AppColors.errorRed, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Text('Xoá danh mục',
+                style: AppTextStyles.h3.copyWith(color: AppColors.textDark)),
+          ],
+        ),
+        content: RichText(
+          text: TextSpan(
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textGrey,
+              height: 1.5,
+            ),
+            children: [
+              const TextSpan(text: 'Xoá danh mục '),
+              TextSpan(
+                text: '"$name"',
+                style: const TextStyle(
+                  color: AppColors.textDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const TextSpan(
+                  text: '?\n\nCác món ăn trong danh mục này sẽ không bị xoá.'),
+            ],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: Get.back,
-            child: const Text('Huỷ',
-                style: TextStyle(color: AppColors.textGrey)),
+            child: Text('Huỷ',
+                style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textGrey, fontWeight: FontWeight.w600)),
           ),
-          ElevatedButton(
-            onPressed: () {
-              controller.deleteCategory(id);
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.errorRed,
-              foregroundColor: AppColors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.errorRed,
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text('Xoá ngay'),
+            child: TextButton(
+              onPressed: () {
+                controller.deleteCategory(id);
+                Get.back();
+              },
+              child: Text('Xoá ngay',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.white, fontWeight: FontWeight.w700)),
+            ),
           ),
         ],
       ),

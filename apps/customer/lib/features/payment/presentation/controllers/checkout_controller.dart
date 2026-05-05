@@ -86,7 +86,7 @@ class CheckoutController extends GetxController {
         couponError.value = 'Mã giảm giá đã hết hiệu lực.';
         return;
       }
-      if (DateTime.now().isAfter(result.expiresAt)) {
+      if (DateTime.now().toUtc().isAfter(result.expiresAt.toUtc())) {
         couponError.value = 'Mã giảm giá đã hết hạn.';
         return;
       }

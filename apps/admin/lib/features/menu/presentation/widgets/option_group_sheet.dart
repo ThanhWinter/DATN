@@ -155,8 +155,7 @@ class _OptionGroupSheetState extends State<OptionGroupSheet> {
                   );
                 }
                 return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   itemCount: _ctrl.optionGroups.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
@@ -328,7 +327,7 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: AppTextStyles.bodySmall.copyWith(
             fontSize: 10, color: color, fontWeight: FontWeight.w600),
       ),
     );

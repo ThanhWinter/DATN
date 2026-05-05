@@ -128,7 +128,7 @@ class _OtpViewState extends State<OtpView> {
                               const TextSpan(text: "Mã xác thực đã được gửi đến email "),
                               TextSpan(
                                 text: controller.email.value,
-                                style: const TextStyle(
+                                style: AppTextStyles.bodyMedium.copyWith(
                                   color: AppColors.accentGold,
                                   fontWeight: FontWeight.bold,
                                 ),

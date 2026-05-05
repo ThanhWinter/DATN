@@ -327,9 +327,9 @@ class _OrderDetailContent extends StatelessWidget {
               Get.back();
               controller.cancelOrder();
             },
-            child: const Text(
+            child: Text(
               'Huỷ đơn',
-              style: TextStyle(color: AppColors.errorRed),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.errorRed),
             ),
           ),
         ],

@@ -294,20 +294,34 @@ class MenuController extends GetxController {
   }
 
   Future<void> toggleAvailability(FoodModel food) async {
-    final newStatus = !food.isAvailable;
-    dev.log('[MENU/VM] Toggling food id=${food.id} to $newStatus');
+    final prevStatus = food.isAvailable;
+    final newStatus = !prevStatus;
+    dev.log('[MENU/VM] Toggling food id=${food.id}: $prevStatus → $newStatus');
+
+    // Optimistic update — phản hồi tức thì cho Switch
+    food.isAvailable = newStatus;
+    final mi = _foodsMaster.indexWhere((f) => f.id == food.id);
+    if (mi != -1) _foodsMaster[mi].isAvailable = newStatus;
+    _syncStatsFromMaster();
+    foods.refresh();
+
     try {
       await _repository.toggleFoodStatus(food.id, newStatus);
-      food.isAvailable = newStatus;
-      final mi = _foodsMaster.indexWhere((f) => f.id == food.id);
-      if (mi != -1) _foodsMaster[mi].isAvailable = newStatus;
+      dev.log('[MENU/VM] ✅ Food ${food.id} isAvailable=$newStatus');
+    } catch (e) {
+      // Revert on error — gạt Switch về vị trí cũ, tránh crash demo
+      food.isAvailable = prevStatus;
+      if (mi != -1) _foodsMaster[mi].isAvailable = prevStatus;
       _syncStatsFromMaster();
       foods.refresh();
-      dev.log('[MENU/VM] ✅ Food ${food.id} isAvailable=${food.isAvailable}');
-    } catch (e) {
-      dev.log('[MENU/VM] ❌ toggleAvailability error: $e');
-      Get.snackbar('Lỗi', 'Không thể cập nhật trạng thái món: $e',
-          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+      dev.log('[MENU/VM] ❌ toggleAvailability error: $e — reverted to $prevStatus');
+      Get.snackbar(
+        'Không thể cập nhật',
+        'Đã hoàn tác trạng thái. Vui lòng thử lại sau.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.white,
+      );
     }
   }
 
@@ -320,7 +334,7 @@ class MenuController extends GetxController {
       _syncStatsFromMaster();
       _applyFilters(resetWindow: false);
       Get.snackbar('Đã xoá', 'Món ăn đã được xoá',
-          backgroundColor: AppColors.successGreen, colorText: AppColors.white);
+          backgroundColor: AppColors.emerald, colorText: AppColors.white);
       dev.log('[MENU/VM] ✅ Food $id deleted');
     } catch (e) {
       dev.log('[MENU/VM] ❌ deleteFood error: $e');
@@ -373,7 +387,7 @@ class MenuController extends GetxController {
       );
       optionGroups.add(created);
       Get.snackbar('Thành công', 'Đã thêm nhóm "${created.name}"',
-          backgroundColor: AppColors.successGreen, colorText: AppColors.white);
+          backgroundColor: AppColors.emerald, colorText: AppColors.white);
       dev.log('[MENU/VM] ✅ Option group created: id=${created.id}');
     } catch (e) {
       dev.log('[MENU/VM] ❌ createOptionGroup error: $e');
@@ -406,7 +420,7 @@ class MenuController extends GetxController {
       final idx = optionGroups.indexWhere((g) => g.id == groupId);
       if (idx != -1) optionGroups[idx] = updated;
       Get.snackbar('Đã cập nhật', 'Nhóm "${updated.name}" đã được cập nhật',
-          backgroundColor: AppColors.successGreen, colorText: AppColors.white);
+          backgroundColor: AppColors.emerald, colorText: AppColors.white);
       dev.log('[MENU/VM] ✅ Option group $groupId updated');
     } catch (e) {
       dev.log('[MENU/VM] ❌ updateOptionGroup error: $e');
@@ -424,7 +438,7 @@ class MenuController extends GetxController {
       await _repository.deleteOptionGroup(groupId);
       optionGroups.removeWhere((g) => g.id == groupId);
       Get.snackbar('Đã xoá', 'Nhóm tuỳ chọn đã được xoá',
-          backgroundColor: AppColors.successGreen, colorText: AppColors.white);
+          backgroundColor: AppColors.emerald, colorText: AppColors.white);
       dev.log('[MENU/VM] ✅ Option group $groupId deleted');
     } catch (e) {
       dev.log('[MENU/VM] ❌ deleteOptionGroup error: $e');
@@ -461,7 +475,7 @@ class MenuController extends GetxController {
       _syncStatsFromMaster();
       _applyFilters(resetWindow: false);
       Get.snackbar('Đã cập nhật', 'Thông tin món ăn đã được cập nhật',
-          backgroundColor: AppColors.successGreen, colorText: AppColors.white);
+          backgroundColor: AppColors.emerald, colorText: AppColors.white);
       dev.log('[MENU/VM] ✅ Food $id updated');
     } catch (e) {
       dev.log('[MENU/VM] ❌ updateFood error: $e');

@@ -255,7 +255,7 @@ class _CouponCard extends StatelessWidget {
                     children: [
                       Text(
                         _discountLabel,
-                        style: const TextStyle(
+                        style: AppTextStyles.h1.copyWith(
                           color: AppColors.white,
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -268,7 +268,7 @@ class _CouponCard extends StatelessWidget {
                         coupon.discountType == 'PERCENTAGE'
                             ? 'GIẢM GIÁ'
                             : 'TIỀN MẶT',
-                        style: const TextStyle(
+                        style: AppTextStyles.bodySmall.copyWith(
                           color: AppColors.white,
                           fontSize: 9,
                           fontWeight: FontWeight.w700,
@@ -336,7 +336,7 @@ class _CouponCard extends StatelessWidget {
                               ),
                               child: Text(
                                 coupon.code,
-                                style: TextStyle(
+                                style: AppTextStyles.bodySmall.copyWith(
                                   color: color,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w800,
@@ -444,9 +444,9 @@ class _UseCouponBtn extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const Text(
+        child: Text(
           'Dùng ngay',
-          style: TextStyle(
+          style: AppTextStyles.bodySmall.copyWith(
             color: AppColors.white,
             fontSize: 11,
             fontWeight: FontWeight.w700,
