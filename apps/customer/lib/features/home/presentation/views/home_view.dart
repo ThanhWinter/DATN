@@ -9,71 +9,225 @@ import '../widgets/home_location_header.dart';
 import '../widgets/home_popular_section.dart';
 import '../widgets/home_promo_section.dart';
 
-class _HomeAdBanner extends StatelessWidget {
-  const _HomeAdBanner();
+// ── Store Closed Banner ───────────────────────────────────────────────────────
+
+class _StoreClosedBanner extends GetView<HomeController> {
+  const _StoreClosedBanner();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryOrangeDark, AppColors.primaryOrange],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.delivery_dining_rounded,
-              color: AppColors.white, size: 36),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Giao hàng tận nơi',
-                  style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Đặt hàng ngay — nhanh chóng & tiện lợi',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-              ],
-            ),
+    return Obx(() {
+      if (controller.isStoreOpen) return const SizedBox.shrink();
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        color: const Color(0xFFFF3B30),
+        child: const Text(
+          'Cửa hàng đang đóng cửa — đơn sẽ được xử lý khi mở cửa lại',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'Đặt ngay',
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+        ),
+      );
+    });
+  }
+}
+
+// ── Skeleton Animation ────────────────────────────────────────────────────────
+
+class _SkeletonPulse extends StatefulWidget {
+  final Widget child;
+  const _SkeletonPulse({required this.child});
+
+  @override
+  State<_SkeletonPulse> createState() => _SkeletonPulseState();
+}
+
+class _SkeletonPulseState extends State<_SkeletonPulse>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      duration: const Duration(milliseconds: 900),
+      vsync: this,
+    )..repeat(reverse: true);
+    _opacity = Tween<double>(begin: 0.35, end: 0.80)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // FadeTransition thay đổi opacity ở tầng GPU, không rebuild widget con
+    return FadeTransition(opacity: _opacity, child: widget.child);
+  }
+}
+
+// ── Home Skeleton ─────────────────────────────────────────────────────────────
+
+class _HomeSkeleton extends StatelessWidget {
+  const _HomeSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Header thật — không pulsate
+        const HomeLocationHeader(),
+        // Chỉ phần nội dung skeleton mới fade
+        Expanded(child: _SkeletonPulse(child: _buildContent())),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return ListView(
+      padding: EdgeInsets.zero,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        // Banner skeleton
+        _box(margin: const EdgeInsets.fromLTRB(16, 12, 16, 0), height: 160, radius: 12),
+        const SizedBox(height: 12),
+
+        // Category skeleton
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _box(height: 14, width: 80, radius: 6),
+              const SizedBox(height: 12),
+              Row(
+                children: List.generate(5, (i) => Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Column(children: [
+                    _circle(size: 50),
+                    const SizedBox(height: 6),
+                    _box(height: 10, width: 44, radius: 4),
+                  ]),
+                )),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Food grid skeleton — Column+Row thay vì GridView(shrinkWrap: true)
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _box(height: 15, width: 90, radius: 6),
+              const SizedBox(height: 14),
+              ...List.generate(3, (row) => Padding(
+                padding: EdgeInsets.only(top: row == 0 ? 0 : 10),
+                child: Row(children: [
+                  Expanded(child: _foodCardSkeleton()),
+                  const SizedBox(width: 10),
+                  Expanded(child: _foodCardSkeleton()),
+                ]),
+              )),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static Widget _box({
+    double? width,
+    required double height,
+    double radius = 8,
+    EdgeInsets margin = EdgeInsets.zero,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      margin: margin,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0E0E0), // Solid — FadeTransition xử lý opacity
+        borderRadius: BorderRadius.circular(radius),
+      ),
+    );
+  }
+
+  static Widget _circle({required double size}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFFE0E0E0),
+      ),
+    );
+  }
+
+  static Widget _foodCardSkeleton() {
+    // AspectRatio đảm bảo Expanded bên trong có bounded height
+    return AspectRatio(
+      aspectRatio: 0.78,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFF0F0F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 5,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE0E0E0),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _box(height: 12, radius: 5),
+                    _box(height: 11, width: 80, radius: 5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _box(height: 13, width: 60, radius: 5),
+                        _circle(size: 28),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
+// ── HomeView ──────────────────────────────────────────────────────────────────
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -81,67 +235,38 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey100,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRetry: controller.loadData,
+        loadingWidget: const _HomeSkeleton(),
         onSuccess: () => Column(
           children: [
-            // ── Header vị trí + thanh tìm kiếm (dính trên cùng) ───────────
+            // ── Header ────────────────────────────────────────────────────
             const HomeLocationHeader(),
 
-            // ── Banner cửa hàng đóng cửa ──────────────────────────────────
-            Obx(() => controller.isStoreOpen
-                ? const SizedBox.shrink()
-                : Container(
-                    width: double.infinity,
-                    color: AppColors.errorRed,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Text(
-                      '🔒 Cửa hàng đang đóng cửa — Đơn hàng sẽ được xử lý khi mở cửa',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.white, fontSize: 13),
-                    ),
-                  )),
+            // ── Store closed banner ───────────────────────────────────────
+            const _StoreClosedBanner(),
 
-            // ── Nội dung cuộn ─────────────────────────────────────────────
+            // ── Scrollable content ────────────────────────────────────────
             Expanded(
               child: RefreshIndicator(
                 onRefresh: controller.loadData,
                 color: AppColors.primaryOrange,
-                child: const SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 8),
-
-                      // ── Danh mục thực đơn có hình tròn ────────────────────
-                      HomeCategorySection(),
-
-                      SizedBox(height: 12),
-
-                      // ── Banner ưu đãi ──────────────────────────────────────
-                      HomeCouponBanner(),
-
-                      SizedBox(height: 12),
-
-                      // ── Banner quảng cáo từ server ─────────────────────────
-                      HomePromoSection(),
-
-                      SizedBox(height: 8),
-
-                      // ── Banner quảng cáo cố định ───────────────────────────
-                      _HomeAdBanner(),
-
-                      SizedBox(height: 8),
-
-                      // ── Món ăn phổ biến nhất ───────────────────────────────
-                      HomePopularSection(),
-
-                      SizedBox(height: 24),
-                    ],
-                  ),
+                backgroundColor: AppColors.white,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: const [
+                    HomePromoSection(),
+                    SizedBox(height: 8),
+                    HomeCategorySection(),
+                    HomeCouponBanner(),
+                    SizedBox(height: 8),
+                    HomePopularSection(),
+                    SizedBox(height: 32),
+                  ],
                 ),
               ),
             ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as dev;
 
 import 'package:get/get.dart';
@@ -21,12 +22,13 @@ class FoodDetailController extends GetxController {
   final error = Rxn<Object>();
   final food = Rxn<FoodItemModel>();
   final quantity = 1.obs;
-  final selectedOptions = <int, List<int>>{}.obs;
+  final selectedOptions = <int, List<int>>{};
   final totalPrice = 0.0.obs;
   // Explicit RxBool — không dùng computed getter trong Obx (Rule #2)
   final canAddToCart = false.obs;
   final isFavorite = false.obs; // Rule #2 — explicit RxBool
   final rating = Rx<FoodRatingModel>(FoodRatingModel.empty);
+  final relatedFoods = <FoodItemModel>[].obs;
 
   @override
   void onInit() {
@@ -65,8 +67,8 @@ class FoodDetailController extends GetxController {
     }
 
     selectedOptions[groupId] = current;
-    selectedOptions.refresh();
     _recalc();
+    update(['group_$groupId']);
   }
 
   bool isOptionSelected(int groupId, int itemId) {
@@ -129,30 +131,48 @@ class FoodDetailController extends GetxController {
     try {
       isLoading.value = true;
       error.value = null;
+      rating.value = FoodRatingModel.empty;
+      isFavorite.value = false;
+      relatedFoods.clear();
       food.value = await _repository.getFoodById(id);
       dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
       _recalc();
-      await Future.wait([
-        _interactionRepository
-            .checkFavorite(id)
-            .then((v) => isFavorite.value = v)
-            .catchError((e) {
-          dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
-          return false;
-        }),
-        _interactionRepository
-            .getFoodRating(id)
-            .then((v) => rating.value = v)
-            .catchError((e) {
-          dev.log('[FOOD_DETAIL] ⚠️ getRating error: $e');
-          return FoodRatingModel.empty;
-        }),
-      ]);
+      isLoading.value = false;
+      _loadSecondaryData(id);
     } catch (e) {
       dev.log('[FOOD_DETAIL] ❌ Failed to load food id=$id: $e');
       error.value = e;
-    } finally {
       isLoading.value = false;
+    }
+  }
+
+  void _loadSecondaryData(int id) {
+    unawaited(_loadSecondaryDataTask(id));
+  }
+
+  Future<void> _loadSecondaryDataTask(int id) async {
+    await Future.wait([
+      _safeLoadFavorite(id),
+      _safeLoadRating(id),
+      _loadRelatedFoods(),
+    ]);
+  }
+
+  Future<void> _safeLoadFavorite(int id) async {
+    try {
+      isFavorite.value = await _interactionRepository.checkFavorite(id);
+    } catch (e) {
+      dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
+      isFavorite.value = false;
+    }
+  }
+
+  Future<void> _safeLoadRating(int id) async {
+    try {
+      rating.value = await _interactionRepository.getFoodRating(id);
+    } catch (e) {
+      dev.log('[FOOD_DETAIL] ⚠️ getRating error: $e');
+      rating.value = FoodRatingModel.empty;
     }
   }
 
@@ -175,5 +195,20 @@ class FoodDetailController extends GetxController {
 
     totalPrice.value = (f.price + extra) * quantity.value;
     canAddToCart.value = allGroupsSatisfied;
+  }
+
+  Future<void> _loadRelatedFoods() async {
+    final current = food.value;
+    if (current == null || current.categoryId <= 0) {
+      relatedFoods.clear();
+      return;
+    }
+    try {
+      final items = await _repository.getFoodsByCategory(current.categoryId);
+      relatedFoods.assignAll(items.where((e) => e.id != current.id).take(8));
+    } catch (e) {
+      dev.log('[FOOD_DETAIL] ⚠️ getFoodsByCategory error: $e');
+      relatedFoods.clear();
+    }
   }
 }

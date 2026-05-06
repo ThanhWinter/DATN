@@ -12,4 +12,5 @@ abstract class AppRoutes {
   static const dashboard = '/dashboard';
   static const adminNotifications = '/admin-notifications';
   static const orderDetail = '/order-detail';
+  static const banners = '/banners';
 }

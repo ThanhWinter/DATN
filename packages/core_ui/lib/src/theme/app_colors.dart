@@ -4,9 +4,11 @@ class AppColors {
   AppColors._();
 
   // ── Brand ─────────────────────────────────────────────────────────────────
-  static const Color primaryOrange = Color(0xFFFF7A00);
-  static const Color primaryOrangeDark = Color(0xFFE56800);
-  static const Color primaryOrangeLight = Color(0xFFFF9B40);
+  // Keep legacy variable names for compatibility across app code,
+  // but map them to the new green brand palette.
+  static const Color primaryOrange = Color(0xFF10B981);
+  static const Color primaryOrangeDark = Color(0xFF059669);
+  static const Color primaryOrangeLight = Color(0xFF34D399);
   static const Color accentGold = Color(0xFFFFD700);
 
   // ── Emerald / Teal (Admin theme) ──────────────────────────────────────────

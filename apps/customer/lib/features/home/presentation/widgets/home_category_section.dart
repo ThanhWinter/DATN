@@ -11,48 +11,62 @@ class HomeCategorySection extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Obx(() {
-        final selectedId = controller.selectedCategoryId.value;
-        return SizedBox(
-          height: 96,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            scrollDirection: Axis.horizontal,
-            // +1 cho chip "Tất cả"
-            itemCount: controller.categories.length + 1,
-            separatorBuilder: (_, __) => const SizedBox(width: 4),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _CategoryTile(
-                  name: 'Tất cả',
-                  imageUrl: null,
-                  isSelected: selectedId == null,
-                  onTap: () => controller.selectCategory(null),
-                );
-              }
-              final cat = controller.categories[index - 1];
-              return _CategoryTile(
-                name: cat.name,
-                imageUrl: cat.imageUrl,
-                isSelected: selectedId == cat.id,
-                onTap: () => controller.selectCategory(cat.id),
-              );
-            },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 14, 20, 10),
+            child: Text(
+              'Danh mục',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
           ),
-        );
-      }),
+          SizedBox(
+            height: 78,
+            child: Obx(() {
+              final cats = controller.categories;
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: cats.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return _CategoryChip(
+                      name: 'Tất cả',
+                      imageUrl: null,
+                      isSelected: controller.selectedCategoryId.value == null,
+                      onTap: () => controller.selectCategory(null),
+                    );
+                  }
+                  final cat = cats[index - 1];
+                  return _CategoryChip(
+                    name: cat.name,
+                    imageUrl: cat.imageUrl,
+                    isSelected: controller.selectedCategoryId.value == cat.id,
+                    onTap: () => controller.selectCategory(cat.id),
+                  );
+                },
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
     );
   }
 }
 
-class _CategoryTile extends StatelessWidget {
+class _CategoryChip extends StatelessWidget {
   final String name;
   final String? imageUrl;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CategoryTile({
+  const _CategoryChip({
     required this.name,
     required this.isSelected,
     required this.onTap,
@@ -64,56 +78,73 @@ class _CategoryTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 72,
+        width: 68,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 60,
-              height: 60,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 50,
+              height: 50,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: isSelected
-                    ? Border.all(color: AppColors.primaryOrange, width: 2.5)
-                    : null,
-                color: AppColors.grey100,
+                color: isSelected
+                    ? AppColors.primaryOrange.withValues(alpha: 0.12)
+                    : const Color(0xFFF5F5F5),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primaryOrange
+                      : Colors.transparent,
+                  width: 2,
+                ),
               ),
-              child: ClipOval(
-                child: imageUrl != null
-                    ? AppNetworkImage(
-                        url: imageUrl!,
-                        fit: BoxFit.cover,
-                        width: 60,
-                        height: 60,
-                        errorWidget: const Icon(
-                          Icons.fastfood_rounded,
-                          color: AppColors.primaryOrange,
-                          size: 28,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.fastfood_rounded,
-                        color: AppColors.primaryOrange,
-                        size: 28,
-                      ),
-              ),
+              child: ClipOval(child: _buildIcon()),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             Text(
               name,
               textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodySmall.copyWith(
+              style: TextStyle(
                 fontSize: 10,
-                color:
-                    isSelected ? AppColors.primaryOrange : AppColors.textDark,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w400,
-                height: 1.3,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primaryOrange : AppColors.textGrey,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIcon() {
+    if (imageUrl != null) {
+      return AppNetworkImage(
+        url: imageUrl!,
+        fit: BoxFit.cover,
+        width: 50,
+        height: 50,
+        errorWidget: _placeholder(),
+      );
+    }
+    return _placeholder();
+  }
+
+  Widget _placeholder() {
+    return Container(
+      color: isSelected
+          ? AppColors.primaryOrange.withValues(alpha: 0.08)
+          : const Color(0xFFF5F5F5),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: isSelected ? AppColors.primaryOrange : AppColors.grey400,
+          ),
         ),
       ),
     );

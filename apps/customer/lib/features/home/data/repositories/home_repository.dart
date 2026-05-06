@@ -1,8 +1,12 @@
 import 'dart:developer' as dev;
+import 'dart:isolate';
 
 import 'package:core_network/core_network.dart';
 
 import '../models/home_items.dart';
+
+List<FoodItemModel> _parseFoodList(List<dynamic> raw) =>
+    raw.map((e) => FoodItemModel.fromJson(e as Map<String, dynamic>)).toList();
 
 class HomeRepository {
   HomeRepository(this._apiClient);
@@ -42,17 +46,15 @@ class HomeRepository {
   Future<List<FoodItemModel>> fetchFoodItems() async {
     final response = await _apiClient.get('/foods');
     final list = response['result'] as List<dynamic>? ?? [];
-    return list
-        .map((e) => FoodItemModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    if (list.isEmpty) return [];
+    return Isolate.run(() => _parseFoodList(list));
   }
 
   Future<List<FoodItemModel>> fetchFoodsByCategory(int categoryId) async {
     final response = await _apiClient.get('/foods/category/$categoryId');
     final list = response['result'] as List<dynamic>? ?? [];
-    return list
-        .map((e) => FoodItemModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    if (list.isEmpty) return [];
+    return Isolate.run(() => _parseFoodList(list));
   }
 
   Future<String> reverseGeocode(double lat, double lng) async {

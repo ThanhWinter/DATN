@@ -86,6 +86,11 @@ class FoodItemModel {
   final String? categoryName;
   final bool isAvailable;
   final List<OptionGroupModel> optionGroups;
+  final double? distanceKm;
+  final double? deliveryFee;
+  final String? deliveryEta;
+  final bool hasOffer;
+  final String? offerText;
 
   const FoodItemModel({
     required this.id,
@@ -97,6 +102,11 @@ class FoodItemModel {
     this.categoryName,
     this.isAvailable = true,
     this.optionGroups = const [],
+    this.distanceKm,
+    this.deliveryFee,
+    this.deliveryEta,
+    this.hasOffer = false,
+    this.offerText,
   });
 
   factory FoodItemModel.fromJson(Map<String, dynamic> json) {
@@ -112,6 +122,11 @@ class FoodItemModel {
       optionGroups: (json['optionGroups'] as List<dynamic>? ?? [])
           .map((e) => OptionGroupModel.fromJson(e as Map<String, dynamic>))
           .toList(),
+      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
+      deliveryFee: (json['deliveryFee'] as num?)?.toDouble(),
+      deliveryEta: json['deliveryEta']?.toString(),
+      hasOffer: json['hasOffer'] as bool? ?? false,
+      offerText: json['offerText']?.toString(),
     );
   }
 }

@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 
 import '../controllers/home_controller.dart';
 
+/// Banner carousel — ảnh do admin upload từ màn hình quản lý banner.
+/// Tự động cuộn 4 giây / lần; dừng khi người dùng chạm vào.
 class HomePromoSection extends StatefulWidget {
   const HomePromoSection({super.key});
 
@@ -27,6 +29,7 @@ class _HomePromoSectionState extends State<HomePromoSection> {
   }
 
   void _startAutoScroll() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       final count = _ctrl.promoBanners.length;
       if (count <= 1 || !_pageCtrl.hasClients) return;
@@ -48,68 +51,76 @@ class _HomePromoSectionState extends State<HomePromoSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Obx(() {
-        final banners = _ctrl.promoBanners;
-        if (banners.isEmpty) return const SizedBox.shrink();
+    return Obx(() {
+      final banners = _ctrl.promoBanners;
+      if (banners.isEmpty) return const SizedBox.shrink();
 
-        final showDots = banners.length > 1;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Section header ──────────────────────────────────────────────
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+            child: Text(
+              'Ưu đãi đặc biệt',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 148,
-              child: Listener(
-                onPointerDown: (_) {
-                  _timer?.cancel();
-                  _timer = null;
-                },
-                onPointerUp: (_) => _startAutoScroll(),
-                child: PageView.builder(
-                  controller: _pageCtrl,
-                  itemCount: banners.length,
-                  onPageChanged: (i) => setState(() => _currentPage = i),
-                  itemBuilder: (_, i) {
-                    final banner = banners[i];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _BannerCard(
-                        title: banner.title,
-                        imageUrl: banner.imageUrl,
-                      ),
-                    );
-                  },
+          // ── Banner carousel ─────────────────────────────────────────────
+          Listener(
+            onPointerDown: (_) {
+              _timer?.cancel();
+              _timer = null;
+            },
+            onPointerUp: (_) => _startAutoScroll(),
+            child: SizedBox(
+              height: 168,
+              child: PageView.builder(
+                controller: _pageCtrl,
+                itemCount: banners.length,
+                onPageChanged: (i) => setState(() => _currentPage = i),
+                itemBuilder: (_, i) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _BannerCard(
+                    title: banners[i].title,
+                    imageUrl: banners[i].imageUrl,
+                  ),
                 ),
               ),
             ),
-            if (showDots) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(banners.length, (i) {
-                  final isActive = i == _currentPage;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: isActive ? 18 : 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppColors.primaryOrange
-                          : AppColors.grey300,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  );
-                }),
-              ),
-            ],
+          ),
+
+          // ── Dot indicators ──────────────────────────────────────────────
+          if (banners.length > 1) ...[
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(banners.length, (i) {
+                final active = i == _currentPage;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: active ? 18 : 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: active
+                        ? AppColors.primaryOrange
+                        : const Color(0xFFD5D5D5),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
           ],
-        );
-      }),
-    );
+          const SizedBox(height: 6),
+        ],
+      );
+    });
   }
 }
 
@@ -124,43 +135,55 @@ class _BannerCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: SizedBox(
-        height: 148,
+        height: 168,
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // ── Background: admin-uploaded image ───────────────────────────
             if (imageUrl != null)
               AppNetworkImage(
                 url: imageUrl!,
                 fit: BoxFit.cover,
-                height: 148,
-                errorWidget: _fallbackGradient(),
+                errorWidget: _fallback(),
               )
             else
-              _fallbackGradient(),
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [Color(0xEEF9A825), Color(0x44FF5252)],
+              _fallback(),
+
+            // ── Gradient overlay for text legibility (bottom only) ─────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 90,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.65),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.h3.copyWith(
-                      color: AppColors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+
+            // ── Banner title ────────────────────────────────────────────────
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 14,
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  height: 1.3,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -169,11 +192,19 @@ class _BannerCard extends StatelessWidget {
     );
   }
 
-  Widget _fallbackGradient() => Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.accentGold, AppColors.primaryOrange],
+  Widget _fallback() {
+    return Container(
+      color: AppColors.primaryOrange,
+      child: const Center(
+        child: Text(
+          'Ưu đãi hôm nay',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
           ),
         ),
-      );
+      ),
+    );
+  }
 }

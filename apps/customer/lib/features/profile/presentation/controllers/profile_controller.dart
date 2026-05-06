@@ -84,15 +84,14 @@ class ProfileController extends GetxController {
       // Chạy song song — orders failure không chặn profile hiển thị
       final userFuture = _repository.fetchUser();
       final ordersFuture = _orderRepository.fetchMyOrders().catchError(
-        (_) => <OrderModel>[],
-      );
+            (_) => <OrderModel>[],
+          );
 
       final rawUser = await userFuture;
       final orders = await ordersFuture;
 
-      final completed = orders
-          .where((o) => o.status.toUpperCase() == 'COMPLETED')
-          .toList();
+      final completed =
+          orders.where((o) => o.status.toUpperCase() == 'COMPLETED').toList();
       final totalSaved = completed.fold(
         0.0,
         (sum, o) => sum + o.discountAmount,

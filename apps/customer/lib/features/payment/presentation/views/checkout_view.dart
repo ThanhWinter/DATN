@@ -318,6 +318,9 @@ class _BottomBar extends StatelessWidget {
 
   final CheckoutController controller;
 
+  // Phí giao hàng cố định — backend xác nhận qua OrderModel.shippingFee
+  static const double _shippingFee = 15000;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -337,45 +340,53 @@ class _BottomBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Obx(() => Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Tạm tính:', style: AppTextStyles.bodyMedium),
-                    Text('${controller.subtotal.value.toVnd()} ₫',
-                        style: AppTextStyles.bodyMedium),
-                  ],
+            // Tạm tính
+            Obx(() => _SummaryRow(
+                  label: 'Tạm tính:',
+                  value: '${controller.subtotal.value.toVnd()} ₫',
                 )),
+            const SizedBox(height: 4),
+
+            // Phí giao hàng
+            _SummaryRow(
+              label: 'Phí giao hàng:',
+              value: '+ ${_shippingFee.toInt().toVnd()} ₫',
+              valueColor: AppColors.textDark,
+            ),
+
+            // Giảm giá (ẩn nếu = 0)
             Obx(() {
               if (controller.discountAmount.value <= 0) {
                 return const SizedBox.shrink();
               }
               return Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Giảm giá:', style: AppTextStyles.bodyMedium),
-                    Text(
-                      '- ${controller.discountAmount.value.toVnd()} ₫',
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(color: AppColors.successGreen),
-                    ),
-                  ],
+                child: _SummaryRow(
+                  label: 'Giảm giá:',
+                  value: '- ${controller.discountAmount.value.toVnd()} ₫',
+                  valueColor: AppColors.successGreen,
                 ),
               );
             }),
-            const SizedBox(height: 6),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(color: AppColors.grey200, height: 1),
+            ),
+
+            // Tổng cộng = subtotal + ship - discount
             Obx(() => Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Tổng cộng:', style: AppTextStyles.h3),
                     Text(
-                      '${controller.finalTotal.value.toVnd()} ₫',
+                      '${(controller.finalTotal.value + _shippingFee).toInt().toVnd()} ₫',
                       style: AppTextStyles.h2
                           .copyWith(color: AppColors.primaryOrangeDark),
                     ),
                   ],
                 )),
+
             const SizedBox(height: 12),
             Obx(() => SizedBox(
                   width: double.infinity,
@@ -390,6 +401,35 @@ class _BottomBar extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTextStyles.bodyMedium),
+        Text(
+          value,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: valueColor ?? AppColors.textDark,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
