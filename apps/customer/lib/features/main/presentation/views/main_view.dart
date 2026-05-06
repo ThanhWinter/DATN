@@ -102,7 +102,7 @@ class _BottomBar extends StatelessWidget {
                 // ── Thực đơn ────────────────────────────────────────────
                 _NavItem(
                   svgAsset: AppIcons.homeSvg,
-                  label: 'Thực đơn',
+                  label: 'Trang chủ',
                   isSelected: selected == 0,
                   onTap: () => controller.onTabChanged(0),
                 ),

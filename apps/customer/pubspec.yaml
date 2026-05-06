@@ -17,6 +17,7 @@ dependencies:
     path: ../../packages/core_ui
   core_utils:
     path: ../../packages/core_utils
+  http: ^1.2.1
   geolocator: ^13.0.0
   image_picker: ^1.1.2
   flutter_svg: ^2.0.10+1

@@ -1,9 +1,37 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../../data/models/address_model.dart';
 import '../controllers/address_controller.dart';
+
+Future<List<String>> _searchNominatim(String query) async {
+  if (query.trim().length < 3) return [];
+  try {
+    final uri = Uri.https('nominatim.openstreetmap.org', '/search', {
+      'q': query.trim(),
+      'format': 'json',
+      'limit': '5',
+      'accept-language': 'vi',
+    });
+    final res = await http
+        .get(uri, headers: {'User-Agent': 'FoodHitCustomerApp/1.0'})
+        .timeout(const Duration(seconds: 6));
+    if (res.statusCode != 200) return [];
+    final list = jsonDecode(res.body) as List<dynamic>;
+    return list
+        .map((e) =>
+            (e as Map<String, dynamic>)['display_name']?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
+  } catch (_) {
+    return [];
+  }
+}
 
 class AddressView extends GetView<AddressController> {
   const AddressView({super.key});
@@ -272,6 +300,9 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
   late final TextEditingController _addressCtrl;
   late final TextEditingController _labelCtrl;
   late final AddressController _ctrl;
+  Timer? _debounce;
+  List<String> _suggestions = [];
+  bool _searching = false;
 
   @override
   void initState() {
@@ -279,15 +310,36 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
     _ctrl = Get.find<AddressController>();
     _addressCtrl =
         TextEditingController(text: widget.existing?.fullAddress ?? '');
-    _labelCtrl =
-        TextEditingController(text: widget.existing?.label ?? '');
+    _labelCtrl = TextEditingController(text: widget.existing?.label ?? '');
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _addressCtrl.dispose();
     _labelCtrl.dispose();
     super.dispose();
+  }
+
+  void _onAddressChanged(String val) {
+    _debounce?.cancel();
+    if (val.trim().length < 3) {
+      setState(() { _suggestions = []; _searching = false; });
+      return;
+    }
+    setState(() => _searching = true);
+    _debounce = Timer(const Duration(milliseconds: 600), () async {
+      final results = await _searchNominatim(val);
+      if (!mounted) return;
+      setState(() { _suggestions = results; _searching = false; });
+    });
+  }
+
+  void _pickSuggestion(String address) {
+    _addressCtrl.text = address;
+    _addressCtrl.selection =
+        TextSelection.collapsed(offset: address.length);
+    setState(() => _suggestions = []);
   }
 
   @override
@@ -299,94 +351,160 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
         padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + keyboardHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.grey300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                widget.existing == null
-                    ? 'Thêm địa chỉ mới'
-                    : 'Chỉnh sửa địa chỉ',
-                style: AppTextStyles.h3,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _labelCtrl,
-                style: AppTextStyles.bodyLarge,
-                decoration: InputDecoration(
-                  labelText: 'Nhãn (VD: Nhà, Công ty...)',
-                  prefixIcon: const Icon(Icons.label_outline,
-                      size: 20, color: AppColors.primaryOrange),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: AppColors.primaryOrange, width: 1.5),
-                  ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.existing == null ? 'Thêm địa chỉ mới' : 'Chỉnh sửa địa chỉ',
+              style: AppTextStyles.h3,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _labelCtrl,
+              style: AppTextStyles.bodyLarge,
+              decoration: InputDecoration(
+                labelText: 'Nhãn (VD: Nhà, Công ty...)',
+                prefixIcon: const Icon(Icons.label_outline,
+                    size: 20, color: AppColors.primaryOrange),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                      color: AppColors.primaryOrange, width: 1.5),
                 ),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _addressCtrl,
-                style: AppTextStyles.bodyLarge,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Địa chỉ *',
-                  alignLabelWithHint: true,
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.only(bottom: 40),
-                    child: Icon(Icons.location_on_outlined,
+            ),
+            const SizedBox(height: 12),
+            // ── Address field with search ──────────────────────────────────
+            TextField(
+              controller: _addressCtrl,
+              style: AppTextStyles.bodyLarge,
+              maxLines: 2,
+              minLines: 1,
+              onChanged: _onAddressChanged,
+              decoration: InputDecoration(
+                labelText: 'Địa chỉ *',
+                alignLabelWithHint: true,
+                prefixIcon: _searching
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primaryOrange),
+                        ),
+                      )
+                    : const Icon(Icons.location_on_outlined,
                         size: 20, color: AppColors.primaryOrange),
-                  ),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  focusedBorder: OutlineInputBorder(
+                suffixIcon: _addressCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.close,
+                            size: 16, color: AppColors.textGrey),
+                        onPressed: () {
+                          _addressCtrl.clear();
+                          setState(() => _suggestions = []);
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                      color: AppColors.primaryOrange, width: 1.5),
+                ),
+              ),
+            ),
+            // ── Suggestions list ──────────────────────────────────────────
+            if (_suggestions.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.grey200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _suggestions.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, indent: 44),
+                  itemBuilder: (_, i) => InkWell(
+                    onTap: () => _pickSuggestion(_suggestions[i]),
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: AppColors.primaryOrange, width: 1.5),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined,
+                              size: 16, color: AppColors.primaryOrange),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _suggestions[i],
+                              style: AppTextStyles.bodyMedium,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Obx(() => SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          _ctrl.isSubmitting.value ? null : _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryOrange,
-                        foregroundColor: AppColors.white,
-                        minimumSize: const Size(double.infinity, 48),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: _ctrl.isSubmitting.value
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.white,
-                              ),
-                            )
-                          : Text(widget.existing == null
-                              ? 'Lưu địa chỉ'
-                              : 'Cập nhật'),
-                    ),
-                  )),
             ],
-          ),
+            const SizedBox(height: 16),
+            Obx(() => SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _ctrl.isSubmitting.value ? null : _save,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryOrange,
+                      foregroundColor: AppColors.white,
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _ctrl.isSubmitting.value
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : Text(widget.existing == null
+                            ? 'Lưu địa chỉ'
+                            : 'Cập nhật'),
+                  ),
+                )),
+          ],
         ),
+      ),
     );
   }
 

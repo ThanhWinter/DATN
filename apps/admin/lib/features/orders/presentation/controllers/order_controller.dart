@@ -45,6 +45,9 @@ class OrderController extends GetxController {
   bool _loadMoreBusy = false;
   DateTime? _lastLoadMoreAt;
 
+  /// orderId → bucket hiện tại — cho phép _removeOrderById chạy O(1).
+  final _bucketOf = <String, RxList<OrderModel>>{};
+
   Timer? _pollTimer;
 
   @override
@@ -149,9 +152,19 @@ class OrderController extends GetxController {
         page: 0,
         size: _pollPageSize,
       );
+      // Batch: upsert tất cả trước, track bucket nào bị dirty
+      final dirtyBuckets = <RxList<OrderModel>>{};
       for (final o in page.items) {
-        _upsertOrderAcrossBuckets(o);
+        final oldBucket = _bucketOf.remove(o.id);
+        oldBucket?.removeWhere((x) => x.id == o.id);
+        if (oldBucket != null) { dirtyBuckets.add(oldBucket); }
+        final newBucket = _rxTargetForStatus(o.status);
+        newBucket.add(o);
+        _bucketOf[o.id] = newBucket;
+        dirtyBuckets.add(newBucket);
       }
+      // Sort mỗi bucket dirty đúng một lần thay vì N lần
+      for (final bucket in dirtyBuckets) { _sortBucket(bucket); }
       _trimAllBuckets();
       dev.log('[ORDER/VM] 🔁 Poll merged ${page.items.length} recent orders');
     } catch (e) {
@@ -164,6 +177,7 @@ class OrderController extends GetxController {
     activeOrders.clear();
     completedOrders.clear();
     cancelledOrders.clear();
+    _bucketOf.clear();
 
     _pendingLoadedPage = -1;
     _pendingHasMore = true;
@@ -191,6 +205,7 @@ class OrderController extends GetxController {
     );
     final merged = _mergeByDateDesc([...r1.items, ...r2.items]);
     pendingOrders.assignAll(merged);
+    for (final o in merged) { _bucketOf[o.id] = pendingOrders; }
     _pendingLoadedPage = 0;
     _pendingHasMore = !(r1.last && r2.last);
   }
@@ -232,6 +247,7 @@ class OrderController extends GetxController {
     );
     final merged = _mergeByDateDesc([...r1.items, ...r2.items]);
     activeOrders.assignAll(merged);
+    for (final o in merged) { _bucketOf[o.id] = activeOrders; }
     _activeLoadedPage = 0;
     _activeHasMore = !(r1.last && r2.last);
   }
@@ -266,6 +282,7 @@ class OrderController extends GetxController {
       size: _pageSize,
     );
     completedOrders.assignAll(r.items);
+    for (final o in r.items) { _bucketOf[o.id] = completedOrders; }
     _completedLoadedPage = 0;
     _completedHasMore = !r.last;
   }
@@ -294,6 +311,7 @@ class OrderController extends GetxController {
       size: _pageSize,
     );
     cancelledOrders.assignAll(r.items);
+    for (final o in r.items) { _bucketOf[o.id] = cancelledOrders; }
     _cancelledLoadedPage = 0;
     _cancelledHasMore = !r.last;
   }
@@ -322,22 +340,15 @@ class OrderController extends GetxController {
   }
 
   void _appendDedupeSort(RxList<OrderModel> target, List<OrderModel> incoming) {
-    final ids = target.map((e) => e.id).toSet();
+    final existing = {for (final o in target) o.id};
     for (final o in incoming) {
-      if (!ids.contains(o.id)) {
+      if (existing.add(o.id)) {
         target.add(o);
-        ids.add(o.id);
+        _bucketOf[o.id] = target;
       }
     }
     final sorted = [...target]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
     target.assignAll(sorted);
-  }
-
-  void _removeOrderById(String id) {
-    pendingOrders.removeWhere((o) => o.id == id);
-    activeOrders.removeWhere((o) => o.id == id);
-    completedOrders.removeWhere((o) => o.id == id);
-    cancelledOrders.removeWhere((o) => o.id == id);
   }
 
   RxList<OrderModel> _rxTargetForStatus(String status) {
@@ -351,13 +362,6 @@ class OrderController extends GetxController {
     if (status == OrderModel.statusCompleted) return completedOrders;
     if (status == OrderModel.statusCancelled) return cancelledOrders;
     return pendingOrders;
-  }
-
-  void _upsertOrderAcrossBuckets(OrderModel o) {
-    _removeOrderById(o.id);
-    final bucket = _rxTargetForStatus(o.status);
-    bucket.add(o);
-    _sortBucket(bucket);
   }
 
   void _sortBucket(RxList<OrderModel> list) {
@@ -375,7 +379,12 @@ class OrderController extends GetxController {
   void _trimBucket(RxList<OrderModel> list) {
     if (list.length <= _maxOrdersPerBucket) return;
     final sorted = [...list]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
-    list.assignAll(sorted.take(_maxOrdersPerBucket).toList());
+    final kept = sorted.take(_maxOrdersPerBucket).toList();
+    final keptIds = {for (final o in kept) o.id};
+    for (final o in list) {
+      if (!keptIds.contains(o.id)) { _bucketOf.remove(o.id); }
+    }
+    list.assignAll(kept);
   }
 
   void _distribute(List<OrderModel> all) {
@@ -406,6 +415,13 @@ class OrderController extends GetxController {
     ]) {
       _sortBucket(bucket);
     }
+
+    // Rebuild O(1) index sau khi phân phối lại toàn bộ
+    _bucketOf.clear();
+    for (final o in pendingOrders) { _bucketOf[o.id] = pendingOrders; }
+    for (final o in activeOrders) { _bucketOf[o.id] = activeOrders; }
+    for (final o in completedOrders) { _bucketOf[o.id] = completedOrders; }
+    for (final o in cancelledOrders) { _bucketOf[o.id] = cancelledOrders; }
   }
 
   Future<void> updateStatus(OrderModel order, String newStatus) async {

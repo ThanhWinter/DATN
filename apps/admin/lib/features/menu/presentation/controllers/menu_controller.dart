@@ -119,6 +119,15 @@ class MenuController extends GetxController {
     _applyFilters(resetWindow: true);
   }
 
+  bool get isFiltered =>
+      selectedCategoryId.value != null || searchQuery.value.isNotEmpty;
+
+  void clearFilters() {
+    selectedCategoryId.value = null;
+    searchQuery.value = '';
+    _applyFilters(resetWindow: true);
+  }
+
   void updateSearch(String q) {
     searchQuery.value = q.trim().toLowerCase();
   }

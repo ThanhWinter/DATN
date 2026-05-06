@@ -49,9 +49,11 @@ class MainBinding extends Bindings {
 
     Get.lazyPut<InteractionRepository>(
       () => InteractionRepository(Get.find<IApiClient>()),
+      fenix: true,
     );
     Get.lazyPut<FavoriteController>(
       () => FavoriteController(Get.find<InteractionRepository>()),
+      fenix: true,
     );
 
     Get.lazyPut<NotificationRepository>(

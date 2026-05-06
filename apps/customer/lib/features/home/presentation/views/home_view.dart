@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 
 import '../controllers/home_controller.dart';
 import '../widgets/home_category_section.dart';
-import '../widgets/home_coupon_banner.dart';
 import '../widgets/home_location_header.dart';
 import '../widgets/home_popular_section.dart';
 import '../widgets/home_promo_section.dart';
@@ -235,43 +234,61 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SnapHelperWidget(
-        isLoading: controller.isLoading,
-        error: controller.error,
-        onRetry: controller.loadData,
-        loadingWidget: const _HomeSkeleton(),
-        onSuccess: () => Column(
-          children: [
-            // ── Header ────────────────────────────────────────────────────
-            const HomeLocationHeader(),
-
-            // ── Store closed banner ───────────────────────────────────────
-            const _StoreClosedBanner(),
-
-            // ── Scrollable content ────────────────────────────────────────
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: controller.loadData,
-                color: AppColors.primaryOrange,
-                backgroundColor: AppColors.white,
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: const [
-                    HomePromoSection(),
-                    SizedBox(height: 8),
-                    HomeCategorySection(),
-                    HomeCouponBanner(),
-                    SizedBox(height: 8),
-                    HomePopularSection(),
-                    SizedBox(height: 32),
-                  ],
-                ),
+      backgroundColor: Colors.white,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Gradient backdrop: xanh lá nhạt → trắng (chỉ phần đầu trang)
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFE8F5E9),
+                  Colors.white,
+                  Colors.white,
+                ],
+                stops: [0.0, 0.30, 1.0],
               ),
             ),
-          ],
-        ),
+          ),
+          SnapHelperWidget(
+            isLoading: controller.isLoading,
+            error: controller.error,
+            onRetry: controller.loadData,
+            loadingWidget: const _HomeSkeleton(),
+            onSuccess: () => Column(
+              children: [
+                // ── Header ──────────────────────────────────────────────
+                const HomeLocationHeader(),
+
+                // ── Store closed banner ──────────────────────────────────
+                const _StoreClosedBanner(),
+
+                // ── Scrollable content ───────────────────────────────────
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: controller.loadData,
+                    color: AppColors.primaryOrange,
+                    backgroundColor: AppColors.white,
+                    child: const CustomScrollView(
+                      physics: AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverToBoxAdapter(child: HomePromoSection()),
+                        SliverToBoxAdapter(child: SizedBox(height: 8)),
+                        SliverToBoxAdapter(child: HomeCategorySection()),
+                        SliverToBoxAdapter(child: SizedBox(height: 8)),
+                        SliverToBoxAdapter(child: HomePopularSection()),
+                        SliverToBoxAdapter(child: SizedBox(height: 32)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

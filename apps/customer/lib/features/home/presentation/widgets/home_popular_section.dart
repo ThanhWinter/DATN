@@ -2,6 +2,7 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../app/routes/app_routes.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../data/models/home_items.dart';
@@ -16,8 +17,7 @@ class HomePopularSection extends GetView<HomeController> {
       final items = controller.loadedFoodItems;
       if (items.isEmpty) return const SizedBox.shrink();
 
-      return Container(
-        color: AppColors.white,
+      return Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,29 +34,61 @@ class HomePopularSection extends GetView<HomeController> {
                   ),
                 ),
                 const Spacer(),
-                Text(
-                  '${controller.loadedFoodItems.length}/${controller.totalFoodCount.value} món',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+                TextButton(
+                  onPressed: () => Get.toNamed(AppRoutes.allCategories),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primaryOrange,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text('Xem tất cả'),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.78,
-              ),
-              itemCount: items.length,
-              itemBuilder: (_, index) => RepaintBoundary(
-                child: _FoodCard(
-                  item: items[index],
-                  onTap: () => controller.navigateToFoodDetail(items[index]),
-                ),
-              ),
+            Column(
+              children: [
+                for (int i = 0; i < items.length; i += 2) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 0.78,
+                          child: RepaintBoundary(
+                            child: _FoodCard(
+                              item: items[i],
+                              onTap: () =>
+                                  controller.navigateToFoodDetail(items[i]),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: i + 1 < items.length
+                            ? AspectRatio(
+                                aspectRatio: 0.78,
+                                child: RepaintBoundary(
+                                  child: _FoodCard(
+                                    item: items[i + 1],
+                                    onTap: () => controller
+                                        .navigateToFoodDetail(items[i + 1]),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
             ),
             if (controller.hasMoreFoods) ...[
               const SizedBox(height: 8),

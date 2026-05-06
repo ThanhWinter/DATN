@@ -2,6 +2,7 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/routes/app_routes.dart';
 import '../controllers/home_controller.dart';
 
 class HomeCategorySection extends GetView<HomeController> {
@@ -9,53 +10,66 @@ class HomeCategorySection extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 14, 20, 10),
-            child: Text(
-              'Danh mục',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Header: "Danh mục" + "Xem tất cả" ────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 14, 8, 10),
+          child: Row(
+            children: [
+              const Text(
+                'Danh mục',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
               ),
-            ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Get.toNamed(AppRoutes.allCategories),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryOrange,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Xem tất cả'),
+              ),
+            ],
           ),
-          SizedBox(
-            height: 78,
-            child: Obx(() {
-              final cats = controller.categories;
-              return ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: cats.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _CategoryChip(
-                      name: 'Tất cả',
-                      imageUrl: null,
-                      isSelected: controller.selectedCategoryId.value == null,
-                      onTap: () => controller.selectCategory(null),
-                    );
-                  }
-                  final cat = cats[index - 1];
-                  return _CategoryChip(
-                    name: cat.name,
-                    imageUrl: cat.imageUrl,
-                    isSelected: controller.selectedCategoryId.value == cat.id,
-                    onTap: () => controller.selectCategory(cat.id),
-                  );
-                },
-              );
-            }),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
+        ),
+
+        // ── Category list ────────────────────────────────────────────────
+        SizedBox(
+          height: 78,
+          child: Obx(() {
+            final cats = controller.categories;
+            // Đọc selectedCategoryId.value tại đây để Obx theo dõi reactive dependency
+            final selectedId = controller.selectedCategoryId.value;
+            return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: cats.length,
+              itemBuilder: (context, index) {
+                final cat = cats[index];
+                return _CategoryChip(
+                  name: cat.name,
+                  imageUrl: cat.imageUrl,
+                  isSelected: selectedId == cat.id,
+                  onTap: () => controller.selectCategory(cat.id),
+                );
+              },
+            );
+          }),
+        ),
+        const SizedBox(height: 10),
+      ],
     );
   }
 }
@@ -83,10 +97,10 @@ class _CategoryChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 50,
-              height: 50,
+            // Dùng Container (không AnimatedContainer) để viền hiện ngay lập tức
+            Container(
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isSelected
@@ -96,8 +110,17 @@ class _CategoryChip extends StatelessWidget {
                   color: isSelected
                       ? AppColors.primaryOrange
                       : Colors.transparent,
-                  width: 2,
+                  width: 2.5,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primaryOrange.withValues(alpha: 0.30),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
               ),
               child: ClipOval(child: _buildIcon()),
             ),
@@ -109,8 +132,11 @@ class _CategoryChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? AppColors.primaryOrange : AppColors.textGrey,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primaryOrange
+                    : AppColors.textGrey,
               ),
             ),
           ],
@@ -143,7 +169,8 @@ class _CategoryChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color: isSelected ? AppColors.primaryOrange : AppColors.grey400,
+            color:
+                isSelected ? AppColors.primaryOrange : AppColors.grey400,
           ),
         ),
       ),

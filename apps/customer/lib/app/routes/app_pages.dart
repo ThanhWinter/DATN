@@ -29,6 +29,7 @@ import "../bindings/edit_profile_binding.dart";
 
 import "../../features/interactions/presentation/views/favorite_view.dart";
 import "../bindings/favorite_binding.dart";
+import "../../features/home/presentation/views/all_categories_view.dart";
 import "../../features/interactions/presentation/views/review_view.dart";
 import "../bindings/review_binding.dart";
 import "../../features/search/presentation/views/search_view.dart";
@@ -132,6 +133,10 @@ class AppPages {
       name: AppRoutes.favorites,
       page: () => const FavoriteView(),
       binding: FavoriteBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.allCategories,
+      page: () => const AllCategoriesView(),
     ),
     GetPage(
       name: AppRoutes.reviewOrder,

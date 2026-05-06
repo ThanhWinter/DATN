@@ -95,11 +95,22 @@ class HomeController extends GetxController {
     try {
       isLocating.value = true;
 
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Get.snackbar(
+          'GPS chưa bật',
+          'Vui lòng bật GPS trong cài đặt điện thoại',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
         Get.snackbar(
           'Không có quyền vị trí',
           'Vui lòng cấp quyền vị trí trong cài đặt điện thoại',
@@ -108,10 +119,25 @@ class HomeController extends GetxController {
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
-      );
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings:
+              const LocationSettings(accuracy: LocationAccuracy.medium),
+        ).timeout(const Duration(seconds: 10));
+      } catch (_) {
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      if (position == null) {
+        Get.snackbar(
+          'Không lấy được vị trí',
+          'Vui lòng nhập địa chỉ thủ công hoặc thử lại.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       pickerAddress.value = await _repository.reverseGeocode(
         position.latitude,
         position.longitude,
@@ -120,7 +146,7 @@ class HomeController extends GetxController {
       dev.log('[HOME] ❌ fetchCurrentLocation error: $e');
       Get.snackbar(
         'Lỗi vị trí',
-        'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
+        'Không thể lấy vị trí. Vui lòng nhập địa chỉ thủ công.',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
