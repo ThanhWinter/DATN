@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../../app/routes/app_routes.dart';
 import '../../data/models/home_items.dart';
 import '../../data/models/food_option_model.dart';
 import '../controllers/food_detail_controller.dart';
@@ -92,73 +91,92 @@ class _FoodDetailContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Card chính: tên + info rows ─────────────────────────────
               Container(
                 decoration: const BoxDecoration(
                   color: AppColors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tên món + giá
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                            child: Text(food.name, style: AppTextStyles.h2)),
+                          child: Text(
+                            food.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                              height: 1.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         const Icon(
                           Icons.chevron_right_rounded,
                           color: AppColors.grey400,
-                          size: 24,
+                          size: 22,
                         ),
                       ],
                     ),
-                    if (food.description != null) ...[
+                    if (food.description != null &&
+                        food.description!.trim().isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Text(food.description!,
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: AppColors.textGrey)),
+                      Text(
+                        food.description!,
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.textGrey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
-                    const SizedBox(height: 14),
-                    _QuickInfoSection(controller: controller),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
+
+                    // Giá nổi bật
                     Obx(() => Text(
                           'Từ ${controller.totalPrice.value.toVnd()}đ',
-                          style: AppTextStyles.h2.copyWith(
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.primaryOrange,
                           ),
                         )),
+                    const SizedBox(height: 16),
+
+                    // Info rows (không có khung xám)
+                    _QuickInfoSection(controller: controller),
                   ],
                 ),
               ),
+
+              // ── Offers row ──────────────────────────────────────────────
               if (food.hasOffer || !(food.offerText?.isEmpty ?? true))
                 RepaintBoundary(
                   child: Container(
-                    margin: const EdgeInsets.only(top: 8),
                     color: AppColors.white,
-                    child: ListTile(
-                      dense: true,
-                      leading: const Icon(
-                        Icons.local_offer_outlined,
-                        color: AppColors.successGreen,
-                      ),
-                      title: Text(
-                        food.offerText ?? 'Offers are available',
-                        style: AppTextStyles.bodyLarge,
-                      ),
-                      trailing: const Icon(
-                        Icons.chevron_right_rounded,
-                        color: AppColors.grey400,
-                      ),
+                    child: _InfoDividerRow(
+                      icon: Icons.local_offer_rounded,
+                      iconColor: AppColors.successGreen,
+                      iconBgColor:
+                          AppColors.successGreen.withValues(alpha: 0.1),
+                      title: food.offerText ?? 'Offers are available',
+                      titleColor: AppColors.successGreen,
                     ),
                   ),
                 ),
+
+              // Đường kẻ phân cách bottom của card trắng
+              Container(height: 1, color: AppColors.grey200),
+
+              // ── Thông tin món ───────────────────────────────────────────
               RepaintBoundary(child: _FoodMetaSection(food: food)),
-              Obx(() {
-                if (controller.relatedFoods.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return _ForYouSection(controller: controller);
-              }),
+
+              // ── Tuỳ chọn ────────────────────────────────────────────────
               ...food.optionGroups.map(
                 (group) => _OptionGroupSection(
                   group: group,
@@ -371,227 +389,129 @@ class _QuickInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final food = controller.food.value!;
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.grey200),
-      ),
-      child: Column(
-        children: [
-          Obx(() {
-            final rating = controller.rating.value;
-            return _InfoRow(
-              icon: Icons.star_rounded,
-              iconColor: AppColors.accentGold,
-              title: rating.avgRating > 0
-                  ? rating.avgRating.toStringAsFixed(1)
-                  : 'Chưa có',
-              subtitle: '${rating.totalReviews} reviews',
-            );
-          }),
-          _InfoRow(
-            icon: Icons.location_on_rounded,
-            iconColor: AppColors.successGreen,
-            title: food.distanceKm != null
-                ? '${food.distanceKm!.toStringAsFixed(1)} km'
-                : 'Khoảng cách cập nhật sau',
-          ),
-          _InfoRow(
+    return Column(
+      children: [
+        // Rating
+        Obx(() {
+          final rating = controller.rating.value;
+          return _InfoDividerRow(
+            icon: Icons.star_rounded,
+            iconColor: AppColors.accentGold,
+            iconBgColor: const Color(0xFFFFF8E1),
+            title: rating.avgRating > 0
+                ? rating.avgRating.toStringAsFixed(1)
+                : 'Chưa có đánh giá',
+            subtitle: rating.totalReviews > 0
+                ? '(${rating.totalReviews} reviews)'
+                : null,
+          );
+        }),
+        // Khoảng cách + giao hàng — chỉ hiện nếu có dữ liệu
+        if (food.distanceKm != null ||
+            food.deliveryEta != null ||
+            food.deliveryFee != null)
+          _InfoDividerRow(
             icon: Icons.delivery_dining_rounded,
             iconColor: AppColors.successGreen,
-            title: food.deliveryEta ?? 'Delivery Now',
-            subtitle: food.deliveryFee != null
-                ? '${food.deliveryFee!.toVnd()}đ'
-                : null,
-            hasBottomDivider: false,
+            iconBgColor: AppColors.successGreen.withValues(alpha: 0.1),
+            title: food.distanceKm != null
+                ? '${food.distanceKm!.toStringAsFixed(1)} km'
+                : food.deliveryEta ?? 'Giao hàng',
+            subtitle: () {
+              final parts = [
+                if (food.distanceKm != null && food.deliveryEta != null)
+                  food.deliveryEta!,
+                if (food.deliveryFee != null) '${food.deliveryFee!.toVnd()}đ',
+              ];
+              return parts.isEmpty ? null : parts.join('  •  ');
+            }(),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
+// Row thông tin dạng: [icon tròn] [title] [subtitle?] [chevron]
+class _InfoDividerRow extends StatelessWidget {
+  const _InfoDividerRow({
     required this.icon,
     required this.iconColor,
+    required this.iconBgColor,
     required this.title,
     this.subtitle,
-    this.hasBottomDivider = true,
+    this.titleColor,
   });
 
   final IconData icon;
   final Color iconColor;
+  final Color iconBgColor;
   final String title;
   final String? subtitle;
-  final bool hasBottomDivider;
+  final Color? titleColor;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 11),
-      decoration: BoxDecoration(
-        border: hasBottomDivider
-            ? const Border(
-                bottom: BorderSide(color: AppColors.grey200),
-              )
-            : null,
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 10),
-          Text(title, style: AppTextStyles.bodyLarge),
-          if (subtitle != null) ...[
-            const SizedBox(width: 8),
-            Text(
-              subtitle!,
-              style:
-                  AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
-            ),
-          ],
-          const Spacer(),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.grey400,
-            size: 22,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ForYouSection extends StatelessWidget {
-  const _ForYouSection({required this.controller});
-
-  final FoodDetailController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('For You', style: AppTextStyles.h3),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 190,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) {
-                final item = controller.relatedFoods[index];
-                return _ForYouCard(item: item, isBestSeller: index == 0);
-              },
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemCount: controller.relatedFoods.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ForYouCard extends StatelessWidget {
-  const _ForYouCard({
-    required this.item,
-    required this.isBestSeller,
-  });
-
-  final FoodItemModel item;
-  final bool isBestSeller;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.foodDetail, arguments: item.id),
-      child: Container(
-        width: 138,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.grey200),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x10000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Stack(
-                children: [
-                  SizedBox(
-                    width: 122,
-                    height: 116,
-                    child: item.imageUrl != null
-                        ? AppNetworkImage(
-                            url: item.imageUrl!, fit: BoxFit.cover)
-                        : _fallback(),
-                  ),
-                  if (isBestSeller)
-                    Positioned(
-                      left: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.successGreen,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Best Seller',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+    return Column(
+      children: [
+        const Divider(height: 1, color: AppColors.grey200),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: titleColor ?? AppColors.textDark,
                       ),
                     ),
-                ],
+                    if (subtitle != null) ...[
+                      const SizedBox(width: 6),
+                      const Text(
+                        '|',
+                        style: TextStyle(
+                          color: AppColors.grey300,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          subtitle!,
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: AppColors.textGrey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              item.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              '${item.price.toVnd()}đ',
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.primaryOrange),
-            ),
-          ],
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.grey400,
+                size: 20,
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
-
-  Widget _fallback() => Container(
-        color: AppColors.grey200,
-        child: const Center(
-          child: Icon(Icons.fastfood_rounded, color: AppColors.grey400),
-        ),
-      );
 }
 
 // ── Option group section ──────────────────────────────────────────────────────
@@ -678,66 +598,139 @@ class _FoodMetaSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAvailable = food.isAvailable;
+    final category = food.categoryName?.isNotEmpty == true
+        ? food.categoryName!
+        : 'Đang cập nhật';
+    final optionCount = food.optionGroups.length;
+
     return Container(
       margin: const EdgeInsets.only(top: 8),
       color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Thông tin món ăn', style: AppTextStyles.h3),
-          const SizedBox(height: 10),
-          _MetaRow(
-            label: 'Danh mục',
-            value: food.categoryName?.isNotEmpty == true
-                ? food.categoryName!
-                : 'Đang cập nhật',
+          const SizedBox(height: 14),
+
+          // ── 3 thẻ thông tin ───────────────────────────────────────────
+          Row(
+            children: [
+              // Danh mục
+              Expanded(
+                child: _MetaChip(
+                  icon: Icons.category_rounded,
+                  iconColor: const Color(0xFF7C3AED),
+                  bgColor: const Color(0xFFF3EEFF),
+                  label: 'Danh mục',
+                  value: category,
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Tình trạng
+              Expanded(
+                child: _MetaChip(
+                  icon: isAvailable
+                      ? Icons.check_circle_rounded
+                      : Icons.cancel_rounded,
+                  iconColor: isAvailable
+                      ? AppColors.successGreen
+                      : AppColors.errorRed,
+                  bgColor: isAvailable
+                      ? AppColors.successGreen.withValues(alpha: 0.08)
+                      : AppColors.errorRed.withValues(alpha: 0.08),
+                  label: 'Tình trạng',
+                  value: isAvailable ? 'Đặt ngay' : 'Tạm hết',
+                  valueColor: isAvailable
+                      ? AppColors.successGreen
+                      : AppColors.errorRed,
+                ),
+              ),
+            ],
           ),
-          _MetaRow(
-            label: 'Tình trạng',
-            value: food.isAvailable ? 'Có thể đặt ngay' : 'Tạm hết',
-          ),
-          _MetaRow(
-            label: 'Tuỳ chọn thêm',
-            value: '${food.optionGroups.length} nhóm lựa chọn',
-            hideDivider: true,
-          ),
+          if (optionCount > 0) ...[
+            const SizedBox(height: 10),
+            // Tuỳ chọn — full width nếu có
+            _MetaChip(
+              icon: Icons.tune_rounded,
+              iconColor: AppColors.primaryOrange,
+              bgColor: AppColors.primaryOrange.withValues(alpha: 0.08),
+              label: 'Tuỳ chọn',
+              value: '$optionCount nhóm — chọn thêm để tùy biến món',
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({
+    required this.icon,
+    required this.iconColor,
+    required this.bgColor,
     required this.label,
     required this.value,
-    this.hideDivider = false,
+    this.valueColor,
   });
 
+  final IconData icon;
+  final Color iconColor;
+  final Color bgColor;
   final String label;
   final String value;
-  final bool hideDivider;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 9),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        border: hideDivider
-            ? null
-            : const Border(bottom: BorderSide(color: AppColors.grey200)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 16, color: iconColor),
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              label,
-              style:
-                  AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textGrey,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: valueColor ?? AppColors.textDark,
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-          Text(value, style: AppTextStyles.bodyMedium),
         ],
       ),
     );

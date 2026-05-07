@@ -2,7 +2,6 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../../app/routes/app_routes.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../data/models/home_items.dart';
@@ -22,33 +21,13 @@ class HomePopularSection extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text(
-                  'Thực đơn',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => Get.toNamed(AppRoutes.allCategories),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.primaryOrange,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  child: const Text('Xem tất cả'),
-                ),
-              ],
+            const Text(
+              'Thực đơn',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 12),
             Column(

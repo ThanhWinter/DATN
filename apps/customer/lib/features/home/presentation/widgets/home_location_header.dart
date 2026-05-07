@@ -9,12 +9,32 @@ import '../../../profile/presentation/controllers/profile_controller.dart';
 import '../controllers/home_controller.dart';
 import 'location_picker_sheet.dart';
 
+/// Header toàn bộ trang chủ.
+///
+/// Các controller được resolve **một lần duy nhất** trong `build()` của widget gốc,
+/// sau đó Rx-value được truyền xuống sub-widget qua constructor.
+/// Điều này đảm bảo:
+/// - `Get.find<T>()` KHÔNG bao giờ được gọi bên trong `Obx()` callback.
+/// - Nếu một controller chưa được đăng ký (e.g. race condition lúc khởi động),
+///   toàn bộ header vẫn render thay vì crash.
 class HomeLocationHeader extends StatelessWidget {
   const HomeLocationHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
+    // Resolve controllers một lần — O(1) HashMap lookup, KHÔNG phải trong Obx.
+    final homeCtrl = Get.find<HomeController>();
+    final profileCtrl = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : null;
+    final notifCtrl = Get.isRegistered<NotificationController>()
+        ? Get.find<NotificationController>()
+        : null;
+    final mainCtrl = Get.isRegistered<MainController>()
+        ? Get.find<MainController>()
+        : null;
+
+    return ColoredBox(
       color: AppColors.white,
       child: SafeArea(
         bottom: false,
@@ -22,27 +42,30 @@ class HomeLocationHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 22, 16, 0),
+              padding: const EdgeInsets.fromLTRB(20, 22, 16, 0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ── User avatar (initials) ────────────────────────────────
-                  _UserAvatar(),
-                  SizedBox(width: 10),
-
-                  // ── Delivery address ──────────────────────────────────────
-                  Expanded(child: _DeliveryAddress()),
-
-                  // ── Notification + Cart ───────────────────────────────────
-                  _NotificationBell(),
-                  SizedBox(width: 4),
-                  _CartButton(),
+                  _UserAvatar(profileCtrl: profileCtrl),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _DeliveryAddress(locationName: homeCtrl.locationName),
+                  ),
+                  // RepaintBoundary cô lập các badge — khi badge đổi giá trị,
+                  // chỉ widget con đó repaint, không kéo theo cả Row.
+                  RepaintBoundary(
+                    child: _NotificationBell(unreadCount: notifCtrl?.unreadCount),
+                  ),
+                  const SizedBox(width: 4),
+                  RepaintBoundary(
+                    child: _CartButton(badgeCount: mainCtrl?.cartItemBadgeCount),
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 14),
-            _SearchBar(),
-            SizedBox(height: 18),
+            const SizedBox(height: 14),
+            const _SearchBar(),
+            const SizedBox(height: 18),
           ],
         ),
       ),
@@ -50,52 +73,59 @@ class HomeLocationHeader extends StatelessWidget {
   }
 }
 
-// ── User Avatar (initials circle) ─────────────────────────────────────────────
+// ── User Avatar ───────────────────────────────────────────────────────────────
 
 class _UserAvatar extends StatelessWidget {
-  const _UserAvatar();
+  const _UserAvatar({required this.profileCtrl});
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.editProfile),
-      child: Obx(() {
-        final profile = Get.find<ProfileController>().user.value;
-        final initials = _initials(profile?.firstName, profile?.lastName);
-        return Container(
-          width: 40,
-          height: 40,
-          decoration: const BoxDecoration(
-            color: Color(0xFFFFE8D6),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              initials,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryOrange,
-              ),
-            ),
-          ),
-        );
-      }),
-    );
-  }
+  final ProfileController? profileCtrl;
 
-  String _initials(String? first, String? last) {
+  static String _initials(String? first, String? last) {
     final f = first?.isNotEmpty == true ? first![0].toUpperCase() : '';
     final l = last?.isNotEmpty == true ? last![0].toUpperCase() : '';
     if (f.isEmpty && l.isEmpty) return '?';
     return '$f$l';
   }
+
+  static const TextStyle _kStyle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+    color: AppColors.primaryOrange,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.editProfile),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFE8D6),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: profileCtrl == null
+              ? const Text('?', style: _kStyle)
+              : Obx(() {
+                  // Chỉ Obx nhỏ này rebuild khi user thay đổi — không bọc Container.
+                  final u = profileCtrl!.user.value;
+                  return Text(_initials(u?.firstName, u?.lastName),
+                      style: _kStyle);
+                }),
+        ),
+      ),
+    );
+  }
 }
 
-// ── Delivery Address (tapable) ────────────────────────────────────────────────
+// ── Delivery Address ──────────────────────────────────────────────────────────
 
-class _DeliveryAddress extends GetView<HomeController> {
-  const _DeliveryAddress();
+class _DeliveryAddress extends StatelessWidget {
+  const _DeliveryAddress({required this.locationName});
+
+  // Nhận Rx trực tiếp thay vì cả controller — tách biệt dependency.
+  final RxString locationName;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +145,7 @@ class _DeliveryAddress extends GetView<HomeController> {
           ),
           const SizedBox(height: 2),
           Obx(() {
-            final name = controller.locationName.value;
+            final name = locationName.value;
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -160,7 +190,9 @@ void _openLocationPicker() {
 // ── Notification Bell ─────────────────────────────────────────────────────────
 
 class _NotificationBell extends StatelessWidget {
-  const _NotificationBell();
+  const _NotificationBell({required this.unreadCount});
+
+  final RxInt? unreadCount;
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +205,7 @@ class _NotificationBell extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
+            // Icon tĩnh — không bao giờ rebuild.
             Container(
               width: 38,
               height: 38,
@@ -186,26 +219,34 @@ class _NotificationBell extends StatelessWidget {
                 color: AppColors.textDark,
               ),
             ),
-            Obx(() {
-              final count =
-                  Get.find<NotificationController>().unreadCount.value;
-              if (count == 0) return const SizedBox.shrink();
-              return Positioned(
-                top: 5,
-                right: 4,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: AppColors.errorRed,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 1.5),
-                  ),
-                ),
-              );
-            }),
+            // Chỉ badge nhỏ này rebuild khi count thay đổi.
+            if (unreadCount != null)
+              Obx(() => unreadCount!.value == 0
+                  ? const SizedBox.shrink()
+                  : const Positioned(
+                      top: 5,
+                      right: 4,
+                      child: _UnreadDot(),
+                    )),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _UnreadDot extends StatelessWidget {
+  const _UnreadDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(
+        color: AppColors.errorRed,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.white, width: 1.5),
       ),
     );
   }
@@ -214,7 +255,9 @@ class _NotificationBell extends StatelessWidget {
 // ── Cart Button ───────────────────────────────────────────────────────────────
 
 class _CartButton extends StatelessWidget {
-  const _CartButton();
+  const _CartButton({required this.badgeCount});
+
+  final RxInt? badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -227,6 +270,7 @@ class _CartButton extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
+            // Icon tĩnh — không bao giờ rebuild.
             Container(
               width: 38,
               height: 38,
@@ -240,37 +284,49 @@ class _CartButton extends StatelessWidget {
                 color: AppColors.textDark,
               ),
             ),
-            Obx(() {
-              final count =
-                  Get.find<MainController>().cartItemBadgeCount.value;
-              if (count == 0) return const SizedBox.shrink();
-              return Positioned(
-                top: 5,
-                right: 3,
-                child: Container(
-                  constraints:
-                      const BoxConstraints(minWidth: 16, minHeight: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryOrange,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.white, width: 1.5),
-                  ),
-                  child: Text(
-                    count > 9 ? '9+' : '$count',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            }),
+            if (badgeCount != null)
+              Obx(() {
+                final count = badgeCount!.value;
+                return count == 0
+                    ? const SizedBox.shrink()
+                    : Positioned(
+                        top: 5,
+                        right: 3,
+                        child: _CartBadge(count: count),
+                      );
+              }),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Badge riêng biệt — `const` khi count không đổi nhờ Flutter's element reuse.
+class _CartBadge extends StatelessWidget {
+  const _CartBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 3),
+      decoration: BoxDecoration(
+        color: AppColors.primaryOrange,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.white, width: 1.5),
+      ),
+      child: Text(
+        count > 9 ? '9+' : '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          height: 1.2,
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }
@@ -300,10 +356,7 @@ class _SearchBar extends StatelessWidget {
               SizedBox(width: 10),
               Text(
                 'Bạn muốn ăn gì hôm nay?',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.textLight,
-                ),
+                style: TextStyle(fontSize: 13, color: AppColors.textLight),
               ),
             ],
           ),

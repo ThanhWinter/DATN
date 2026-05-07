@@ -7,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
-import '../../../notifications/presentation/controllers/notification_controller.dart';
 import '../../data/models/home_items.dart';
 import '../../data/repositories/home_repository.dart';
 
@@ -24,11 +23,6 @@ class HomeController extends GetxController {
   final locationName = ''.obs;
   final isLocating = false.obs;
   final pickerAddress = ''.obs;
-
-  // ── Thông báo ────────────────────────────────────────────────────────────────
-  NotificationController get _notificationController =>
-      Get.find<NotificationController>();
-  final RxInt unreadNotificationCount = 0.obs;
 
   // ── Danh mục ─────────────────────────────────────────────────────────────────
   final categories = <CategoryItem>[].obs;
@@ -54,21 +48,10 @@ class HomeController extends GetxController {
   /// Toàn bộ món đã tải — dùng cho tìm kiếm client-side.
   List<FoodItemModel> get allFoodItems => List.unmodifiable(_foodsMaster);
 
-  Worker? _unreadSyncWorker;
-
   @override
   void onInit() {
     super.onInit();
-    unreadNotificationCount.value = _notificationController.unreadCount.value;
-    _unreadSyncWorker = ever(_notificationController.unreadCount,
-        (val) => unreadNotificationCount.value = val);
     SchedulerBinding.instance.addPostFrameCallback((_) => loadData());
-  }
-
-  @override
-  void onClose() {
-    _unreadSyncWorker?.dispose();
-    super.onClose();
   }
 
   Future<void> selectCategory(int? id) async {
@@ -83,8 +66,8 @@ class HomeController extends GetxController {
   // ── Location Picker ──────────────────────────────────────────────────────────
 
   void initPickerLocation() {
+    // Chỉ sync địa chỉ hiện tại vào picker — GPS fetch là opt-in khi user nhấn nút.
     pickerAddress.value = locationName.value;
-    fetchCurrentLocation();
   }
 
   void updatePickerAddress(String address) {

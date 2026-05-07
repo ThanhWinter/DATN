@@ -28,7 +28,6 @@ class FoodDetailController extends GetxController {
   final canAddToCart = false.obs;
   final isFavorite = false.obs; // Rule #2 — explicit RxBool
   final rating = Rx<FoodRatingModel>(FoodRatingModel.empty);
-  final relatedFoods = <FoodItemModel>[].obs;
 
   @override
   void onInit() {
@@ -133,7 +132,6 @@ class FoodDetailController extends GetxController {
       error.value = null;
       rating.value = FoodRatingModel.empty;
       isFavorite.value = false;
-      relatedFoods.clear();
       food.value = await _repository.getFoodById(id);
       dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
       _recalc();
@@ -154,7 +152,6 @@ class FoodDetailController extends GetxController {
     await Future.wait([
       _safeLoadFavorite(id),
       _safeLoadRating(id),
-      _loadRelatedFoods(),
     ]);
   }
 
@@ -197,18 +194,4 @@ class FoodDetailController extends GetxController {
     canAddToCart.value = allGroupsSatisfied;
   }
 
-  Future<void> _loadRelatedFoods() async {
-    final current = food.value;
-    if (current == null || current.categoryId <= 0) {
-      relatedFoods.clear();
-      return;
-    }
-    try {
-      final items = await _repository.getFoodsByCategory(current.categoryId);
-      relatedFoods.assignAll(items.where((e) => e.id != current.id).take(8));
-    } catch (e) {
-      dev.log('[FOOD_DETAIL] ⚠️ getFoodsByCategory error: $e');
-      relatedFoods.clear();
-    }
-  }
 }

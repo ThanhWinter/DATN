@@ -8,6 +8,7 @@ class AddressBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<AddressController>(
       () => AddressController(Get.find<AddressRepository>()),
+      fenix: true,
     );
   }
 }

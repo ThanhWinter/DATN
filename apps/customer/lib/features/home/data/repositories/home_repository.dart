@@ -1,25 +1,21 @@
+import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:isolate';
 
 import 'package:core_network/core_network.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/home_items.dart';
 
 List<FoodItemModel> _parseFoodList(List<dynamic> raw) =>
     raw.map((e) => FoodItemModel.fromJson(e as Map<String, dynamic>)).toList();
 
+const _nominatimUserAgent = 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)';
+
 class HomeRepository {
   HomeRepository(this._apiClient);
 
   final IApiClient _apiClient;
-
-  final _nominatimClient = ApiClient(
-    baseUrl: 'https://nominatim.openstreetmap.org',
-    defaultHeaders: const {
-      'Content-Type': 'application/json',
-      'User-Agent': 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)',
-    },
-  );
 
   Future<List<HomePromoBannerItem>> fetchPromoBanners() async {
     final response = await _apiClient.get('/settings/banners');
@@ -59,16 +55,21 @@ class HomeRepository {
 
   Future<String> reverseGeocode(double lat, double lng) async {
     try {
-      final data = await _nominatimClient.get(
-        '/reverse',
-        query: {
-          'format': 'json',
-          'lat': lat.toStringAsFixed(7),
-          'lon': lng.toStringAsFixed(7),
-          'zoom': '18',
-          'accept-language': 'vi',
-        },
-      );
+      final uri = Uri.https('nominatim.openstreetmap.org', '/reverse', {
+        'format': 'json',
+        'lat': lat.toStringAsFixed(7),
+        'lon': lng.toStringAsFixed(7),
+        'zoom': '18',
+        'accept-language': 'vi',
+      });
+      final res = await http
+          .get(uri, headers: {'User-Agent': _nominatimUserAgent})
+          .timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) {
+        dev.log('[HOME] ⚠️ reverseGeocode HTTP ${res.statusCode}');
+        return 'Không xác định được địa chỉ';
+      }
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
       return data['display_name']?.toString() ?? 'Không xác định được địa chỉ';
     } catch (e) {
       dev.log('[HOME] ⚠️ reverseGeocode error: $e');

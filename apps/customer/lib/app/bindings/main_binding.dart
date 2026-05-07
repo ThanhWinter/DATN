@@ -41,10 +41,10 @@ class MainBinding extends Bindings {
       fenix: true,
     );
 
-    Get.lazyPut<CartRepository>(() => CartRepository(), fenix: true);
-    Get.lazyPut<CartController>(
-      () => CartController(Get.find<CartRepository>()),
-      fenix: true,
+    Get.put<CartRepository>(CartRepository(), permanent: true);
+    Get.put<CartController>(
+      CartController(Get.find<CartRepository>()),
+      permanent: true,
     );
 
     Get.lazyPut<InteractionRepository>(
@@ -80,6 +80,7 @@ class MainBinding extends Bindings {
 
     Get.lazyPut<AddressRepository>(
       () => AddressRepository(Get.find<IApiClient>()),
+      fenix: true,
     );
 
     Get.lazyPut<ProfileRepository>(
