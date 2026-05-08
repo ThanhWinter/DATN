@@ -1,5 +1,8 @@
+import "dart:async";
 import "dart:convert";
 import "dart:developer" as dev;
+import "dart:isolate";
+import "dart:typed_data";
 
 import "package:http/http.dart" as http;
 import "package:http_parser/http_parser.dart";
@@ -8,8 +11,40 @@ import "package:http_parser/http_parser.dart";
 const bool _isReleaseMode = bool.fromEnvironment("dart.vm.product");
 const int _maxLoggedBodyChars = 2500;
 
+// Threshold 10 KB: nhỏ hơn thì parse trực tiếp, lớn hơn thì ném sang isolate.
+const int _isolateThreshold = 10 * 1024;
+
+// Đọc StreamedResponse theo từng chunk với giới hạn kích thước.
+// Thay thế http.Response.fromStream để tránh RAM spike khi server trả về dữ liệu lớn.
+const int _maxResponseBytes = 8 * 1024 * 1024; // 8 MB
+
+Future<http.Response> _readStreamedResponse(http.StreamedResponse streamed) async {
+  final builder = BytesBuilder(copy: false);
+  await for (final chunk in streamed.stream) {
+    builder.add(chunk);
+    if (builder.length > _maxResponseBytes) {
+      throw ApiException(
+        statusCode: streamed.statusCode,
+        message: 'Response vượt giới hạn ${_maxResponseBytes ~/ (1024 * 1024)} MB',
+      );
+    }
+  }
+  return http.Response.bytes(
+    builder.takeBytes(),
+    streamed.statusCode,
+    headers: streamed.headers,
+    request: streamed.request,
+    isRedirect: streamed.isRedirect,
+    persistentConnection: streamed.persistentConnection,
+    reasonPhrase: streamed.reasonPhrase,
+  );
+}
+
 Future<Map<String, dynamic>> _parseResponseBodyToMap(String body) async {
   if (body.isEmpty) return <String, dynamic>{};
+  if (body.length > _isolateThreshold) {
+    return await Isolate.run(() => jsonDecode(body) as Map<String, dynamic>);
+  }
   return jsonDecode(body) as Map<String, dynamic>;
 }
 
@@ -85,13 +120,22 @@ class AuthHttpClient extends http.BaseClient {
   final http.Client _inner;
   String? token;
 
+  static const Duration _timeout = Duration(seconds: 20);
+
   @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) {
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (token != null && token!.isNotEmpty) {
       request.headers['Authorization'] = 'Bearer $token';
     }
     dev.log('🚀 [API] ${request.method} ${request.url}');
-    return _inner.send(request);
+    try {
+      return await _inner.send(request).timeout(_timeout);
+    } on TimeoutException {
+      throw ApiException(
+        statusCode: 408,
+        message: 'Kết nối quá lâu. Vui lòng kiểm tra mạng và thử lại.',
+      );
+    }
   }
 }
 
@@ -273,7 +317,7 @@ class ApiClient implements IApiClient {
         }
         dev.log('🚀 [API MULTIPART] POST ${request.url} | fields: ${request.fields.keys.toList()}');
         final streamed = await _httpClient.send(request);
-        final res = await http.Response.fromStream(streamed);
+        final res = await _readStreamedResponse(streamed);
         return await _handleResponse(res);
       });
 
@@ -302,7 +346,7 @@ class ApiClient implements IApiClient {
         }
         dev.log('🚀 [API MULTIPART] PUT ${request.url} | fields: ${request.fields.keys.toList()}');
         final streamed = await _httpClient.send(request);
-        final res = await http.Response.fromStream(streamed);
+        final res = await _readStreamedResponse(streamed);
         return await _handleResponse(res);
       });
 
@@ -320,7 +364,7 @@ class ApiClient implements IApiClient {
     ));
     dev.log('🚀 [API UPLOAD] POST ${request.url}');
     final streamed = await _httpClient.send(request);
-    final res = await http.Response.fromStream(streamed);
+    final res = await _readStreamedResponse(streamed);
     final ok = res.statusCode >= 200 && res.statusCode < 300;
     dev.log('${ok ? '✅' : '❌'} [API UPLOAD] ${res.statusCode} → ${res.body}');
     if (ok) return res.body.trim();

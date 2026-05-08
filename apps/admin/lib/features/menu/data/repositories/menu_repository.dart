@@ -131,7 +131,9 @@ class MenuRepository {
       '/foods',
       fields: {
         'name': name,
-        'price': price.toString(),
+        'price': price == price.truncateToDouble()
+            ? price.toInt().toString()
+            : price.toString(),
         'categoryId': categoryId.toString(),
         if (description != null && description.isNotEmpty)
           'description': description,
@@ -248,13 +250,16 @@ class MenuRepository {
   }) async {
     dev.log('[MENU/REPO] Updating food id=$id: $name | price=$price | hasImage=${imageBytes != null}');
 
+    final priceStr = price == price.truncateToDouble()
+        ? price.toInt().toString()
+        : price.toString();
     final Map<String, dynamic> res;
     if (imageBytes != null) {
       res = await _apiClient.multipartPut(
         '/foods/$id',
         fields: {
           'name': name,
-          'price': price.toString(),
+          'price': priceStr,
           'categoryId': categoryId.toString(),
           if (description != null && description.isNotEmpty)
             'description': description,
@@ -273,7 +278,7 @@ class MenuRepository {
         '/foods/$id',
         fields: {
           'name': name,
-          'price': price.toString(),
+          'price': priceStr,
           'categoryId': categoryId.toString(),
           if (description != null && description.isNotEmpty)
             'description': description,

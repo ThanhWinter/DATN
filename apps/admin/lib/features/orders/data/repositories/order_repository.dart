@@ -66,19 +66,15 @@ class OrderRepository {
     );
   }
 
-  /// Badge tab Đơn hàng: PENDING + PAID (cùng bucket “chờ xử lý” như [OrderController]).
+  /// Badge tab Đơn hàng: PENDING + PAID + PREPARING + DELIVERING.
   Future<int> fetchPendingBucketBadgeCount() async {
-    final r1 = await fetchOrdersPage(
-      status: OrderModel.statusPending,
-      page: 0,
-      size: 1,
-    );
-    final r2 = await fetchOrdersPage(
-      status: OrderModel.statusPaid,
-      page: 0,
-      size: 1,
-    );
-    return r1.totalElements + r2.totalElements;
+    final results = await Future.wait([
+      fetchOrdersPage(status: OrderModel.statusPending, page: 0, size: 1),
+      fetchOrdersPage(status: OrderModel.statusPaid, page: 0, size: 1),
+      fetchOrdersPage(status: OrderModel.statusPreparing, page: 0, size: 1),
+      fetchOrdersPage(status: OrderModel.statusDelivering, page: 0, size: 1),
+    ]);
+    return results.fold<int>(0, (sum, r) => sum + r.totalElements);
   }
 
   Future<OrderModel> getOrderDetail(String orderId) async {

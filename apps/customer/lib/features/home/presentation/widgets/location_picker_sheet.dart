@@ -1,8 +1,35 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../controllers/home_controller.dart';
+
+Future<List<String>> _searchNominatim(String query) async {
+  if (query.trim().length < 3) return [];
+  try {
+    final uri = Uri.https('nominatim.openstreetmap.org', '/search', {
+      'q': query.trim(),
+      'format': 'json',
+      'limit': '5',
+      'accept-language': 'vi',
+    });
+    final res = await http
+        .get(uri, headers: {'User-Agent': 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)'})
+        .timeout(const Duration(seconds: 6));
+    if (res.statusCode != 200) return [];
+    final list = jsonDecode(res.body) as List<dynamic>;
+    return list
+        .map((e) => (e as Map<String, dynamic>)['display_name']?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
+  } catch (_) {
+    return [];
+  }
+}
 
 class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key});
@@ -15,6 +42,9 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   late final HomeController _controller;
   late final TextEditingController _textController;
   late final Worker _addressWorker;
+  Timer? _debounce;
+  List<String> _suggestions = [];
+  bool _searching = false;
 
   @override
   void initState() {
@@ -22,25 +52,54 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     _controller = Get.find<HomeController>();
     _textController = TextEditingController(text: _controller.pickerAddress.value);
 
-    // Khi GPS lấy được địa chỉ mới → cập nhật text field tự động
+    // Khi GPS lấy được địa chỉ mới → cập nhật text field và xóa gợi ý
     _addressWorker = ever(_controller.pickerAddress, (String address) {
       if (_textController.text != address) {
         _textController.text = address;
-        _textController.selection = TextSelection.collapsed(
-          offset: address.length,
-        );
+        _textController.selection = TextSelection.collapsed(offset: address.length);
+        if (mounted) setState(() => _suggestions = []);
       }
     });
 
-    // Tự động hỏi quyền & lấy GPS ngay khi sheet mở
     _controller.initPickerLocation();
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _addressWorker.dispose();
     _textController.dispose();
     super.dispose();
+  }
+
+  void _onAddressChanged(String val) {
+    _controller.updatePickerAddress(val);
+    _debounce?.cancel();
+    if (val.trim().length < 3) {
+      if (_suggestions.isNotEmpty || _searching) {
+        setState(() {
+          _suggestions = [];
+          _searching = false;
+        });
+      }
+      return;
+    }
+    setState(() => _searching = true);
+    _debounce = Timer(const Duration(milliseconds: 600), () async {
+      final results = await _searchNominatim(val);
+      if (!mounted) return;
+      setState(() {
+        _suggestions = results;
+        _searching = false;
+      });
+    });
+  }
+
+  void _pickSuggestion(String address) {
+    _textController.text = address;
+    _textController.selection = TextSelection.collapsed(offset: address.length);
+    _controller.updatePickerAddress(address);
+    setState(() => _suggestions = []);
   }
 
   @override
@@ -48,7 +107,6 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Padding(
-      // Đẩy nội dung lên khi bàn phím mở
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: const BoxDecoration(
@@ -84,10 +142,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
             ),
             const SizedBox(height: 20),
 
-            // ── Text field địa chỉ (có thể sửa) ───────────────────────────
+            // ── Text field địa chỉ ─────────────────────────────────────────
             TextField(
               controller: _textController,
-              onChanged: _controller.updatePickerAddress,
+              onChanged: _onAddressChanged,
               style: AppTextStyles.bodyMedium,
               maxLines: 2,
               minLines: 1,
@@ -97,16 +155,29 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 hintStyle: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textLight,
                 ),
-                prefixIcon: const Icon(
-                  Icons.location_on_rounded,
-                  color: AppColors.primaryOrange,
-                  size: 20,
-                ),
+                prefixIcon: _searching
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryOrange,
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.primaryOrange,
+                        size: 20,
+                      ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.close, size: 18, color: AppColors.textGrey),
                   onPressed: () {
                     _textController.clear();
                     _controller.updatePickerAddress('');
+                    setState(() => _suggestions = []);
                   },
                 ),
                 filled: true,
@@ -132,9 +203,63 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                 ),
               ),
             ),
+
+            // ── Danh sách gợi ý địa chỉ ───────────────────────────────────
+            if (_suggestions.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.grey200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: _suggestions.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(height: 1, indent: 44),
+                  itemBuilder: (_, i) => InkWell(
+                    onTap: () => _pickSuggestion(_suggestions[i]),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: AppColors.primaryOrange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _suggestions[i],
+                              style: AppTextStyles.bodyMedium,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
 
-            // ── Nút lấy GPS (retry nếu cần) ────────────────────────────────
+            // ── Nút lấy GPS ────────────────────────────────────────────────
             Obx(() {
               final locating = _controller.isLocating.value;
               return OutlinedButton.icon(

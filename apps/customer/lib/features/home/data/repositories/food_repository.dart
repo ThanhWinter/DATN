@@ -12,4 +12,12 @@ class FoodRepository {
     final result = response['result'] as Map<String, dynamic>;
     return FoodItemModel.fromJson(result);
   }
+
+  Future<List<FoodItemModel>> getFoodsByCategory(int categoryId) async {
+    final response = await _apiClient.get('/foods/category/$categoryId');
+    final list = response['result'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => FoodItemModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 }

@@ -13,8 +13,16 @@ class OtpView extends StatefulWidget {
 }
 
 class _OtpViewState extends State<OtpView> {
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _controllers =
+      List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  // ValueNotifier per box — KHÔNG dùng setState toàn widget, tránh xung đột animation.
+  final List<ValueNotifier<bool>> _focusedNotifiers =
+      List.generate(6, (_) => ValueNotifier(false));
+  final List<ValueNotifier<bool>> _hasValueNotifiers =
+      List.generate(6, (_) => ValueNotifier(false));
+
   late final OtpController controller;
 
   @override
@@ -25,13 +33,14 @@ class _OtpViewState extends State<OtpView> {
     for (int i = 0; i < 6; i++) {
       final index = i;
 
-      // Backspace trên ô trống → xóa ô trước và lùi focus
+      // Backspace trên ô trống → xóa ô trước và lùi focus.
       _focusNodes[index].onKeyEvent = (_, event) {
         if (event is KeyDownEvent &&
             event.logicalKey == LogicalKeyboardKey.backspace &&
             _controllers[index].text.isEmpty &&
             index > 0) {
           _controllers[index - 1].clear();
+          _hasValueNotifiers[index - 1].value = false;
           _focusNodes[index - 1].requestFocus();
           _onOtpChanged();
           return KeyEventResult.handled;
@@ -39,8 +48,9 @@ class _OtpViewState extends State<OtpView> {
         return KeyEventResult.ignored;
       };
 
-      // Select-all khi focus vào ô đã có số → gõ đè ngay
+      // Cập nhật notifier — KHÔNG gọi setState.
       _focusNodes[index].addListener(() {
+        _focusedNotifiers[index].value = _focusNodes[index].hasFocus;
         if (_focusNodes[index].hasFocus && _controllers[index].text.isNotEmpty) {
           _controllers[index].selection = TextSelection(
             baseOffset: 0,
@@ -59,6 +69,12 @@ class _OtpViewState extends State<OtpView> {
     for (var f in _focusNodes) {
       f.dispose();
     }
+    for (var n in _focusedNotifiers) {
+      n.dispose();
+    }
+    for (var n in _hasValueNotifiers) {
+      n.dispose();
+    }
     super.dispose();
   }
 
@@ -76,19 +92,30 @@ class _OtpViewState extends State<OtpView> {
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background Gradient ────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primaryOrangeDark,
-                  AppColors.primaryOrange,
-                  AppColors.primaryOrangeLight,
-                ],
+          // ── Background Image ───────────────────────────────────────────────
+          Positioned.fill(
+            child: Image.asset(
+              "assets/images/otp_bg.jpg",
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: AppColors.primaryOrangeDark,
+              ),
+            ),
+          ),
+
+          // ── Dark overlay ──────────────────────────────────────────────────
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.35),
+                    Colors.black.withValues(alpha: 0.75),
+                    Colors.black.withValues(alpha: 0.92),
+                  ],
+                ),
               ),
             ),
           ),
@@ -99,7 +126,7 @@ class _OtpViewState extends State<OtpView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAppBar(),
-                
+
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -107,55 +134,57 @@ class _OtpViewState extends State<OtpView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 32),
-                        
+
                         Text(
                           "Xác thực OTP",
                           style: AppTextStyles.h1.copyWith(
-                            fontSize: 28,
+                            fontSize: 30,
                             fontWeight: FontWeight.bold,
                             color: AppColors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        
-                        const SizedBox(height: 12),
-                        
+
+                        const SizedBox(height: 10),
+
                         Obx(() => RichText(
-                          text: TextSpan(
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              color: AppColors.white.withValues(alpha: 0.8),
-                            ),
-                            children: [
-                              const TextSpan(text: "Mã xác thực đã được gửi đến email "),
-                              TextSpan(
-                                text: controller.email.value,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.accentGold,
-                                  fontWeight: FontWeight.bold,
+                              text: TextSpan(
+                                style: AppTextStyles.bodyLarge.copyWith(
+                                  color: AppColors.white.withValues(alpha: 0.75),
+                                  height: 1.5,
                                 ),
+                                children: [
+                                  const TextSpan(
+                                      text: "Mã xác thực đã được gửi đến\n"),
+                                  TextSpan(
+                                    text: controller.email.value,
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      color: AppColors.accentGold,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        )),
-                        
-                        const SizedBox(height: 48),
-                        
-                        // ── OTP Input Fields ────────────────────────────────
+                            )),
+
+                        const SizedBox(height: 52),
+
                         _buildOtpInput(),
-                        
-                        const SizedBox(height: 48),
-                        
-                        // ── Nút Xác thực ─────────────────────────────────────
+
+                        const SizedBox(height: 52),
+
                         Obx(() => GradientActionButton(
-                          icon: Icons.verified_user_outlined,
-                          iconColor: AppColors.primaryOrange,
-                          text: "Xác thực ngay",
-                          isPrimary: true,
-                          onTap: controller.isLoading.value ? () {} : controller.verify,
-                        )),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // ── Gửi lại mã OTP ────────────────────────────────────
+                              icon: Icons.verified_user_outlined,
+                              iconColor: AppColors.primaryOrange,
+                              text: "Xác thực ngay",
+                              isPrimary: true,
+                              onTap: controller.isLoading.value
+                                  ? () {}
+                                  : controller.verify,
+                            )),
+
+                        const SizedBox(height: 28),
+
                         Obx(() {
                           final countdown = controller.resendCountdown.value;
                           final isResending = controller.isResending.value;
@@ -180,7 +209,8 @@ class _OtpViewState extends State<OtpView> {
                                           : "Chưa nhận được mã? Gửi lại",
                                       style: AppTextStyles.labelLarge.copyWith(
                                         color: countdown > 0
-                                            ? AppColors.white.withValues(alpha: 0.5)
+                                            ? AppColors.white
+                                                .withValues(alpha: 0.45)
                                             : AppColors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -226,23 +256,17 @@ class _OtpViewState extends State<OtpView> {
   Widget _buildOtpInput() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(
-        6,
-        (index) => Container(
-          width: 45,
-          height: 55,
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.white.withValues(alpha: 0.3),
-              width: 1,
-            ),
-          ),
+      children: List.generate(6, (index) {
+        // AnimatedBuilder lắng nghe 2 notifier — chỉ rebuild 1 box, không ảnh hưởng
+        // route transition animation của màn hình.
+        return AnimatedBuilder(
+          animation: Listenable.merge(
+              [_focusedNotifiers[index], _hasValueNotifiers[index]]),
           child: TextField(
             controller: _controllers[index],
             focusNode: _focusNodes[index],
             onChanged: (value) {
+              _hasValueNotifiers[index].value = value.isNotEmpty;
               if (value.isNotEmpty && index < 5) {
                 _focusNodes[index + 1].requestFocus();
               } else if (value.isEmpty && index > 0) {
@@ -250,7 +274,11 @@ class _OtpViewState extends State<OtpView> {
               }
               _onOtpChanged();
             },
-            style: AppTextStyles.h2.copyWith(color: AppColors.white),
+            style: AppTextStyles.h2.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            ),
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             inputFormatters: [
@@ -262,8 +290,44 @@ class _OtpViewState extends State<OtpView> {
               counterText: "",
             ),
           ),
-        ),
-      ),
+          builder: (_, child) {
+            final isFocused = _focusedNotifiers[index].value;
+            final hasValue = _hasValueNotifiers[index].value;
+
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 48,
+              height: 60,
+              decoration: BoxDecoration(
+                color: isFocused
+                    ? AppColors.white.withValues(alpha: 0.22)
+                    : hasValue
+                        ? AppColors.white.withValues(alpha: 0.16)
+                        : AppColors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isFocused
+                      ? AppColors.accentGold
+                      : hasValue
+                          ? AppColors.white.withValues(alpha: 0.5)
+                          : AppColors.white.withValues(alpha: 0.2),
+                  width: isFocused ? 2 : 1.2,
+                ),
+                boxShadow: isFocused
+                    ? [
+                        BoxShadow(
+                          color: AppColors.accentGold.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: child,
+            );
+          },
+        );
+      }),
     );
   }
 }

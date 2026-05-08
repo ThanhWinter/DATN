@@ -10,6 +10,7 @@ import '../../../../app/services/zalopay_service.dart';
 import '../../../cart/data/models/cart_item_model.dart';
 import '../../../cart/presentation/controllers/cart_controller.dart';
 import '../../../orders/data/models/coupon_model.dart';
+import '../../../home/presentation/controllers/home_controller.dart';
 import '../../../orders/data/repositories/order_repository.dart';
 import '../../data/repositories/coupon_repository.dart';
 import '../../data/repositories/payment_repository.dart';
@@ -37,6 +38,7 @@ class CheckoutController extends GetxController {
   final couponError = ''.obs;
   final discountAmount = 0.0.obs;
   final errorMessage = ''.obs;
+  final deliveryAddress = ''.obs;
 
   // Explicit RxDouble — không dùng computed getter trong Obx (Rule #2)
   final subtotal = 0.0.obs;
@@ -56,6 +58,11 @@ class CheckoutController extends GetxController {
       subtotal.value = val;
       _updateFinalTotal();
     });
+    final homeAddr = Get.find<HomeController>().locationName.value;
+    if (homeAddr.isNotEmpty) {
+      addressController.text = homeAddr;
+      deliveryAddress.value = homeAddr;
+    }
   }
 
   @override
@@ -223,6 +230,12 @@ class CheckoutController extends GetxController {
 
   void applySelectedAddress(String address) {
     addressController.text = address;
+    deliveryAddress.value = address;
+  }
+
+  Future<void> applyCouponByCode(String code) async {
+    couponCodeController.text = code;
+    await applyCoupon();
   }
 
   // ── Private ──────────────────────────────────────────────────────────────────

@@ -11,7 +11,10 @@
       "PowerShell($buildDir = \"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\"; if \\(Test-Path $buildDir\\) { Remove-Item -Recurse -Force $buildDir -ErrorAction SilentlyContinue; Write-Host \"Deleted: $buildDir\" } else { Write-Host \"Not found: $buildDir\" })",
       "Bash(flutter clean *)",
       "Bash(cmd /c \"rd /s /q \\\\\"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\\\\app\\\\intermediates\\\\incremental\\\\debug\\\\mergeDebugResources\\\\\"\")",
-      "Bash(cmd /c \"rd /s /q \\\\\"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\\\\app\\\\\"\")"
+      "Bash(cmd /c \"rd /s /q \\\\\"C:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\admin\\\\build\\\\app\\\\\"\")",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\customer\\\\lib\" -Recurse | Select-Object -Property FullName | ForEach-Object { $_.FullName } | Sort-Object)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Documents\\\\FOOD\\\\food_hit\\\\apps\\\\customer\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

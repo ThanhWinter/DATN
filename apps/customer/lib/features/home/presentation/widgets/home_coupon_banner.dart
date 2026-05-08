@@ -5,82 +5,52 @@ import 'package:get/get.dart';
 import '../../../coupons/presentation/controllers/coupon_list_controller.dart';
 import '../../../main/presentation/controllers/main_controller.dart';
 
+/// Thanh nhỏ hiển thị số ưu đãi khả dụng — chỉ xuất hiện khi có coupon.
 class HomeCouponBanner extends StatelessWidget {
   const HomeCouponBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final count =
-          Get.find<CouponListController>().availableCoupons.length;
+      final count = Get.find<CouponListController>().availableCoupons.length;
+      if (count == 0) return const SizedBox.shrink();
 
       return GestureDetector(
         onTap: () => Get.find<MainController>().onTabChanged(2),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          margin: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryOrange, AppColors.primaryOrangeLight],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+            color: AppColors.primaryOrange.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.primaryOrange.withValues(alpha: 0.25),
             ),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primaryOrange.withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.local_offer_rounded,
-                  color: AppColors.white,
-                  size: 22,
+              Text(
+                '$count ưu đãi đang chờ bạn',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryOrange,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      count > 0
-                          ? '$count ưu đãi đang chờ bạn!'
-                          : 'Khám phá ưu đãi hôm nay',
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      count > 0
-                          ? 'Nhấn để xem và áp dụng mã giảm giá'
-                          : 'Mã giảm giá cập nhật thường xuyên',
-                      style: TextStyle(
-                        color: AppColors.white.withValues(alpha: 0.85),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+              const Spacer(),
+              const Text(
+                'Xem ngay',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryOrange,
                 ),
               ),
+              const SizedBox(width: 2),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: AppColors.white,
-                size: 20,
+                size: 16,
+                color: AppColors.primaryOrange,
               ),
             ],
           ),

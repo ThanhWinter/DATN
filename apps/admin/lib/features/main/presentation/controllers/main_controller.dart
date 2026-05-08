@@ -13,7 +13,7 @@ class MainController extends GetxController {
 
   final currentIndex = 0.obs;
 
-  /// PENDING + PAID (cùng badge tab Đơn hàng).
+  /// PENDING + PAID + PREPARING + DELIVERING (chờ xác nhận + đang xử lý).
   final pendingOrderBadgeCount = 0.obs;
 
   @override

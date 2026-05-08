@@ -12,7 +12,7 @@ class AddressController extends GetxController {
   final AddressRepository _repository;
 
   final isLoading = true.obs;
-  final error = Rxn<String>();
+  final error = Rxn<Object>();
   final addresses = <UserAddressModel>[].obs;
   final isSubmitting = false.obs;
 

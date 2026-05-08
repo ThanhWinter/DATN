@@ -24,7 +24,7 @@ class MainController extends GetxController {
   /// Ưu đãi: làm mới từ GET /coupons/public-list; tab Ưu đãi có thể cập nhật lại sau load.
   final availableCouponCount = 0.obs;
 
-  static const int _tabOrders = 3;
+  static const int _tabOrders = 2;
 
   @override
   void onInit() {

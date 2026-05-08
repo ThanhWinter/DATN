@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,18 +10,33 @@ import '../../../../features/main/presentation/controllers/main_controller.dart'
 import '../../../../features/orders/data/models/coupon_model.dart';
 import '../controllers/coupon_list_controller.dart';
 
+// ── Palette màu cho các card (cycling) ───────────────────────────────────────
+const _kCardColors = [
+  Color(0xFF3CB878), // xanh lá
+  Color(0xFFFF9F1C), // cam
+  Color(0xFFE8445A), // hồng đỏ
+  Color(0xFF3A86FF), // xanh dương
+  Color(0xFF8338EC), // tím
+  Color(0xFF06D6A0), // xanh ngọc
+];
+
+// Icon food gợi ý — cycling khi không có ảnh thật
+const _kFoodIcons = [
+  Icons.lunch_dining_rounded,
+  Icons.local_pizza_rounded,
+  Icons.ramen_dining_rounded,
+  Icons.rice_bowl_rounded,
+  Icons.bakery_dining_rounded,
+  Icons.fastfood_rounded,
+];
+
 int _couponListItemCount(int availableLen, int expiredLen) {
   var n = 0;
-  if (availableLen > 0) {
-    n += 2 + availableLen;
-  }
-  if (expiredLen > 0) {
-    n += 3 + expiredLen;
-  }
+  if (availableLen > 0) n += 2 + availableLen;
+  if (expiredLen > 0) n += 3 + expiredLen;
   return n;
 }
 
-/// Linear index → widget (lazy `ListView.builder`).
 Widget _buildCouponListItem(
   int index,
   List<CouponModel> available,
@@ -29,40 +46,39 @@ Widget _buildCouponListItem(
   var i = index;
   if (available.isNotEmpty) {
     if (i == 0) {
-      return _SectionLabel(
-        label: 'Có thể sử dụng',
-        count: available.length,
-      );
+      return _SectionLabel(label: 'Ưu đãi đang hoạt động', count: available.length);
     }
-    if (i == 1) return const SizedBox(height: 10);
+    if (i == 1) return const SizedBox(height: 12);
     if (i < 2 + available.length) {
+      final idx = i - 2;
       return _CouponCard(
-        coupon: available[i - 2],
+        coupon: available[idx],
         isExpired: false,
         isTab: isTab,
+        colorIndex: idx,
       );
     }
     i -= 2 + available.length;
   }
   if (expired.isNotEmpty) {
-    if (i == 0) return const SizedBox(height: 20);
+    if (i == 0) return const SizedBox(height: 24);
     if (i == 1) {
-      return _SectionLabel(
-        label: 'Đã hết hạn',
-        count: expired.length,
-      );
+      return _SectionLabel(label: 'Đã hết hạn', count: expired.length);
     }
-    if (i == 2) return const SizedBox(height: 10);
+    if (i == 2) return const SizedBox(height: 12);
     if (i < 3 + expired.length) {
       return _CouponCard(
         coupon: expired[i - 3],
         isExpired: true,
         isTab: isTab,
+        colorIndex: i - 3,
       );
     }
   }
   return const SizedBox.shrink();
 }
+
+// ── View ──────────────────────────────────────────────────────────────────────
 
 class CouponListView extends StatefulWidget {
   const CouponListView({super.key, this.isTab = false});
@@ -88,12 +104,13 @@ class _CouponListViewState extends State<CouponListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey100,
+      backgroundColor: const Color(0xFFF4F4F8),
       appBar: AppBar(
-        title: Text(
-          'Ưu đãi của bạn',
-          style: AppTextStyles.h3.copyWith(
+        title: const Text(
+          'Ưu đãi đặc biệt',
+          style: TextStyle(
             color: AppColors.white,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -120,9 +137,9 @@ class _CouponListViewState extends State<CouponListView> {
                   SliverFillRemaining(
                     child: AppEmptyState(
                       icon: Icons.local_offer_outlined,
-                      message: 'Chưa có danh sách hiển thị',
+                      message: 'Chưa có ưu đãi nào',
                       subMessage:
-                          'Chưa có mã khuyến mãi công khai từ cửa hàng, hoặc tải danh sách thất bại. Bạn vẫn có thể nhập mã thủ công ở bước thanh toán.',
+                          'Cửa hàng chưa có mã khuyến mãi công khai. Bạn vẫn có thể nhập mã thủ công ở bước thanh toán.',
                     ),
                   ),
                 ],
@@ -130,14 +147,15 @@ class _CouponListViewState extends State<CouponListView> {
             );
           }
 
-          final itemCount = _couponListItemCount(available.length, expired.length);
+          final itemCount =
+              _couponListItemCount(available.length, expired.length);
 
           return RefreshIndicator(
             onRefresh: controller.loadCoupons,
             color: AppColors.primaryOrange,
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
               itemCount: itemCount,
               itemBuilder: (context, index) => _buildCouponListItem(
                 index,
@@ -153,6 +171,8 @@ class _CouponListViewState extends State<CouponListView> {
   }
 }
 
+// ── Section label ─────────────────────────────────────────────────────────────
+
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.label, required this.count});
 
@@ -163,23 +183,27 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(label,
-            style: AppTextStyles.labelLarge.copyWith(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w700,
-            )),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark,
+          ),
+        ),
         const SizedBox(width: 8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(
             color: AppColors.primaryOrange.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             '$count',
-            style: AppTextStyles.bodySmall.copyWith(
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: AppColors.primaryOrange,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ),
@@ -188,181 +212,92 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
+// ── Coupon Card ───────────────────────────────────────────────────────────────
+
 class _CouponCard extends StatelessWidget {
-  const _CouponCard({required this.coupon, required this.isExpired, this.isTab = false});
+  const _CouponCard({
+    required this.coupon,
+    required this.isExpired,
+    required this.colorIndex,
+    this.isTab = false,
+  });
 
   final CouponModel coupon;
   final bool isExpired;
+  final int colorIndex;
   final bool isTab;
 
-  String get _discountLabel {
-    if (coupon.discountType == 'PERCENTAGE') {
-      return '${coupon.discountValue.toInt()}%';
-    }
-    return '${coupon.discountValue.toInt().toVnd()}đ';
+  Color get _cardColor {
+    if (isExpired) return const Color(0xFF9E9E9E);
+    return _kCardColors[colorIndex % _kCardColors.length];
   }
 
-  String get _discountDesc {
-    if (coupon.discountType == 'PERCENTAGE') {
-      final cap = coupon.maxDiscount != null
-          ? ' (tối đa ${coupon.maxDiscount!.toInt().toVnd()}đ)'
-          : '';
-      return 'Giảm ${coupon.discountValue.toInt()}%$cap';
+  IconData get _foodIcon => _kFoodIcons[colorIndex % _kFoodIcons.length];
+
+  String get _discountBig {
+    if (coupon.discountType == CouponModel.typePercent) {
+      return '${coupon.discountValue.toInt()}%';
     }
-    return 'Giảm ${coupon.discountValue.toInt().toVnd()}đ';
+    return '${(coupon.discountValue / 1000).toStringAsFixed(0)}K';
+  }
+
+  String get _line1 {
+    if (coupon.discountType == CouponModel.typePercent) {
+      final cap = coupon.maxDiscount != null
+          ? ' TỐI ĐA ${(coupon.maxDiscount! / 1000).toStringAsFixed(0)}K'
+          : '';
+      return 'GIẢM GIÁ$cap';
+    }
+    return 'GIẢM TIỀN MẶT';
+  }
+
+  String get _line2 {
+    final now = DateTime.now().toUtc();
+    final exp = coupon.expiresAt.toUtc();
+    final diff = exp.difference(now).inDays;
+    if (isExpired) return 'ĐÃ HẾT HẠN';
+    if (diff == 0) return 'CHỈ TRONG HÔM NAY!';
+    if (diff <= 3) return 'HẾT HẠN TRONG $diff NGÀY!';
+    return 'ÁP DỤNG NGAY!';
   }
 
   @override
   Widget build(BuildContext context) {
-    final color = isExpired ? AppColors.grey400 : AppColors.primaryOrange;
-    final bgColor = isExpired ? AppColors.grey200 : AppColors.white;
-
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Opacity(
-        opacity: isExpired ? 0.6 : 1.0,
+        opacity: isExpired ? 0.55 : 1.0,
         child: Container(
           decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: isExpired
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.06),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      color: _cardColor.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
                   ],
           ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
               children: [
-                // Left — discount value
-                Container(
-                  width: 90,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _discountLabel,
-                        style: AppTextStyles.h1.copyWith(
-                          color: AppColors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        coupon.discountType == 'PERCENTAGE'
-                            ? 'GIẢM GIÁ'
-                            : 'TIỀN MẶT',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                // ── Phần trên: màu + thông tin ưu đãi ──────────────────
+                _CardTop(
+                  cardColor: _cardColor,
+                  discountBig: _discountBig,
+                  line1: _line1,
+                  line2: _line2,
+                  foodIcon: _foodIcon,
                 ),
-                // Dashed divider
-                _DashedDivider(color: color),
-                // Right — info
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _discountDesc,
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.textDark,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        if (coupon.minOrderValue != null)
-                          Text(
-                            'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textGrey,
-                            ),
-                          ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'HSD: ${DateFormat('dd/MM/yyyy').format(coupon.expiresAt)}',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: isExpired
-                                ? AppColors.errorRed
-                                : AppColors.textGrey,
-                          ),
-                        ),
-                        if (coupon.usageLimit != null) ...[
-                          const SizedBox(height: 6),
-                          _RemainingBadge(
-                            remaining: coupon.usageLimit! - coupon.usedCount,
-                            total: coupon.usageLimit!,
-                            isExpired: isExpired,
-                          ),
-                        ],
-                        const SizedBox(height: 10),
-                        // Code + buttons
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: color,
-                                  style: BorderStyle.solid,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                coupon.code,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: color,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            if (!isExpired) ...[
-                              _IconBtn(
-                                icon: Icons.copy_rounded,
-                                color: color,
-                                tooltip: 'Sao chép',
-                                onTap: () => _copyCode(context),
-                              ),
-                              const SizedBox(width: 6),
-                              _UseCouponBtn(
-                                color: color,
-                                onTap: () => _useCoupon(context),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                // ── Phần dưới: mã code + nút bấm ───────────────────────
+                _CardBottom(
+                  coupon: coupon,
+                  cardColor: _cardColor,
+                  isExpired: isExpired,
+                  isTab: isTab,
                 ),
               ],
             ),
@@ -371,20 +306,265 @@ class _CouponCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  void _copyCode(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: coupon.code));
-    Get.snackbar(
-      'Đã sao chép',
-      'Mã "${coupon.code}" đã được sao chép.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.successGreen,
-      colorText: AppColors.white,
-      duration: const Duration(seconds: 2),
+// ── Card top (colored hero area) ──────────────────────────────────────────────
+
+class _CardTop extends StatelessWidget {
+  const _CardTop({
+    required this.cardColor,
+    required this.discountBig,
+    required this.line1,
+    required this.line2,
+    required this.foodIcon,
+  });
+
+  final Color cardColor;
+  final String discountBig;
+  final String line1;
+  final String line2;
+  final IconData foodIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 130,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background
+          Positioned.fill(child: ColoredBox(color: cardColor)),
+
+          // Decorative circles — rear
+          Positioned(
+            right: -32,
+            top: -32,
+            child: _Circle(
+              size: 160,
+              color: Colors.white.withValues(alpha: 0.10),
+            ),
+          ),
+          Positioned(
+            right: 40,
+            bottom: -28,
+            child: _Circle(
+              size: 90,
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+
+          // Food icon circle — front right
+          Positioned(
+            right: -14,
+            top: 10,
+            child: Container(
+              width: 108,
+              height: 108,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                foodIcon,
+                size: 52,
+                color: Colors.white.withValues(alpha: 0.90),
+              ),
+            ),
+          ),
+
+          // Left text content
+          Positioned(
+            left: 20,
+            top: 0,
+            bottom: 0,
+            right: 110,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Big discount number
+                Text(
+                  discountBig,
+                  style: const TextStyle(
+                    fontSize: 52,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    height: 1.0,
+                    letterSpacing: -1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Line 1
+                Text(
+                  line1,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.8,
+                    height: 1.3,
+                  ),
+                ),
+                // Line 2
+                Text(
+                  line2,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    letterSpacing: 0.6,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Card bottom (white info + actions) ───────────────────────────────────────
+
+class _CardBottom extends StatelessWidget {
+  const _CardBottom({
+    required this.coupon,
+    required this.cardColor,
+    required this.isExpired,
+    required this.isTab,
+  });
+
+  final CouponModel coupon;
+  final Color cardColor;
+  final bool isExpired;
+  final bool isTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final expiryText =
+        'HSD: ${DateFormat('dd/MM/yyyy').format(coupon.expiresAt)}';
+    final minText = coupon.minOrderValue != null
+        ? 'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ'
+        : null;
+
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Row(
+        children: [
+          // Info + code
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Code pill
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: cardColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: cardColor.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    coupon.code,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: cardColor,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                // Expiry + min order
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 11,
+                      color: isExpired
+                          ? AppColors.errorRed
+                          : AppColors.textGrey,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      expiryText,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isExpired
+                            ? AppColors.errorRed
+                            : AppColors.textGrey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (minText != null) ...[
+                      const SizedBox(width: 8),
+                      const Text(
+                        '·',
+                        style: TextStyle(
+                          color: AppColors.grey400,
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          minText,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textGrey,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (coupon.usageLimit != null) ...[
+                  const SizedBox(height: 3),
+                  _RemainingBar(
+                    remaining: coupon.usageLimit! - coupon.usedCount,
+                    total: coupon.usageLimit!,
+                    color: cardColor,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // Action buttons
+          if (!isExpired) ...[
+            const SizedBox(width: 8),
+            _ActionBtn(
+              label: 'Dùng ngay',
+              icon: Icons.arrow_forward_rounded,
+              color: cardColor,
+              outlined: false,
+              onTap: () => _useCoupon(),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
-  void _useCoupon(BuildContext context) {
+  void _useCoupon() {
+    // Nếu mở từ checkout (returnOnSelect = true) → trả mã về, không navigate tab
+    final args = Get.arguments;
+    final returnOnSelect =
+        args is Map && (args['returnOnSelect'] as bool? ?? false);
+    if (returnOnSelect) {
+      Get.back(result: coupon.code);
+      return;
+    }
     Clipboard.setData(ClipboardData(text: coupon.code));
     if (!isTab) Get.back();
     Get.find<MainController>().onTabChanged(1);
@@ -395,110 +575,68 @@ class _CouponCard extends StatelessWidget {
       backgroundColor: AppColors.primaryOrange,
       colorText: AppColors.white,
       duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(12),
+      borderRadius: 10,
     );
   }
 }
 
-class _IconBtn extends StatelessWidget {
-  const _IconBtn({
-    required this.icon,
-    required this.color,
-    required this.tooltip,
-    required this.onTap,
-  });
+// ── Helper widgets ────────────────────────────────────────────────────────────
 
-  final IconData icon;
+class _Circle extends StatelessWidget {
+  const _Circle({required this.size, required this.color});
+
+  final double size;
   final Color color;
-  final String tooltip;
-  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(icon, size: 16, color: color),
-      ),
-    );
-  }
-}
-
-class _UseCouponBtn extends StatelessWidget {
-  const _UseCouponBtn({required this.color, required this.onTap});
-
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
+          shape: BoxShape.circle,
           color: color,
-          borderRadius: BorderRadius.circular(6),
         ),
-        child: Text(
-          'Dùng ngay',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
+      );
 }
 
-class _DashedDivider extends StatelessWidget {
-  const _DashedDivider({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 16,
-      child: CustomPaint(
-        painter: _DashedLinePainter(color: color),
-      ),
-    );
-  }
-}
-
-class _RemainingBadge extends StatelessWidget {
-  const _RemainingBadge({
+class _RemainingBar extends StatelessWidget {
+  const _RemainingBar({
     required this.remaining,
     required this.total,
-    required this.isExpired,
+    required this.color,
   });
 
   final int remaining;
   final int total;
-  final bool isExpired;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final isEmpty = remaining <= 0;
-    final color = isExpired || isEmpty ? AppColors.grey400 : AppColors.primaryOrange;
+    final ratio = isEmpty ? 0.0 : math.min(remaining / total, 1.0);
     return Row(
       children: [
-        Icon(Icons.confirmation_num_outlined, size: 12, color: color),
-        const SizedBox(width: 4),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 4,
+              backgroundColor: AppColors.grey200,
+              valueColor: AlwaysStoppedAnimation(
+                isEmpty ? AppColors.grey400 : color,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
         Text(
-          isEmpty
-              ? 'Đã hết lượt sử dụng'
-              : 'Còn lại $remaining/$total lượt',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: color,
+          isEmpty ? 'Hết lượt' : 'Còn $remaining',
+          style: TextStyle(
+            fontSize: 10,
             fontWeight: FontWeight.w600,
+            color: isEmpty ? AppColors.grey400 : color,
           ),
         ),
       ],
@@ -506,33 +644,55 @@ class _RemainingBadge extends StatelessWidget {
   }
 }
 
-class _DashedLinePainter extends CustomPainter {
-  _DashedLinePainter({required this.color});
+class _ActionBtn extends StatelessWidget {
+  const _ActionBtn({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.outlined,
+    required this.onTap,
+  });
 
+  final String label;
+  final IconData icon;
   final Color color;
+  final bool outlined;
+  final VoidCallback onTap;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color.withValues(alpha: 0.35)
-      ..strokeWidth = 1;
-
-    const dashHeight = 5.0;
-    const dashSpace = 4.0;
-    double y = 0;
-    final x = size.width / 2;
-
-    while (y < size.height) {
-      canvas.drawLine(Offset(x, y), Offset(x, y + dashHeight), paint);
-      y += dashHeight + dashSpace;
-    }
-
-    // Circular cutouts
-    final cutPaint = Paint()..color = AppColors.grey100;
-    canvas.drawCircle(Offset(x, 0), 10, cutPaint);
-    canvas.drawCircle(Offset(x, size.height), 10, cutPaint);
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: outlined ? Colors.transparent : color,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color,
+            width: outlined ? 1.5 : 0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: outlined ? color : AppColors.white,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              icon,
+              size: 13,
+              color: outlined ? color : AppColors.white,
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

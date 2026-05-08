@@ -70,7 +70,8 @@ class RegisterController extends GetxController {
         colorText: AppColors.white,
         duration: const Duration(seconds: 3),
       );
-      await Future.delayed(const Duration(milliseconds: 500));
+      // 800ms cho snackbar animation hoàn tất trước khi route transition bắt đầu.
+      await Future.delayed(const Duration(milliseconds: 800));
       Get.toNamed(AppRoutes.otpVerification, arguments: email.trim());
     } catch (e) {
       dev.log("[AUTH/REGISTER] ❌ Register failed: $e");
@@ -145,6 +146,8 @@ class RegisterController extends GetxController {
         "User already existed!" => "Email này đã được đăng ký. Vui lòng dùng email khác.",
         "Validation failed" => "Thông tin đăng ký không hợp lệ. Vui lòng kiểm tra lại.",
         "Unknow exception!" => "Lỗi máy chủ. Vui lòng thử lại sau.",
+        "Kết nối quá lâu. Vui lòng kiểm tra mạng và thử lại." =>
+          "Kết nối quá lâu. Vui lòng kiểm tra mạng và thử lại.",
         _ => "Đăng ký thất bại. Vui lòng thử lại.",
       };
 }

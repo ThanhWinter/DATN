@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:math' as math;
 
+import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
@@ -29,7 +30,7 @@ class MenuController extends GetxController {
   final unavailableFoodCount = 0.obs;
 
   // ── Client-side cache (toàn bộ món từ API) + phân trang ảo UI ─────────────
-  static final List<FoodModel> _foodsMaster = [];
+  final List<FoodModel> _foodsMaster = [];
 
   List<FoodModel> _filteredView = [];
   int _visibleCount = 0;
@@ -119,6 +120,15 @@ class MenuController extends GetxController {
     _applyFilters(resetWindow: true);
   }
 
+  bool get isFiltered =>
+      selectedCategoryId.value != null || searchQuery.value.isNotEmpty;
+
+  void clearFilters() {
+    selectedCategoryId.value = null;
+    searchQuery.value = '';
+    _applyFilters(resetWindow: true);
+  }
+
   void updateSearch(String q) {
     searchQuery.value = q.trim().toLowerCase();
   }
@@ -140,6 +150,7 @@ class MenuController extends GetxController {
   @override
   void onClose() {
     _loadMoreDebounce?.cancel();
+    _foodsMaster.clear();
     super.onClose();
   }
 
@@ -244,7 +255,10 @@ class MenuController extends GetxController {
       dev.log('[MENU/VM] ✅ Category $id deleted');
     } catch (e) {
       dev.log('[MENU/VM] ❌ deleteCategory error: $e');
-      Get.snackbar('Lỗi', 'Không thể xoá danh mục: $e',
+      final msg = e is ApiException && e.statusCode == 409
+          ? 'Danh mục này vẫn còn món ăn liên kết, vui lòng xoá hoặc chuyển danh mục cho các món ăn trước.'
+          : 'Không thể xoá danh mục: $e';
+      Get.snackbar('Không thể xoá', msg,
           backgroundColor: AppColors.errorRed, colorText: AppColors.white);
     } finally {
       isMutating.value = false;

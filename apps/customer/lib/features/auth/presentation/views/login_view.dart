@@ -12,19 +12,31 @@ class LoginView extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background Gradient ─────────────────────────────────
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primaryOrangeDark,
-                  AppColors.primaryOrange,
-                  AppColors.primaryOrangeLight,
-                ],
+          // ── Background Image ─────────────────────────────────────────
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/login_bg.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.primaryOrangeDark,
+                );
+              },
+            ),
+          ),
+          // Dark overlay để chữ đọc rõ hơn
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xB3000000),
+                    Color(0x66000000),
+                    Color(0x32000000),
+                  ],
+                ),
               ),
             ),
           ),
@@ -85,7 +97,7 @@ class LoginView extends StatelessWidget {
                       fontSize: 48,
                       fontStyle: FontStyle.italic,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.accentGold,
+                      color: AppColors.primaryOrange,
                       shadows: [
                         Shadow(
                           color: AppColors.black.withValues(alpha: 0.3),
@@ -126,7 +138,7 @@ class LoginView extends StatelessWidget {
                     text: "món ngon ",
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 30,
-                      color: AppColors.accentGold,
+                      color: AppColors.primaryOrange,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -135,7 +147,7 @@ class LoginView extends StatelessWidget {
                     text: "FoodHit.",
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 30,
-                      color: AppColors.accentGold,
+                      color: AppColors.primaryOrange,
                       fontWeight: FontWeight.w800,
                     ),
                   ),

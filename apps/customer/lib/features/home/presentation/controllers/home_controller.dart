@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:flutter/scheduler.dart';
@@ -6,7 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
-import '../../../notifications/presentation/controllers/notification_controller.dart';
 import '../../data/models/home_items.dart';
 import '../../data/repositories/home_repository.dart';
 
@@ -24,11 +24,6 @@ class HomeController extends GetxController {
   final isLocating = false.obs;
   final pickerAddress = ''.obs;
 
-  // ── Thông báo ────────────────────────────────────────────────────────────────
-  NotificationController get _notificationController =>
-      Get.find<NotificationController>();
-  final RxInt unreadNotificationCount = 0.obs;
-
   // ── Danh mục ─────────────────────────────────────────────────────────────────
   final categories = <CategoryItem>[].obs;
   final selectedCategoryId = Rxn<int>(); // null = Tất cả
@@ -40,8 +35,8 @@ class HomeController extends GetxController {
   // ── Banner quảng cáo ─────────────────────────────────────────────────────────
   final promoBanners = <HomePromoBannerItem>[].obs;
 
-  // ── Toàn bộ món (cache static) + phân trang ảo UI (chunk 20) ─────────────────
-  static final List<FoodItemModel> _foodsMaster = [];
+  // ── Toàn bộ món + phân trang ảo UI (chunk 20) ───────────────────────────────
+  final List<FoodItemModel> _foodsMaster = [];
   List<FoodItemModel> _filteredView = [];
   int _visibleCount = 0;
   static const int _uiChunk = 20;
@@ -53,26 +48,15 @@ class HomeController extends GetxController {
   /// Toàn bộ món đã tải — dùng cho tìm kiếm client-side.
   List<FoodItemModel> get allFoodItems => List.unmodifiable(_foodsMaster);
 
-  Worker? _unreadSyncWorker;
-
   @override
   void onInit() {
     super.onInit();
-    unreadNotificationCount.value = _notificationController.unreadCount.value;
-    _unreadSyncWorker = ever(_notificationController.unreadCount,
-        (val) => unreadNotificationCount.value = val);
     SchedulerBinding.instance.addPostFrameCallback((_) => loadData());
   }
 
-  @override
-  void onClose() {
-    _unreadSyncWorker?.dispose();
-    super.onClose();
-  }
-
-  void selectCategory(int? id) {
+  Future<void> selectCategory(int? id) async {
     selectedCategoryId.value = id;
-    _applyFilters(resetWindow: true);
+    await _applyFilters(resetWindow: true);
   }
 
   void navigateToFoodDetail(FoodItemModel item) {
@@ -82,8 +66,8 @@ class HomeController extends GetxController {
   // ── Location Picker ──────────────────────────────────────────────────────────
 
   void initPickerLocation() {
+    // Chỉ sync địa chỉ hiện tại vào picker — GPS fetch là opt-in khi user nhấn nút.
     pickerAddress.value = locationName.value;
-    fetchCurrentLocation();
   }
 
   void updatePickerAddress(String address) {
@@ -94,11 +78,22 @@ class HomeController extends GetxController {
     try {
       isLocating.value = true;
 
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        Get.snackbar(
+          'GPS chưa bật',
+          'Vui lòng bật GPS trong cài đặt điện thoại',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
       }
-      if (permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
         Get.snackbar(
           'Không có quyền vị trí',
           'Vui lòng cấp quyền vị trí trong cài đặt điện thoại',
@@ -107,10 +102,25 @@ class HomeController extends GetxController {
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
-      );
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings:
+              const LocationSettings(accuracy: LocationAccuracy.medium),
+        ).timeout(const Duration(seconds: 10));
+      } catch (_) {
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      if (position == null) {
+        Get.snackbar(
+          'Không lấy được vị trí',
+          'Vui lòng nhập địa chỉ thủ công hoặc thử lại.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       pickerAddress.value = await _repository.reverseGeocode(
         position.latitude,
         position.longitude,
@@ -119,7 +129,7 @@ class HomeController extends GetxController {
       dev.log('[HOME] ❌ fetchCurrentLocation error: $e');
       Get.snackbar(
         'Lỗi vị trí',
-        'Không thể lấy vị trí hiện tại. Vui lòng thử lại.',
+        'Không thể lấy vị trí. Vui lòng nhập địa chỉ thủ công.',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
@@ -136,13 +146,18 @@ class HomeController extends GetxController {
 
   // ── Client-side filtered list + UI window ───────────────────────────────────
 
-  void _computeFiltered() {
+  Future<void> _computeFiltered() async {
     final id = selectedCategoryId.value;
-    if (id == null) {
-      _filteredView = List<FoodItemModel>.from(_foodsMaster);
+    final master = _foodsMaster;
+    if (master.length > 200) {
+      _filteredView = await Isolate.run(() {
+        if (id == null) return List<FoodItemModel>.from(master);
+        return master.where((f) => f.categoryId == id).toList();
+      });
     } else {
-      _filteredView =
-          _foodsMaster.where((f) => f.categoryId == id).toList();
+      _filteredView = id == null
+          ? List<FoodItemModel>.from(master)
+          : master.where((f) => f.categoryId == id).toList();
     }
     totalFoodCount.value = _filteredView.length;
   }
@@ -156,11 +171,10 @@ class HomeController extends GetxController {
     }
   }
 
-  void _applyFilters({required bool resetWindow}) {
-    _computeFiltered();
+  Future<void> _applyFilters({required bool resetWindow}) async {
+    await _computeFiltered();
     if (resetWindow) {
-      _visibleCount =
-          math.min(_uiChunk, math.max(_filteredView.length, 0));
+      _visibleCount = math.min(_uiChunk, math.max(_filteredView.length, 0));
     } else {
       _visibleCount = math.min(_visibleCount, _filteredView.length);
     }
@@ -180,15 +194,39 @@ class HomeController extends GetxController {
 
   // ── Initial load ─────────────────────────────────────────────────────────────
 
+  /// Gọi API không quan trọng: nếu lỗi thì trả về [fallback] thay vì ném exception.
+  Future<T> _safe<T>(Future<T> Function() fn, T fallback) async {
+    try {
+      return await fn();
+    } catch (e) {
+      dev.log('[HOME] ⚠️ non-critical API error (ignored): $e');
+      return fallback;
+    }
+  }
+
   Future<void> loadData() async {
     isLoading.value = true;
     error.value = null;
     try {
+      // Categories và Foods là bắt buộc — nếu fail sẽ hiện màn hình lỗi.
+      // Banners và StoreSetting là phụ trợ — nếu fail thì dùng giá trị mặc định.
       final results = await Future.wait([
         _repository.fetchCategories(),
-        _repository.fetchPromoBanners(),
+        _safe(
+          _repository.fetchPromoBanners,
+          <HomePromoBannerItem>[],
+        ),
         _repository.fetchFoodItems(),
-        _repository.fetchStoreSetting(),
+        _safe(
+          _repository.fetchStoreSetting,
+          const StoreSettingModel(
+            storeName: '',
+            hotline: '',
+            isOpen: true,
+            baseShippingFee: 0,
+            freeShipThreshold: 0,
+          ),
+        ),
       ]);
 
       categories.assignAll(results[0] as List<CategoryItem>);
@@ -200,7 +238,7 @@ class HomeController extends GetxController {
       _foodsMaster
         ..clear()
         ..addAll(results[2] as List<FoodItemModel>);
-      _applyFilters(resetWindow: true);
+      await _applyFilters(resetWindow: true);
 
       await Future.delayed(Duration.zero);
       isLoading.value = false;

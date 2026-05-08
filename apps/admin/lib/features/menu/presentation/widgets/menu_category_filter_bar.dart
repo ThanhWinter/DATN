@@ -11,24 +11,78 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 64,
-      color: AppColors.mintBg,
-      child: Obx(() => ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            itemCount: controller.categories.length + 1,
-            itemBuilder: (context, index) {
-              final isAll = index == 0;
-              final cat = isAll ? null : controller.categories[index - 1];
-              final isSelected = isAll
-                  ? controller.selectedCategoryId.value == null
-                  : controller.selectedCategoryId.value == cat?.id;
+    return Obx(() {
+      final cats = controller.categories;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Header: "Danh mục" + count badge + "Xem tất cả" ──────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 8, 4),
+            child: Row(
+              children: [
+                const Text(
+                  'Danh mục',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textDark,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${cats.length}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.emerald,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                // Hiển thị theo quyền backend cho nhân viên
+                TextButton(
+                  onPressed: () => controller.selectCategory(null),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.emerald,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text('Xem tất cả'),
+                ),
+              ],
+            ),
+          ),
 
-              Widget? avatar;
-              if (!isAll) {
-                final url = cat!.imageUrl;
-                avatar = url != null
+          // ── Category chips ──────────────────────────────────────────────
+          SizedBox(
+            height: 48,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              itemCount: cats.length,
+              itemBuilder: (context, index) {
+                final cat = cats[index];
+                final isSelected =
+                    controller.selectedCategoryId.value == cat.id;
+
+                final url = cat.imageUrl;
+                final avatar = url != null
                     ? ClipOval(
                         child: AppNetworkImage(
                           url: url,
@@ -50,57 +104,58 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                               : AppColors.emerald,
                         ),
                       );
-              }
 
-              final chip = Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: InputChip(
-                  avatar: avatar,
-                  label: Text(isAll ? 'Tất cả' : cat!.name),
-                  selected: isSelected,
-                  onSelected: (_) =>
-                      controller.selectCategory(isAll ? null : cat?.id),
-                  onDeleted: !isAll
-                      ? () => _confirmDelete(context, cat!.id, cat.name)
-                      : null,
-                  deleteIcon: Icon(
-                    Icons.cancel_rounded,
-                    size: 15,
-                    color: isSelected
-                        ? AppColors.white.withValues(alpha: 0.8)
-                        : AppColors.grey400,
-                  ),
-                  selectedColor: AppColors.emerald,
-                  checkmarkColor: AppColors.white,
-                  labelStyle: AppTextStyles.bodySmall.copyWith(
-                    color: isSelected ? AppColors.white : AppColors.textGrey,
-                    fontWeight:
-                        isSelected ? FontWeight.w700 : FontWeight.normal,
-                  ),
-                  backgroundColor: AppColors.white.withValues(alpha: 0.75),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
+                final chip = Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: InputChip(
+                    avatar: avatar,
+                    label: Text(cat.name),
+                    selected: isSelected,
+                    onSelected: (_) => controller.selectCategory(cat.id),
+                    onDeleted: () =>
+                        _confirmDelete(context, cat.id, cat.name),
+                    deleteIcon: Icon(
+                      Icons.cancel_rounded,
+                      size: 15,
                       color: isSelected
-                          ? AppColors.emerald
-                          : AppColors.emerald.withValues(alpha: 0.15),
-                      width: isSelected ? 1.5 : 1,
+                          ? AppColors.white.withValues(alpha: 0.8)
+                          : AppColors.grey400,
                     ),
+                    selectedColor: AppColors.emerald,
+                    checkmarkColor: AppColors.white,
+                    labelStyle: AppTextStyles.bodySmall.copyWith(
+                      color:
+                          isSelected ? AppColors.white : AppColors.textGrey,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.normal,
+                    ),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.emerald
+                            : AppColors.emerald.withValues(alpha: 0.18),
+                        width: isSelected ? 2.0 : 1.0,
+                      ),
+                    ),
+                    showCheckmark: false,
+                    elevation: 0,
+                    pressElevation: 0,
                   ),
-                  showCheckmark: false,
-                  elevation: 0,
-                  pressElevation: 0,
-                ),
-              );
+                );
 
-              if (isAll) return chip;
-              return GestureDetector(
-                onLongPress: () => _openEditCategory(cat!),
-                child: chip,
-              );
-            },
-          )),
-    );
+                return GestureDetector(
+                  onLongPress: () => _openEditCategory(cat),
+                  child: chip,
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   void _openEditCategory(CategoryModel cat) {

@@ -15,6 +15,7 @@ abstract class AppRoutes {
   static const orderDetail = "/order-detail";
   static const editProfile = "/edit-profile";
   static const favorites = "/favorites";
+  static const allCategories = "/all-categories";
   static const reviewOrder = "/review-order";
   static const search = "/search";
   static const coupons = "/coupons";

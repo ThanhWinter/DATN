@@ -5,65 +5,132 @@ import 'package:get/get.dart';
 import '../controllers/order_controller.dart';
 import '../widgets/order_card.dart';
 
-class OrderView extends GetView<OrderController> {
+class OrderView extends StatefulWidget {
   const OrderView({super.key});
 
   @override
+  State<OrderView> createState() => _OrderViewState();
+}
+
+class _OrderViewState extends State<OrderView>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  late final OrderController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.find<OrderController>();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    // addListener fires on animation frames too; chỉ xử lý khi settle xong.
+    if (_tabController.indexIsChanging) return;
+    _controller.loadTabOnDemand(_tabController.index);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        backgroundColor: AppColors.grey100,
-        appBar: AppBar(
-          title: const Text('Đơn hàng', style: AppTextStyles.h3),
-          backgroundColor: AppColors.white,
-          bottom: TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            labelColor: AppColors.primaryOrange,
-            unselectedLabelColor: AppColors.textGrey,
-            indicatorColor: AppColors.primaryOrange,
-            labelStyle:
-                AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Chờ xác nhận'),
-              Tab(text: 'Đang xử lý'),
-              Tab(text: 'Hoàn thành'),
-              Tab(text: 'Đã huỷ'),
-            ],
-          ),
-        ),
-        body: SnapHelperWidget(
-          isLoading: controller.isLoading,
-          error: controller.error,
-          onSuccess: () => Obx(() => TabBarView(
-                children: [
-                  _OrderList(
-                    orders: controller.pendingOrders.toList(),
-                    emptyMsg: 'Không có đơn chờ xác nhận',
-                    onRefresh: controller.loadOrders,
-                    onNearEnd: () => controller.loadMoreForTab(0),
+    return Scaffold(
+      backgroundColor: AppColors.grey100,
+      appBar: AppBar(
+        title: const Text('Đơn hàng', style: AppTextStyles.h3),
+        backgroundColor: AppColors.white,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Obx(() => TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                labelColor: AppColors.primaryOrange,
+                unselectedLabelColor: AppColors.textGrey,
+                indicatorColor: AppColors.primaryOrange,
+                labelStyle: AppTextStyles.bodyMedium
+                    .copyWith(fontWeight: FontWeight.w700),
+                tabs: [
+                  Tab(
+                    text: _controller.pendingCount > 0
+                        ? 'Chờ xác nhận (${_controller.pendingCount})'
+                        : 'Chờ xác nhận',
                   ),
-                  _OrderList(
-                    orders: controller.activeOrders.toList(),
-                    emptyMsg: 'Không có đơn đang xử lý',
-                    onRefresh: controller.loadOrders,
-                    onNearEnd: () => controller.loadMoreForTab(1),
+                  Tab(
+                    text: _controller.activeCount > 0
+                        ? 'Đang xử lý (${_controller.activeCount})'
+                        : 'Đang xử lý',
                   ),
-                  _OrderList(
-                    orders: controller.completedOrders.toList(),
-                    emptyMsg: 'Chưa có đơn hoàn thành',
-                    onRefresh: controller.loadOrders,
-                    onNearEnd: () => controller.loadMoreForTab(2),
-                  ),
-                  _OrderList(
-                    orders: controller.cancelledOrders.toList(),
-                    emptyMsg: 'Không có đơn bị huỷ',
-                    onRefresh: controller.loadOrders,
-                    onNearEnd: () => controller.loadMoreForTab(3),
-                  ),
+                  const Tab(text: 'Hoàn thành'),
+                  const Tab(text: 'Đã huỷ'),
                 ],
               )),
+        ),
+      ),
+      body: SnapHelperWidget(
+        isLoading: _controller.isLoading,
+        error: _controller.error,
+        onSuccess: () => TabBarView(
+          controller: _tabController,
+          children: [
+            Obx(() => _OrderList(
+                  orders: _controller.pendingOrders.toList(),
+                  emptyMsg: 'Không có đơn chờ xác nhận',
+                  onRefresh: _controller.loadOrders,
+                  onNearEnd: () => _controller.loadMoreForTab(0),
+                )),
+            Obx(() {
+              if (_controller.loadingTabIndex.value == 1) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryOrange,
+                  ),
+                );
+              }
+              return _OrderList(
+                orders: _controller.activeOrders.toList(),
+                emptyMsg: 'Không có đơn đang xử lý',
+                onRefresh: _controller.loadOrders,
+                onNearEnd: () => _controller.loadMoreForTab(1),
+              );
+            }),
+            Obx(() {
+              if (_controller.loadingTabIndex.value == 2) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryOrange,
+                  ),
+                );
+              }
+              return _OrderList(
+                orders: _controller.completedOrders.toList(),
+                emptyMsg: 'Chưa có đơn hoàn thành',
+                onRefresh: _controller.loadOrders,
+                onNearEnd: () => _controller.loadMoreForTab(2),
+              );
+            }),
+            Obx(() {
+              if (_controller.loadingTabIndex.value == 3) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryOrange,
+                  ),
+                );
+              }
+              return _OrderList(
+                orders: _controller.cancelledOrders.toList(),
+                emptyMsg: 'Không có đơn bị huỷ',
+                onRefresh: _controller.loadOrders,
+                onNearEnd: () => _controller.loadMoreForTab(3),
+              );
+            }),
+          ],
         ),
       ),
     );

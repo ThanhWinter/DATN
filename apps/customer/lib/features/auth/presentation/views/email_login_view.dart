@@ -45,19 +45,31 @@ class _EmailLoginViewState extends State<EmailLoginView> {
     return Scaffold(
       body: Stack(
         children: [
-          // ── Background Gradient ────────────────────────────────────────────
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primaryOrangeDark,
-                  AppColors.primaryOrange,
-                  AppColors.primaryOrangeLight,
-                ],
+          // ── Background Image ──────────────────────────────────────────────
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/login_bg.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: AppColors.primaryOrangeDark,
+                );
+              },
+            ),
+          ),
+          // Dark overlay để chữ đọc rõ hơn
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xB3000000),
+                    Color(0x66000000),
+                    Color(0x32000000),
+                  ],
+                ),
               ),
             ),
           ),
@@ -138,7 +150,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                         AppColors.white.withValues(alpha: 0.7),
                                     size: 22,
                                   ),
-                                  onPressed: controller.togglePasswordVisibility,
+                                  onPressed:
+                                      controller.togglePasswordVisibility,
                                 ),
                               ),
                               errorText: controller.passwordError.value,
@@ -156,8 +169,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                               Obx(() => InkWell(
                                     onTap: controller.toggleRememberMe,
                                     borderRadius: BorderRadius.circular(8),
-                                    splashColor:
-                                        AppColors.accentGold.withValues(alpha: 0.2),
+                                    splashColor: AppColors.primaryOrange
+                                        .withValues(alpha: 0.2),
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 8, horizontal: 4),
@@ -165,19 +178,20 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           AnimatedContainer(
-                                            duration:
-                                                const Duration(milliseconds: 200),
+                                            duration: const Duration(
+                                                milliseconds: 200),
                                             width: 20,
                                             height: 20,
                                             decoration: BoxDecoration(
                                               color: controller.rememberMe.value
-                                                  ? AppColors.accentGold
+                                                  ? AppColors.primaryOrange
                                                   : AppColors.transparent,
                                               borderRadius:
                                                   BorderRadius.circular(5),
                                               border: Border.all(
-                                                color: controller.rememberMe.value
-                                                    ? AppColors.accentGold
+                                                color: controller
+                                                        .rememberMe.value
+                                                    ? AppColors.primaryOrange
                                                     : AppColors.white
                                                         .withValues(alpha: 0.6),
                                                 width: 1.5,
@@ -195,8 +209,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                           const SizedBox(width: 10),
                                           Text(
                                             "Nhớ tôi",
-                                            style:
-                                                AppTextStyles.bodyMedium.copyWith(
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
                                               color: AppColors.white,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -213,7 +227,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                                 child: Text(
                                   "Quên mật khẩu?",
                                   style: AppTextStyles.labelLarge.copyWith(
-                                    color: AppColors.accentGold,
+                                    color: AppColors.primaryOrange,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),
@@ -294,7 +308,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
             child: Text(
               errorText,
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.accentGold,
+                color: AppColors.primaryOrange,
                 fontWeight: FontWeight.w500,
               ),
             ),

@@ -19,8 +19,26 @@ class MenuView extends GetView<MenuController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.mintBg,
-      body: SnapHelperWidget(
+      backgroundColor: Colors.white,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Gradient backdrop: xanh lá nhạt → trắng, chỉ phần trên cùng
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFE8F5E9), // emerald 10% tint
+                  Colors.white,
+                  Colors.white,
+                ],
+                stops: [0.0, 0.28, 1.0],
+              ),
+            ),
+          ),
+          SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
         onSuccess: () => RefreshIndicator(
@@ -41,7 +59,7 @@ class MenuView extends GetView<MenuController> {
                 SliverAppBar(
                   floating: true,
                   pinned: true,
-                  backgroundColor: AppColors.mintBg,
+                  backgroundColor: Colors.white,
                   surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   expandedHeight: 120,
@@ -142,6 +160,8 @@ class MenuView extends GetView<MenuController> {
             ),
           ),
         ),
+      ),
+        ],
       ),
       floatingActionButton: _buildFab(),
     );
@@ -287,7 +307,7 @@ class MenuView extends GetView<MenuController> {
             child: TextButton(
               onPressed: () {
                 Get.back();
-                controller.deleteFood(food.id);
+                Future.microtask(() => controller.deleteFood(food.id));
               },
               child: Text('Xoá ngay',
                   style: AppTextStyles.bodyMedium.copyWith(

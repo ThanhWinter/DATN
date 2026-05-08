@@ -24,7 +24,9 @@ import '../bindings/notification_push_binding.dart';
 import '../bindings/order_detail_binding.dart';
 import '../../features/orders/presentation/views/order_detail_page.dart';
 import '../bindings/review_binding.dart';
+import '../bindings/banner_binding.dart';
 import '../bindings/settings_binding.dart';
+import '../../features/banners/presentation/views/banner_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -92,6 +94,11 @@ class AppPages {
       name: AppRoutes.orderDetail,
       page: () => const OrderDetailPage(),
       binding: OrderDetailBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.banners,
+      page: () => const BannerView(),
+      binding: BannerBinding(),
     ),
   ];
 }

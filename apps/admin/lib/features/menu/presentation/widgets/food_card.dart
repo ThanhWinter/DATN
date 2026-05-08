@@ -25,28 +25,14 @@ class FoodCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isAvailable
-              ? AppColors.emerald.withValues(alpha: 0.15)
+              ? AppColors.emerald.withValues(alpha: 0.20)
               : AppColors.grey300.withValues(alpha: 0.6),
-          width: 1.5,
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isAvailable
-                ? AppColors.emerald.withValues(alpha: 0.07)
-                : AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),

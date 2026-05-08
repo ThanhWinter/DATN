@@ -9,106 +9,102 @@ class MenuStatsRow extends GetView<MenuController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-          child: Row(
-            children: [
-              _StatCard(
-                label: 'Tổng số món',
-                value: '${controller.totalFoodCount.value}',
-                color: AppColors.emerald,
-                icon: Icons.restaurant_menu_rounded,
+    return Obx(() {
+      final isFiltered = controller.isFiltered;
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+        child: Row(
+          children: [
+            _Pill(
+              icon: Icons.restaurant_menu_rounded,
+              value: '${controller.totalFoodCount.value}',
+              label: 'tổng',
+              color: AppColors.emerald,
+            ),
+            const SizedBox(width: 8),
+            _Pill(
+              icon: Icons.check_circle_outline_rounded,
+              value: '${controller.availableFoodCount.value}',
+              label: 'bán',
+              color: AppColors.emeraldDark,
+            ),
+            const SizedBox(width: 8),
+            _Pill(
+              icon: Icons.remove_circle_outline_rounded,
+              value: '${controller.unavailableFoodCount.value}',
+              label: 'hết',
+              color: AppColors.errorRed,
+            ),
+            const Spacer(),
+            if (isFiltered)
+              TextButton.icon(
+                onPressed: controller.clearFilters,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.emerald,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  textStyle: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                icon: const Icon(Icons.filter_alt_off_rounded, size: 14),
+                label: const Text('Xem tất cả'),
               ),
-              const SizedBox(width: 10),
-              _StatCard(
-                label: 'Đang bán',
-                value: '${controller.availableFoodCount.value}',
-                color: AppColors.emeraldDark,
-                icon: Icons.check_circle_outline_rounded,
-              ),
-              const SizedBox(width: 10),
-              _StatCard(
-                label: 'Hết hàng',
-                value: '${controller.unavailableFoodCount.value}',
-                color: AppColors.errorRed,
-                icon: Icons.remove_circle_outline_rounded,
-              ),
-            ],
-          ),
-        ));
+          ],
+        ),
+      );
+    });
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.color,
+class _Pill extends StatelessWidget {
+  const _Pill({
     required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
   });
 
-  final String label;
-  final String value;
-  final Color color;
   final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.5,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.20), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: color.withValues(alpha: 0.75),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 14, color: color),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    value,
-                    style: AppTextStyles.h3.copyWith(
-                      color: color,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      fontSize: 10,
-                      color: AppColors.textGrey,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
