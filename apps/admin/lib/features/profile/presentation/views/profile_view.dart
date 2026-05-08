@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../app/routes/app_routes.dart';
+import '../../../../core/widgets/stat_card_widget.dart';
 import '../controllers/profile_controller.dart';
 
 class ProfileView extends GetView<ProfileController> {
@@ -237,22 +238,25 @@ class _StatsRow extends GetView<ProfileController> {
         }
         return Row(
           children: [
-            _StatCard(
+            StatCardWidget(
               label: 'Đơn hôm nay',
               value: '${controller.todayOrders.value}',
               icon: Icons.receipt_outlined,
+              color: AppColors.primaryOrange,
             ),
             const SizedBox(width: 10),
-            _StatCard(
+            StatCardWidget(
               label: 'Doanh thu',
               value: _fmtRevenue(controller.todayRevenue.value),
               icon: Icons.trending_up,
+              color: AppColors.primaryOrange,
             ),
             const SizedBox(width: 10),
-            _StatCard(
+            StatCardWidget(
               label: 'Món ăn',
               value: '${controller.totalFoods.value}',
               icon: Icons.restaurant_menu_outlined,
+              color: AppColors.primaryOrange,
             ),
           ],
         );
@@ -276,47 +280,6 @@ class _StatCardSkeleton extends StatelessWidget {
             color: AppColors.white,
             borderRadius: BorderRadius.circular(14),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard(
-      {required this.label, required this.value, required this.icon});
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 20, color: AppColors.primaryOrange),
-            const SizedBox(height: 6),
-            Text(value,
-                style: AppTextStyles.h3
-                    .copyWith(color: AppColors.primaryOrange, fontSize: 16)),
-            const SizedBox(height: 2),
-            Text(label,
-                style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
-          ],
         ),
       ),
     );

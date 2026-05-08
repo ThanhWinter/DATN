@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../data/models/coupon_model.dart';
 import '../controllers/coupon_controller.dart';
+import 'coupon_type_toggle.dart';
 
 class EditCouponSheet extends StatefulWidget {
   const EditCouponSheet({required this.coupon, super.key});
@@ -115,28 +116,9 @@ class _EditCouponSheetState extends State<EditCouponSheet> {
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _TypeButton(
-                      label: 'Theo %',
-                      icon: Icons.percent,
-                      selected: _type == CouponModel.typePercent,
-                      onTap: () =>
-                          setState(() => _type = CouponModel.typePercent),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _TypeButton(
-                      label: 'Số tiền cố định',
-                      icon: Icons.attach_money,
-                      selected: _type == CouponModel.typeFixed,
-                      onTap: () =>
-                          setState(() => _type = CouponModel.typeFixed),
-                    ),
-                  ),
-                ],
+              CouponTypeToggle(
+                selectedType: _type,
+                onChanged: (t) => setState(() => _type = t),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -213,55 +195,6 @@ class _EditCouponSheetState extends State<EditCouponSheet> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TypeButton extends StatelessWidget {
-  const _TypeButton({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primaryOrange.withValues(alpha: 0.1)
-              : AppColors.grey100,
-          border: Border.all(
-            color: selected ? AppColors.primaryOrange : AppColors.grey300,
-            width: selected ? 1.5 : 1,
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          children: [
-            Icon(icon,
-                color: selected ? AppColors.primaryOrange : AppColors.grey600),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: selected ? AppColors.primaryOrange : AppColors.textGrey,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
         ),
       ),
     );

@@ -256,6 +256,8 @@ class _CartItemTile extends StatelessWidget {
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
+                  cacheWidth: 120,
+                  cacheHeight: 120,
                   errorBuilder: (_, __, ___) => _PlaceholderBox(),
                 )
               : _PlaceholderBox(),

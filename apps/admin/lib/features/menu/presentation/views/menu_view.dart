@@ -307,7 +307,7 @@ class MenuView extends GetView<MenuController> {
             child: TextButton(
               onPressed: () {
                 Get.back();
-                controller.deleteFood(food.id);
+                Future.microtask(() => controller.deleteFood(food.id));
               },
               child: Text('Xoá ngay',
                   style: AppTextStyles.bodyMedium.copyWith(

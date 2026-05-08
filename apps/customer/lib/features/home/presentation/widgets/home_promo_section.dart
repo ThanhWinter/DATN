@@ -86,9 +86,24 @@ class _HomePromoSectionState extends State<HomePromoSection> {
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 itemBuilder: (_, i) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _BannerCard(
-                    title: banners[i].title,
+                  child: AppBannerCard(
                     imageUrl: banners[i].imageUrl,
+                    title: banners[i].title,
+                    height: 168,
+                    showGradient: true,
+                    fallbackWidget: Container(
+                      color: AppColors.primaryOrange,
+                      child: const Center(
+                        child: Text(
+                          'Ưu đãi hôm nay',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -121,90 +136,5 @@ class _HomePromoSectionState extends State<HomePromoSection> {
         ],
       );
     });
-  }
-}
-
-class _BannerCard extends StatelessWidget {
-  final String title;
-  final String? imageUrl;
-
-  const _BannerCard({required this.title, this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: SizedBox(
-        height: 168,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── Background: admin-uploaded image ───────────────────────────
-            if (imageUrl != null)
-              AppNetworkImage(
-                url: imageUrl!,
-                fit: BoxFit.cover,
-                errorWidget: _fallback(),
-              )
-            else
-              _fallback(),
-
-            // ── Gradient overlay for text legibility (bottom only) ─────────
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 90,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.65),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Banner title ────────────────────────────────────────────────
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  height: 1.3,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _fallback() {
-    return Container(
-      color: AppColors.primaryOrange,
-      child: const Center(
-        child: Text(
-          'Ưu đãi hôm nay',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-    );
   }
 }
