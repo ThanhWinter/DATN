@@ -48,29 +48,29 @@ class _OrderViewState extends State<OrderView>
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Obx(() => TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            labelColor: AppColors.primaryOrange,
-            unselectedLabelColor: AppColors.textGrey,
-            indicatorColor: AppColors.primaryOrange,
-            labelStyle:
-                AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-            tabs: [
-              Tab(
-                text: _controller.pendingCount > 0
-                    ? 'Chờ xác nhận (${_controller.pendingCount})'
-                    : 'Chờ xác nhận',
-              ),
-              Tab(
-                text: _controller.activeCount > 0
-                    ? 'Đang xử lý (${_controller.activeCount})'
-                    : 'Đang xử lý',
-              ),
-              const Tab(text: 'Hoàn thành'),
-              const Tab(text: 'Đã huỷ'),
-            ],
-          )),
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                labelColor: AppColors.primaryOrange,
+                unselectedLabelColor: AppColors.textGrey,
+                indicatorColor: AppColors.primaryOrange,
+                labelStyle: AppTextStyles.bodyMedium
+                    .copyWith(fontWeight: FontWeight.w700),
+                tabs: [
+                  Tab(
+                    text: _controller.pendingCount > 0
+                        ? 'Chờ xác nhận (${_controller.pendingCount})'
+                        : 'Chờ xác nhận',
+                  ),
+                  Tab(
+                    text: _controller.activeCount > 0
+                        ? 'Đang xử lý (${_controller.activeCount})'
+                        : 'Đang xử lý',
+                  ),
+                  const Tab(text: 'Hoàn thành'),
+                  const Tab(text: 'Đã huỷ'),
+                ],
+              )),
         ),
       ),
       body: SnapHelperWidget(
