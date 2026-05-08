@@ -2,6 +2,7 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/widgets/stat_card_widget.dart';
 import '../controllers/dashboard_controller.dart';
 
 class DashboardView extends GetView<DashboardController> {
@@ -60,26 +61,29 @@ class DashboardView extends GetView<DashboardController> {
                     const SizedBox(height: 12),
                     Obx(() => Row(
                           children: [
-                            _StatCard(
+                            StatCardWidget(
                               label: 'Đơn hàng',
                               value: '${controller.stats.value.todayOrders}',
                               icon: Icons.receipt_long_rounded,
                               color: AppColors.emerald,
+                              useGradient: true,
                             ),
                             const SizedBox(width: 10),
-                            _StatCard(
+                            StatCardWidget(
                               label: 'Doanh thu',
                               value: _fmtRevenue(
                                   controller.stats.value.todayRevenue),
                               icon: Icons.trending_up_rounded,
                               color: AppColors.emeraldDark,
+                              useGradient: true,
                             ),
                             const SizedBox(width: 10),
-                            _StatCard(
+                            StatCardWidget(
                               label: 'Món ăn',
                               value: '${controller.stats.value.totalFoods}',
                               icon: Icons.restaurant_menu_rounded,
                               color: AppColors.emerald,
+                              useGradient: true,
                             ),
                           ],
                         )),
@@ -130,81 +134,6 @@ class _SectionHeader extends StatelessWidget {
         Text(label,
             style: AppTextStyles.h3.copyWith(color: AppColors.textDark)),
       ],
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.75),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 18, color: color),
-            ),
-            const SizedBox(height: 8),
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: [color, color.withValues(alpha: 0.75)],
-              ).createShader(bounds),
-              child: Text(
-                value,
-                style: AppTextStyles.h3.copyWith(
-                  color: AppColors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(
-                fontSize: 10,
-                color: AppColors.textGrey,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

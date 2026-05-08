@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../main/presentation/controllers/main_controller.dart';
@@ -105,6 +106,18 @@ class CartController extends GetxController {
       cartItems.add(newItem);
     }
     _recalcTotal();
+    Get.snackbar(
+      'Đã thêm vào giỏ',
+      '${newItem.quantity}x ${newItem.name}',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+      backgroundColor: const Color(0xFF1C1C1C),
+      colorText: const Color(0xFFFFFFFF),
+      borderRadius: 12,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      icon: const Icon(Icons.check_circle_rounded,
+          color: Color(0xFF10B981), size: 22),
+    );
   }
 
   void _recalcTotal() {

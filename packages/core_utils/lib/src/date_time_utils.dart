@@ -20,13 +20,13 @@ DateTime parseApiDateTime(dynamic value) {
     return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true)
         .toLocal();
   }
-  if (value is List && value.length >= 6) {
+  if (value is List && value.length >= 3) {
     final y = _intFromJson(value[0]);
     final mo = _intFromJson(value[1]);
     final d = _intFromJson(value[2]);
-    final h = _intFromJson(value[3]);
-    final mi = _intFromJson(value[4]);
-    final s = _intFromJson(value[5]);
+    final h = value.length > 3 ? _intFromJson(value[3]) : 0;
+    final mi = value.length > 4 ? _intFromJson(value[4]) : 0;
+    final s = value.length > 5 ? _intFromJson(value[5]) : 0;
     final nano = value.length > 6 ? _intFromJson(value[6]) : 0;
     return DateTime(
       y,

@@ -112,46 +112,37 @@ class _BannerCard extends GetView<BannerController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Image preview ───────────────────────────────────────────
-            Stack(
-              children: [
-                if (banner.imageUrl != null)
-                  AppNetworkImage(
-                    url: banner.imageUrl!,
-                    width: double.infinity,
-                    height: 150,
-                    fit: BoxFit.cover,
-                  )
-                else
-                  Container(
-                    width: double.infinity,
-                    height: 80,
-                    color: AppColors.grey200,
-                    child: const Icon(Icons.image_outlined,
-                        size: 36, color: AppColors.grey400),
+            AppBannerCard(
+              imageUrl: banner.imageUrl,
+              height: 150,
+              borderRadius: 0,
+              fallbackWidget: Container(
+                color: AppColors.grey200,
+                child: const Icon(Icons.image_outlined,
+                    size: 36, color: AppColors.grey400),
+              ),
+              overlayChild: Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: banner.isActive
+                        ? AppColors.successGreen
+                        : AppColors.grey600,
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: banner.isActive
-                          ? AppColors.successGreen
-                          : AppColors.grey600,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      banner.isActive ? 'Đang hiện' : 'Đã ẩn',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  child: Text(
+                    banner.isActive ? 'Đang hiện' : 'Đã ẩn',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
             // ── Info + actions ──────────────────────────────────────────
             Padding(

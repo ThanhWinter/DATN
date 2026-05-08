@@ -18,6 +18,9 @@ class OrderController extends GetxController {
   final error = Rxn<String>();
   final isUpdating = false.obs;
 
+  // Null = không có tab nào đang lazy-load; có giá trị = index tab đang tải.
+  final loadingTabIndex = Rxn<int>();
+
   /// Giữ nguyên tên — bind UI TabBarView (không đổi).
   final pendingOrders = <OrderModel>[].obs;
   final activeOrders = <OrderModel>[].obs;
@@ -25,6 +28,7 @@ class OrderController extends GetxController {
   final cancelledOrders = <OrderModel>[].obs;
 
   int get pendingCount => pendingOrders.length;
+  int get activeCount => activeOrders.length;
 
   static const int _pageSize = 24;
   static const int _pollPageSize = 40;
@@ -44,6 +48,9 @@ class OrderController extends GetxController {
 
   bool _loadMoreBusy = false;
   DateTime? _lastLoadMoreAt;
+
+  // Theo dõi tab nào đã được fetch ít nhất một lần.
+  final _tabLoaded = <bool>[false, false, false, false];
 
   /// orderId → bucket hiện tại — cho phép _removeOrderById chạy O(1).
   final _bucketOf = <String, RxList<OrderModel>>{};
@@ -68,20 +75,17 @@ class OrderController extends GetxController {
     super.onClose();
   }
 
-  /// Tải lần đầu / kéo refresh — reset phân trang và nạp trang đầu mỗi bucket.
+  /// Tải lần đầu / kéo refresh — reset phân trang và CHỈ nạp Tab 0 (Pending).
+  /// Các tab còn lại sẽ được tải theo yêu cầu qua [loadTabOnDemand].
   Future<void> loadOrders() async {
-    dev.log('[ORDER/VM] Loading orders (paged initial)...');
+    dev.log('[ORDER/VM] Loading orders — eager: tab 0 only...');
     isLoading.value = true;
     error.value = null;
     try {
       _resetBucketsAndPaging();
-      await Future.wait([
-        _loadPendingBucket(),
-        _loadActiveBucket(),
-        _loadCompletedBucket(),
-        _loadCancelledBucket(),
-      ]);
-      dev.log('[ORDER/VM] ✅ Initial tabs loaded');
+      await _loadPendingBucket();
+      _tabLoaded[0] = true;
+      dev.log('[ORDER/VM] ✅ Tab 0 (Pending) loaded');
       if (Get.isRegistered<MainController>()) {
         await Get.find<MainController>().refreshPendingBadgeFromNetwork();
       }
@@ -90,6 +94,38 @@ class OrderController extends GetxController {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Gọi khi người dùng chuyển sang tab [tabIndex].
+  /// Fetch dữ liệu bucket tương ứng nếu chưa được tải lần nào.
+  Future<void> loadTabOnDemand(int tabIndex) async {
+    if (tabIndex < 0 || tabIndex > 3) return;
+    if (_tabLoaded[tabIndex]) return;
+    if (loadingTabIndex.value == tabIndex) return;
+
+    dev.log('[ORDER/VM] On-demand load: tab $tabIndex');
+    loadingTabIndex.value = tabIndex;
+    try {
+      switch (tabIndex) {
+        case 1:
+          await _loadActiveBucket();
+          break;
+        case 2:
+          await _loadCompletedBucket();
+          break;
+        case 3:
+          await _loadCancelledBucket();
+          break;
+        default:
+          return;
+      }
+      _tabLoaded[tabIndex] = true;
+      dev.log('[ORDER/VM] ✅ Tab $tabIndex loaded on demand');
+    } catch (e) {
+      dev.log('[ORDER/VM] ❌ loadTabOnDemand tab $tabIndex: $e');
+    } finally {
+      loadingTabIndex.value = null;
     }
   }
 
@@ -143,7 +179,7 @@ class OrderController extends GetxController {
     }
   }
 
-  // ── Polling: chỉ trang đầu “gần đây”, merge vào bucket — không full reload ──
+  // ── Polling: chỉ trang đầu "gần đây", merge vào bucket — không full reload ──
 
   Future<void> _pollRecentChanges() async {
     if (isLoading.value) return;
@@ -167,6 +203,9 @@ class OrderController extends GetxController {
       for (final bucket in dirtyBuckets) { _sortBucket(bucket); }
       _trimAllBuckets();
       dev.log('[ORDER/VM] 🔁 Poll merged ${page.items.length} recent orders');
+      if (Get.isRegistered<MainController>()) {
+        unawaited(Get.find<MainController>().refreshPendingBadgeFromNetwork());
+      }
     } catch (e) {
       dev.log('[ORDER/VM] Poll skipped: $e');
     }
@@ -187,6 +226,11 @@ class OrderController extends GetxController {
     _completedHasMore = true;
     _cancelledLoadedPage = -1;
     _cancelledHasMore = true;
+
+    _tabLoaded[0] = false;
+    _tabLoaded[1] = false;
+    _tabLoaded[2] = false;
+    _tabLoaded[3] = false;
   }
 
   int _halfSplit() => math.max(8, _pageSize ~/ 2);
@@ -438,6 +482,9 @@ class OrderController extends GetxController {
         ...cancelledOrders,
       ];
       _distribute(all);
+      if (Get.isRegistered<MainController>()) {
+        unawaited(Get.find<MainController>().refreshPendingBadgeFromNetwork());
+      }
       Get.snackbar(
         'Cập nhật thành công',
         'Đơn #${order.id.substring(0, 8).toUpperCase()} → ${OrderModel.statusLabel(newStatus)}',

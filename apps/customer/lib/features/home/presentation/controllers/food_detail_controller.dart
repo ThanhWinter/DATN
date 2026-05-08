@@ -102,14 +102,6 @@ class FoodDetailController extends GetxController {
 
     Get.find<CartController>().addItem(cartItem);
     dev.log('[FOOD_DETAIL] ✅ Added to cart: ${quantity.value}x ${f.name}');
-
-    Get.snackbar(
-      'Đã thêm vào giỏ',
-      '${quantity.value}x ${f.name}',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-    Get.back();
   }
 
   Future<void> toggleFavorite() async {
