@@ -67,10 +67,10 @@ class SettingsController extends GetxController {
         storeName: storeNameCtrl.text.trim(),
         hotline: hotlineCtrl.text.trim(),
         isOpen: isOpen.value,
-        baseShippingFee:
-            double.tryParse(shippingFeeCtrl.text.trim()) ?? current.baseShippingFee,
-        freeShipThreshold:
-            double.tryParse(freeShipCtrl.text.trim()) ?? current.freeShipThreshold,
+        baseShippingFee: double.tryParse(shippingFeeCtrl.text.trim()) ??
+            current.baseShippingFee,
+        freeShipThreshold: double.tryParse(freeShipCtrl.text.trim()) ??
+            current.freeShipThreshold,
       );
       await _repository.updateStoreSetting(updated);
       storeSetting.value = updated;

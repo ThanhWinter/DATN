@@ -63,8 +63,7 @@ class _EditCategorySheetState extends State<EditCategorySheet> {
     );
     if (cropped == null) return;
 
-    final compressed =
-        await compressPickedImageToTempJpeg(File(cropped.path));
+    final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
     setState(() {
       _newImageFile = compressed;
@@ -84,9 +83,8 @@ class _EditCategorySheetState extends State<EditCategorySheet> {
       widget.category.id,
       name: name,
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes: _newImageFile != null
-          ? await _newImageFile!.readAsBytes()
-          : null,
+      imageBytes:
+          _newImageFile != null ? await _newImageFile!.readAsBytes() : null,
       imageFilename: _imageFilename,
     );
   }

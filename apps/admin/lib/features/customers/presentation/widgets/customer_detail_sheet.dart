@@ -43,7 +43,8 @@ class CustomerDetailSheet extends StatelessWidget {
           Text(customer.fullName, style: AppTextStyles.h3),
           const SizedBox(height: 4),
           Text(customer.email,
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey)),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey)),
           const SizedBox(height: 20),
           // Thống kê nhanh
           Padding(
@@ -130,9 +131,7 @@ class CustomerDetailSheet extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
-              height: MediaQuery.of(context).padding.bottom +
-                  16),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
       ),
     );

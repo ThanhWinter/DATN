@@ -116,11 +116,81 @@ class _FoodDetailContent extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.chevron_right_rounded,
-                          color: AppColors.grey400,
-                          size: 22,
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        // Category with image
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3EEFF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  width: 20,
+                                  height: 20,
+                                  color: const Color(0xFF7C3AED)
+                                      .withValues(alpha: 0.15),
+                                  child: const Icon(Icons.fastfood_rounded,
+                                      size: 12, color: Color(0xFF7C3AED)),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                food.categoryName ?? 'Đang cập nhật',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // Status
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: food.isAvailable
+                                ? AppColors.successGreen.withValues(alpha: 0.1)
+                                : AppColors.errorRed.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                food.isAvailable
+                                    ? Icons.check_circle_rounded
+                                    : Icons.cancel_rounded,
+                                size: 16,
+                                color: food.isAvailable
+                                    ? AppColors.successGreen
+                                    : AppColors.errorRed,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                food.isAvailable ? 'Đặt ngay' : 'Tạm hết',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: food.isAvailable
+                                      ? AppColors.successGreen
+                                      : AppColors.errorRed,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -173,9 +243,6 @@ class _FoodDetailContent extends StatelessWidget {
               // Đường kẻ phân cách bottom của card trắng
               Container(height: 1, color: AppColors.grey200),
 
-              // ── Thông tin món ───────────────────────────────────────────
-              RepaintBoundary(child: _FoodMetaSection(food: food)),
-
               // ── Tuỳ chọn ────────────────────────────────────────────────
               ...food.optionGroups.map(
                 (group) => _OptionGroupSection(
@@ -183,8 +250,12 @@ class _FoodDetailContent extends StatelessWidget {
                   controller: controller,
                 ),
               ),
-              if (food.optionGroups.isEmpty)
-                RepaintBoundary(child: _NoOptionSection(food: food)),
+
+              // ── Chi tiết món ăn ──────────────────────────────────────────
+              RepaintBoundary(child: _FoodDescriptionSection(food: food)),
+
+              // ── Đánh giá ────────────────────────────────────────────────
+              RepaintBoundary(child: _ReviewsSection(controller: controller)),
               const SizedBox(height: 130),
             ],
           ),
@@ -208,8 +279,7 @@ void _showShareSheet(BuildContext context, FoodDetailController controller) {
   final food = controller.food.value;
   if (food == null) return;
 
-  final shareText =
-      '🍜 Mình đang thèm món "${food.name}" tại FoodHit!\n'
+  final shareText = '🍜 Mình đang thèm món "${food.name}" tại FoodHit!\n'
       '💰 Giá từ ${food.price.toInt().toVnd()}đ\n'
       '📲 Tải app FoodHit để đặt ngay nhé!';
 
@@ -317,7 +387,7 @@ class _ShareSheet extends StatelessWidget {
                 Get.snackbar(
                   'Đã sao chép',
                   'Nội dung đã được sao chép vào clipboard',
-                  snackPosition: SnackPosition.BOTTOM,
+                  snackPosition: SnackPosition.TOP,
                   duration: const Duration(seconds: 2),
                   backgroundColor: AppColors.textDark,
                   colorText: AppColors.white,
@@ -391,21 +461,6 @@ class _QuickInfoSection extends StatelessWidget {
     final food = controller.food.value!;
     return Column(
       children: [
-        // Rating
-        Obx(() {
-          final rating = controller.rating.value;
-          return _InfoDividerRow(
-            icon: Icons.star_rounded,
-            iconColor: AppColors.accentGold,
-            iconBgColor: const Color(0xFFFFF8E1),
-            title: rating.avgRating > 0
-                ? rating.avgRating.toStringAsFixed(1)
-                : 'Chưa có đánh giá',
-            subtitle: rating.totalReviews > 0
-                ? '(${rating.totalReviews} reviews)'
-                : null,
-          );
-        }),
         // Khoảng cách + giao hàng — chỉ hiện nếu có dữ liệu
         if (food.distanceKm != null ||
             food.deliveryEta != null ||
@@ -591,154 +646,8 @@ class _OptionGroupSection extends StatelessWidget {
   }
 }
 
-class _FoodMetaSection extends StatelessWidget {
-  const _FoodMetaSection({required this.food});
-
-  final FoodItemModel food;
-
-  @override
-  Widget build(BuildContext context) {
-    final isAvailable = food.isAvailable;
-    final category = food.categoryName?.isNotEmpty == true
-        ? food.categoryName!
-        : 'Đang cập nhật';
-    final optionCount = food.optionGroups.length;
-
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Thông tin món ăn', style: AppTextStyles.h3),
-          const SizedBox(height: 14),
-
-          // ── 3 thẻ thông tin ───────────────────────────────────────────
-          Row(
-            children: [
-              // Danh mục
-              Expanded(
-                child: _MetaChip(
-                  icon: Icons.category_rounded,
-                  iconColor: const Color(0xFF7C3AED),
-                  bgColor: const Color(0xFFF3EEFF),
-                  label: 'Danh mục',
-                  value: category,
-                ),
-              ),
-              const SizedBox(width: 10),
-              // Tình trạng
-              Expanded(
-                child: _MetaChip(
-                  icon: isAvailable
-                      ? Icons.check_circle_rounded
-                      : Icons.cancel_rounded,
-                  iconColor: isAvailable
-                      ? AppColors.successGreen
-                      : AppColors.errorRed,
-                  bgColor: isAvailable
-                      ? AppColors.successGreen.withValues(alpha: 0.08)
-                      : AppColors.errorRed.withValues(alpha: 0.08),
-                  label: 'Tình trạng',
-                  value: isAvailable ? 'Đặt ngay' : 'Tạm hết',
-                  valueColor: isAvailable
-                      ? AppColors.successGreen
-                      : AppColors.errorRed,
-                ),
-              ),
-            ],
-          ),
-          if (optionCount > 0) ...[
-            const SizedBox(height: 10),
-            // Tuỳ chọn — full width nếu có
-            _MetaChip(
-              icon: Icons.tune_rounded,
-              iconColor: AppColors.primaryOrange,
-              bgColor: AppColors.primaryOrange.withValues(alpha: 0.08),
-              label: 'Tuỳ chọn',
-              value: '$optionCount nhóm — chọn thêm để tùy biến món',
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({
-    required this.icon,
-    required this.iconColor,
-    required this.bgColor,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final Color bgColor;
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 16, color: iconColor),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textGrey,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor ?? AppColors.textDark,
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NoOptionSection extends StatelessWidget {
-  const _NoOptionSection({required this.food});
+class _FoodDescriptionSection extends StatelessWidget {
+  const _FoodDescriptionSection({required this.food});
 
   final FoodItemModel food;
 
@@ -751,7 +660,7 @@ class _NoOptionSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Gợi ý dùng món', style: AppTextStyles.h3),
+          const Text('Chi tiết món ăn', style: AppTextStyles.h3),
           const SizedBox(height: 8),
           Text(
             food.description?.trim().isNotEmpty == true
@@ -759,41 +668,169 @@ class _NoOptionSection extends StatelessWidget {
                 : 'Món này hiện chưa có mô tả chi tiết. Bạn có thể đặt ngay với mức giá tốt từ cửa hàng.',
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
           ),
-          const SizedBox(height: 10),
-          const _HintLine(text: 'Phù hợp cho bữa trưa hoặc bữa tối nhẹ.'),
-          const _HintLine(
-              text: 'Nên dùng ngay khi nhận để giữ hương vị tốt nhất.'),
-          const _HintLine(text: 'Có thể thêm combo đồ uống tại giỏ hàng.'),
         ],
       ),
     );
   }
 }
 
-class _HintLine extends StatelessWidget {
-  const _HintLine({required this.text});
+class _ReviewsSection extends StatelessWidget {
+  const _ReviewsSection({required this.controller});
 
-  final String text;
+  final FoodDetailController controller;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 5),
-            child: Icon(Icons.circle, size: 6, color: AppColors.primaryOrange),
+          Row(
+            children: [
+              const Text('Đánh giá đơn hàng', style: AppTextStyles.h3),
+              const Spacer(),
+              Obx(() {
+                final rating = controller.rating.value;
+                if (rating.totalReviews == 0) return const SizedBox.shrink();
+                return Row(
+                  children: [
+                    const Icon(Icons.star_rounded,
+                        color: AppColors.accentGold, size: 20),
+                    const SizedBox(width: 4),
+                    Text(
+                      rating.avgRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${rating.totalReviews})',
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.textGrey),
+                    ),
+                  ],
+                );
+              }),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style:
-                  AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
-            ),
-          ),
+          const SizedBox(height: 12),
+          Obx(() {
+            final reviews = controller.reviews;
+            if (reviews.isEmpty) {
+              return Text(
+                'Chưa có đánh giá nào cho món này.',
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: AppColors.textGrey),
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: reviews.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 24, color: AppColors.grey200),
+              itemBuilder: (context, index) {
+                final review = reviews[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.primaryOrange.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            review.userFullName.isNotEmpty
+                                ? review.userFullName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              color: AppColors.primaryOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                review.userFullName,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              Row(
+                                children: List.generate(5, (i) {
+                                  return Icon(
+                                    Icons.star_rounded,
+                                    size: 14,
+                                    color: i < review.rating
+                                        ? AppColors.accentGold
+                                        : AppColors.grey300,
+                                  );
+                                }),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (review.comment != null &&
+                        review.comment!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        review.comment!,
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.textDark),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            );
+          }),
+          Obx(() {
+            final reviews = controller.reviews;
+            final rating = controller.rating.value;
+            if (rating.totalReviews > reviews.length && reviews.isNotEmpty) {
+              return Column(
+                children: [
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: controller.viewAllReviews,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryOrange,
+                        side: const BorderSide(color: AppColors.primaryOrange),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('Xem tất cả', style: AppTextStyles.bodyLarge),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );

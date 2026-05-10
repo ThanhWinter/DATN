@@ -18,8 +18,7 @@ class NotificationListRepository {
         await _apiClient.get('/user/notifications?page=$page&size=$size');
     final content = (res['result']['content'] as List<dynamic>? ?? []);
     final list = content
-        .map((e) =>
-            AdminNotificationModel.fromJson(e as Map<String, dynamic>))
+        .map((e) => AdminNotificationModel.fromJson(e as Map<String, dynamic>))
         .toList();
     dev.log('[NOTIF_LIST/REPO] ✅ Loaded ${list.length} notifications');
     return list;

@@ -81,7 +81,8 @@ class OtpController extends GetxController {
         otpCode: otpCode.value,
       );
 
-      dev.log("[AUTH/OTP] ✅ OTP verified — account activated for ${email.value}");
+      dev.log(
+          "[AUTH/OTP] ✅ OTP verified — account activated for ${email.value}");
       Get.snackbar(
         "Thành công",
         "Tài khoản của bạn đã được kích hoạt!",

@@ -5,6 +5,7 @@ import '../../features/orders/data/repositories/order_repository.dart';
 import '../../features/payment/data/repositories/coupon_repository.dart';
 import '../../features/payment/data/repositories/payment_repository.dart';
 import '../../features/payment/presentation/controllers/checkout_controller.dart';
+import '../../features/profile/data/repositories/address_repository.dart';
 
 class CheckoutBinding extends Bindings {
   @override
@@ -15,12 +16,16 @@ class CheckoutBinding extends Bindings {
     Get.lazyPut<CouponRepository>(
       () => CouponRepository(Get.find<IApiClient>()),
     );
-    Get.lazyPut<PaymentRepository>(() => PaymentRepository(Get.find<IApiClient>()));
+    Get.lazyPut<PaymentRepository>(
+        () => PaymentRepository(Get.find<IApiClient>()));
+    Get.lazyPut<AddressRepository>(
+        () => AddressRepository(Get.find<IApiClient>()));
     Get.lazyPut<CheckoutController>(
       () => CheckoutController(
         Get.find<OrderRepository>(),
         Get.find<CouponRepository>(),
         Get.find<PaymentRepository>(),
+        Get.find<AddressRepository>(),
       ),
     );
   }

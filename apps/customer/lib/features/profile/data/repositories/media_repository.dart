@@ -10,7 +10,12 @@ class MediaRepository {
   Future<String> uploadImage(Uint8List bytes, String filename) {
     return _apiClient.uploadRaw(
       '/media/upload',
-      (field: 'file', bytes: bytes, filename: filename, contentType: 'image/jpeg'),
+      (
+        field: 'file',
+        bytes: bytes,
+        filename: filename,
+        contentType: 'image/jpeg'
+      ),
     );
   }
 }

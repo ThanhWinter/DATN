@@ -193,14 +193,18 @@ class OrderController extends GetxController {
       for (final o in page.items) {
         final oldBucket = _bucketOf.remove(o.id);
         oldBucket?.removeWhere((x) => x.id == o.id);
-        if (oldBucket != null) { dirtyBuckets.add(oldBucket); }
+        if (oldBucket != null) {
+          dirtyBuckets.add(oldBucket);
+        }
         final newBucket = _rxTargetForStatus(o.status);
         newBucket.add(o);
         _bucketOf[o.id] = newBucket;
         dirtyBuckets.add(newBucket);
       }
       // Sort mỗi bucket dirty đúng một lần thay vì N lần
-      for (final bucket in dirtyBuckets) { _sortBucket(bucket); }
+      for (final bucket in dirtyBuckets) {
+        _sortBucket(bucket);
+      }
       _trimAllBuckets();
       dev.log('[ORDER/VM] 🔁 Poll merged ${page.items.length} recent orders');
       if (Get.isRegistered<MainController>()) {
@@ -249,7 +253,9 @@ class OrderController extends GetxController {
     );
     final merged = _mergeByDateDesc([...r1.items, ...r2.items]);
     pendingOrders.assignAll(merged);
-    for (final o in merged) { _bucketOf[o.id] = pendingOrders; }
+    for (final o in merged) {
+      _bucketOf[o.id] = pendingOrders;
+    }
     _pendingLoadedPage = 0;
     _pendingHasMore = !(r1.last && r2.last);
   }
@@ -291,7 +297,9 @@ class OrderController extends GetxController {
     );
     final merged = _mergeByDateDesc([...r1.items, ...r2.items]);
     activeOrders.assignAll(merged);
-    for (final o in merged) { _bucketOf[o.id] = activeOrders; }
+    for (final o in merged) {
+      _bucketOf[o.id] = activeOrders;
+    }
     _activeLoadedPage = 0;
     _activeHasMore = !(r1.last && r2.last);
   }
@@ -326,7 +334,9 @@ class OrderController extends GetxController {
       size: _pageSize,
     );
     completedOrders.assignAll(r.items);
-    for (final o in r.items) { _bucketOf[o.id] = completedOrders; }
+    for (final o in r.items) {
+      _bucketOf[o.id] = completedOrders;
+    }
     _completedLoadedPage = 0;
     _completedHasMore = !r.last;
   }
@@ -355,7 +365,9 @@ class OrderController extends GetxController {
       size: _pageSize,
     );
     cancelledOrders.assignAll(r.items);
-    for (final o in r.items) { _bucketOf[o.id] = cancelledOrders; }
+    for (final o in r.items) {
+      _bucketOf[o.id] = cancelledOrders;
+    }
     _cancelledLoadedPage = 0;
     _cancelledHasMore = !r.last;
   }
@@ -391,7 +403,8 @@ class OrderController extends GetxController {
         _bucketOf[o.id] = target;
       }
     }
-    final sorted = [...target]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
+    final sorted = [...target]
+      ..sort((a, b) => b.orderDate.compareTo(a.orderDate));
     target.assignAll(sorted);
   }
 
@@ -409,7 +422,8 @@ class OrderController extends GetxController {
   }
 
   void _sortBucket(RxList<OrderModel> list) {
-    final sorted = [...list]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
+    final sorted = [...list]
+      ..sort((a, b) => b.orderDate.compareTo(a.orderDate));
     list.assignAll(sorted);
   }
 
@@ -422,11 +436,14 @@ class OrderController extends GetxController {
 
   void _trimBucket(RxList<OrderModel> list) {
     if (list.length <= _maxOrdersPerBucket) return;
-    final sorted = [...list]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
+    final sorted = [...list]
+      ..sort((a, b) => b.orderDate.compareTo(a.orderDate));
     final kept = sorted.take(_maxOrdersPerBucket).toList();
     final keptIds = {for (final o in kept) o.id};
     for (final o in list) {
-      if (!keptIds.contains(o.id)) { _bucketOf.remove(o.id); }
+      if (!keptIds.contains(o.id)) {
+        _bucketOf.remove(o.id);
+      }
     }
     list.assignAll(kept);
   }
@@ -462,10 +479,18 @@ class OrderController extends GetxController {
 
     // Rebuild O(1) index sau khi phân phối lại toàn bộ
     _bucketOf.clear();
-    for (final o in pendingOrders) { _bucketOf[o.id] = pendingOrders; }
-    for (final o in activeOrders) { _bucketOf[o.id] = activeOrders; }
-    for (final o in completedOrders) { _bucketOf[o.id] = completedOrders; }
-    for (final o in cancelledOrders) { _bucketOf[o.id] = cancelledOrders; }
+    for (final o in pendingOrders) {
+      _bucketOf[o.id] = pendingOrders;
+    }
+    for (final o in activeOrders) {
+      _bucketOf[o.id] = activeOrders;
+    }
+    for (final o in completedOrders) {
+      _bucketOf[o.id] = completedOrders;
+    }
+    for (final o in cancelledOrders) {
+      _bucketOf[o.id] = cancelledOrders;
+    }
   }
 
   Future<void> updateStatus(OrderModel order, String newStatus) async {

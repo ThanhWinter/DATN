@@ -22,7 +22,7 @@ class ForgotPasswordController extends GetxController {
     isLoading.value = true;
     try {
       await _authRepository.forgotPassword(email: email.trim());
-      
+
       Get.snackbar(
         'Thành công',
         'Mã OTP đã được gửi đến email của bạn.',

@@ -17,8 +17,10 @@ DateTime parseApiDateTime(dynamic value) {
     return DateTime.parse(value);
   }
   if (value is num) {
-    return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true)
-        .toLocal();
+    return DateTime.fromMillisecondsSinceEpoch(
+      value.toInt(),
+      isUtc: true,
+    ).toLocal();
   }
   if (value is List && value.length >= 3) {
     final y = _intFromJson(value[0]);

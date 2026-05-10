@@ -63,7 +63,8 @@ class MenuRepository {
     List<int>? imageBytes,
     String? imageFilename,
   }) async {
-    dev.log('[MENU/REPO] Updating category id=$id: $name | hasImage=${imageBytes != null}');
+    dev.log(
+        '[MENU/REPO] Updating category id=$id: $name | hasImage=${imageBytes != null}');
     final Map<String, dynamic> res;
     if (imageBytes != null) {
       res = await _apiClient.multipartPut(
@@ -92,7 +93,8 @@ class MenuRepository {
         },
       );
     }
-    final updated = CategoryModel.fromJson(res['result'] as Map<String, dynamic>);
+    final updated =
+        CategoryModel.fromJson(res['result'] as Map<String, dynamic>);
     dev.log('[MENU/REPO] ✅ Category $id updated');
     return updated;
   }
@@ -248,7 +250,8 @@ class MenuRepository {
     List<int>? imageBytes,
     String? imageFilename,
   }) async {
-    dev.log('[MENU/REPO] Updating food id=$id: $name | price=$price | hasImage=${imageBytes != null}');
+    dev.log(
+        '[MENU/REPO] Updating food id=$id: $name | price=$price | hasImage=${imageBytes != null}');
 
     final priceStr = price == price.truncateToDouble()
         ? price.toInt().toString()

@@ -44,8 +44,7 @@ class ProfileView extends GetView<ProfileController> {
                     AppMenuTile(
                       icon: Icons.inbox_outlined,
                       label: 'Hộp thư thông báo',
-                      onTap: () =>
-                          Get.toNamed(AppRoutes.adminNotifications),
+                      onTap: () => Get.toNamed(AppRoutes.adminNotifications),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
@@ -86,7 +85,8 @@ class ProfileView extends GetView<ProfileController> {
                       icon: Icons.info_outline,
                       label: 'Về ứng dụng',
                       onTap: () {},
-                      trailing: const Text('v1.0.0', style: AppTextStyles.bodySmall),
+                      trailing:
+                          const Text('v1.0.0', style: AppTextStyles.bodySmall),
                     ),
                   ]),
                   const SizedBox(height: 20),
@@ -186,8 +186,7 @@ class _AdminHeader extends GetView<ProfileController> {
                   .copyWith(color: AppColors.white.withValues(alpha: 0.85)))),
           const SizedBox(height: 10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
@@ -285,4 +284,3 @@ class _StatCardSkeleton extends StatelessWidget {
     );
   }
 }
-

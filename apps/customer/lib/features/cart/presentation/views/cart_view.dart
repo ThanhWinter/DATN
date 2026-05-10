@@ -37,8 +37,7 @@ class CartView extends GetView<CartController> {
                       Icon(Icons.shopping_cart_outlined,
                           size: 56, color: AppColors.grey300),
                       SizedBox(height: 12),
-                      Text('Giỏ hàng trống',
-                          style: AppTextStyles.bodyMedium),
+                      Text('Giỏ hàng trống', style: AppTextStyles.bodyMedium),
                     ],
                   ),
                 );

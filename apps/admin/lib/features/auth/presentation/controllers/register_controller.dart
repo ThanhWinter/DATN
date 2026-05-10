@@ -149,7 +149,8 @@ class RegisterController extends GetxController {
       passwordError.value = 'Vui lòng nhập mật khẩu';
       isValid = false;
     } else if (!_passwordRegex.hasMatch(password)) {
-      passwordError.value = 'Mật khẩu 8–16 ký tự, gồm chữ hoa, thường, số, ký tự đặc biệt';
+      passwordError.value =
+          'Mật khẩu 8–16 ký tự, gồm chữ hoa, thường, số, ký tự đặc biệt';
       isValid = false;
     }
     if (confirmPassword != password) {

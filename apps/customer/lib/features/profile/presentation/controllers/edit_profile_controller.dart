@@ -46,7 +46,7 @@ class EditProfileController extends GetxController {
       Get.snackbar(
         'Thiếu thông tin',
         'Vui lòng nhập đầy đủ họ và tên.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -54,7 +54,7 @@ class EditProfileController extends GetxController {
       Get.snackbar(
         'Số điện thoại không hợp lệ',
         'Số điện thoại phải đúng 10 chữ số.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -83,7 +83,7 @@ class EditProfileController extends GetxController {
       Get.snackbar(
         'Thành công',
         'Cập nhật thông tin thành công.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } on ApiException catch (e) {
       dev.log('[EDIT_PROFILE] ❌ ApiException: ${e.statusCode} ${e.message}');
@@ -91,7 +91,7 @@ class EditProfileController extends GetxController {
       Get.snackbar(
         'Cập nhật thất bại',
         e.message,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[EDIT_PROFILE] ❌ Unexpected error: $e');
@@ -99,7 +99,7 @@ class EditProfileController extends GetxController {
       Get.snackbar(
         'Lỗi',
         errorMessage.value,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

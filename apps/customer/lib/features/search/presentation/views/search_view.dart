@@ -59,8 +59,8 @@ class SearchView extends GetView<FoodSearchController> {
           },
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: controller.results.length +
-                (controller.hasMoreResults ? 1 : 0),
+            itemCount:
+                controller.results.length + (controller.hasMoreResults ? 1 : 0),
             separatorBuilder: (_, __) =>
                 const Divider(height: 1, indent: 80, endIndent: 16),
             itemBuilder: (_, i) {
@@ -104,8 +104,7 @@ class _SearchPrompt extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Nhập tên món ăn để tìm kiếm',
-            style:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey),
           ),
         ],
       ),

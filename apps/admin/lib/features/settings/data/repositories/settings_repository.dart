@@ -39,8 +39,7 @@ class SettingsRepository {
         )
       ],
     );
-    final created =
-        BannerModel.fromJson(res['result'] as Map<String, dynamic>);
+    final created = BannerModel.fromJson(res['result'] as Map<String, dynamic>);
     dev.log('[SETTINGS/REPO] ✅ Banner created: id=${created.id}');
     return created;
   }
@@ -64,7 +63,12 @@ class SettingsRepository {
               contentType: 'image/jpeg',
             )
           ]
-        : <({String field, List<int> bytes, String filename, String contentType})>[];
+        : <({
+            String field,
+            List<int> bytes,
+            String filename,
+            String contentType
+          })>[];
     final res = await _apiClient.multipartPut(
       '/settings/banners/$id',
       fields: fields,
@@ -77,8 +81,7 @@ class SettingsRepository {
 
   Future<void> toggleBannerStatus(int id, {required bool isActive}) async {
     dev.log('[SETTINGS/REPO] Toggle banner $id → isActive=$isActive');
-    await _apiClient
-        .patch('/settings/banners/$id/status?isActive=$isActive');
+    await _apiClient.patch('/settings/banners/$id/status?isActive=$isActive');
     dev.log('[SETTINGS/REPO] ✅ Banner $id status updated');
   }
 

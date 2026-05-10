@@ -73,8 +73,7 @@ class NotificationTile extends StatelessWidget {
               child: Text(
                 notif.title,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  fontWeight:
-                      notif.isRead ? FontWeight.w500 : FontWeight.w800,
+                  fontWeight: notif.isRead ? FontWeight.w500 : FontWeight.w800,
                 ),
               ),
             ),
@@ -125,8 +124,8 @@ class NotificationTile extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 'Xoá thông báo',
-                style:
-                    AppTextStyles.bodyMedium.copyWith(color: AppColors.errorRed),
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: AppColors.errorRed),
               ),
             ],
           ),

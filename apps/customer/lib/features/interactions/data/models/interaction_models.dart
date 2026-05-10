@@ -6,7 +6,8 @@ class FoodRatingModel {
 
   const FoodRatingModel({required this.avgRating, required this.totalReviews});
 
-  factory FoodRatingModel.fromJson(Map<String, dynamic> json) => FoodRatingModel(
+  factory FoodRatingModel.fromJson(Map<String, dynamic> json) =>
+      FoodRatingModel(
         avgRating: (json['avgRating'] as num?)?.toDouble() ?? 0.0,
         totalReviews: (json['totalReviews'] as num?)?.toInt() ?? 0,
       );

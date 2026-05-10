@@ -47,7 +47,8 @@ class OrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(formatOrderDate(order.orderDate), style: AppTextStyles.bodySmall),
+          Text(formatOrderDate(order.orderDate),
+              style: AppTextStyles.bodySmall),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(color: AppColors.grey300, height: 1),

@@ -71,7 +71,8 @@ class _ReviewCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.15),
+                backgroundColor:
+                    AppColors.primaryOrange.withValues(alpha: 0.15),
                 child: Text(
                   review.userFullName.isNotEmpty
                       ? review.userFullName[0].toUpperCase()
@@ -134,8 +135,7 @@ class _ReviewCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             _formatDate(review.createdAt),
-            style:
-                AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
           ),
         ],
       ),

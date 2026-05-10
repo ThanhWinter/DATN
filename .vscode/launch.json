@@ -6,14 +6,14 @@
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
-      "cwd": "apps/admin"
+      "cwd": "${workspaceFolder}/apps/admin"
     },
     {
       "name": "Customer",
       "type": "dart",
       "request": "launch",
       "program": "lib/main.dart",
-      "cwd": "apps/customer"
+      "cwd": "${workspaceFolder}/apps/customer"
     }
   ]
 }

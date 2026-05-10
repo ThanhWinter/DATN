@@ -69,12 +69,39 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
           ),
 
           // ── Category chips ──────────────────────────────────────────────
-          SizedBox(
-            height: 48,
-            child: ListView.builder(
+          if (cats.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.grey200),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.category_outlined, color: AppColors.grey400, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Hiện chưa có danh mục nào',
+                      style: TextStyle(
+                        color: AppColors.textGrey,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 48,
+              child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               itemCount: cats.length,
               itemBuilder: (context, index) {
                 final cat = cats[index];
@@ -99,9 +126,8 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                         child: Icon(
                           Icons.fastfood_rounded,
                           size: 12,
-                          color: isSelected
-                              ? AppColors.white
-                              : AppColors.emerald,
+                          color:
+                              isSelected ? AppColors.white : AppColors.emerald,
                         ),
                       );
 
@@ -112,8 +138,7 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                     label: Text(cat.name),
                     selected: isSelected,
                     onSelected: (_) => controller.selectCategory(cat.id),
-                    onDeleted: () =>
-                        _confirmDelete(context, cat.id, cat.name),
+                    onDeleted: () => _confirmDelete(context, cat.id, cat.name),
                     deleteIcon: Icon(
                       Icons.cancel_rounded,
                       size: 15,
@@ -124,11 +149,9 @@ class MenuCategoryFilterBar extends GetView<MenuController> {
                     selectedColor: AppColors.emerald,
                     checkmarkColor: AppColors.white,
                     labelStyle: AppTextStyles.bodySmall.copyWith(
-                      color:
-                          isSelected ? AppColors.white : AppColors.textGrey,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.normal,
+                      color: isSelected ? AppColors.white : AppColors.textGrey,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.normal,
                     ),
                     backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(

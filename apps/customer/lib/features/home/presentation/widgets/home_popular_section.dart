@@ -127,8 +127,8 @@ class _FoodCard extends StatelessWidget {
               Expanded(
                 flex: 5,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -216,8 +216,8 @@ class _FoodCard extends StatelessWidget {
   Widget _placeholder() => Container(
         color: const Color(0xFFF5F5F5),
         child: const Center(
-          child: Icon(Icons.fastfood_rounded,
-              color: AppColors.grey400, size: 28),
+          child:
+              Icon(Icons.fastfood_rounded, color: AppColors.grey400, size: 28),
         ),
       );
 }
@@ -248,7 +248,7 @@ class _AddButton extends StatelessWidget {
                 'Đã thêm vào giỏ',
                 item.name,
                 duration: const Duration(seconds: 1),
-                snackPosition: SnackPosition.BOTTOM,
+                snackPosition: SnackPosition.TOP,
                 backgroundColor: AppColors.primaryOrange,
                 colorText: AppColors.white,
                 margin: const EdgeInsets.all(12),
@@ -260,8 +260,7 @@ class _AddButton extends StatelessWidget {
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color:
-              item.isAvailable ? AppColors.primaryOrange : AppColors.grey300,
+          color: item.isAvailable ? AppColors.primaryOrange : AppColors.grey300,
           shape: BoxShape.circle,
         ),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 18),

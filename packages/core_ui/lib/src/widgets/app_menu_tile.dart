@@ -65,8 +65,8 @@ class AppMenuTile extends StatelessWidget {
                     : AppColors.grey100,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon,
-                  color: iconColor ?? AppColors.textGrey, size: 18),
+              child:
+                  Icon(icon, color: iconColor ?? AppColors.textGrey, size: 18),
             ),
             const SizedBox(width: 14),
             Expanded(

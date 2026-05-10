@@ -168,7 +168,8 @@ class _OtpViewState extends State<OtpView> {
           decoration: BoxDecoration(
             color: AppColors.white.withValues(alpha: 0.8),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
+            border:
+                Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
             boxShadow: [
               BoxShadow(
                 color: AppColors.emerald.withValues(alpha: 0.1),
@@ -444,9 +445,8 @@ class _OtpViewState extends State<OtpView> {
                   child: Text(
                     secs > 0 ? 'Gửi lại (${secs}s)' : 'Gửi lại',
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: canResend
-                          ? AppColors.emerald
-                          : AppColors.textLight,
+                      color:
+                          canResend ? AppColors.emerald : AppColors.textLight,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

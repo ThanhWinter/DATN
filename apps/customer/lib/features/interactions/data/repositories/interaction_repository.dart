@@ -38,11 +38,34 @@ class InteractionRepository {
   // ── Ratings ───────────────────────────────────────────────────────────────
 
   Future<FoodRatingModel> getFoodRating(int foodId) async {
-    final response =
-        await _apiClient.get('/interactions/foods/$foodId/rating');
+    final response = await _apiClient.get('/interactions/foods/$foodId/rating');
     dev.log('[INTERACTION] ✅ Rating loaded for food $foodId');
-    return FoodRatingModel.fromJson(
-        response['result'] as Map<String, dynamic>);
+    return FoodRatingModel.fromJson(response['result'] as Map<String, dynamic>);
+  }
+
+  Future<List<ReviewModel>> getFoodReviews(int foodId, {int page = 0, int size = 20}) async {
+    try {
+      final response = await _apiClient.get(
+        '/interactions/foods/$foodId/reviews',
+        query: {'page': '$page', 'size': '$size'},
+      );
+      final result = response['result'];
+      List<dynamic> list = [];
+      
+      if (result is Map<String, dynamic> && result.containsKey('content')) {
+        list = result['content'] as List<dynamic>? ?? [];
+      } else if (result is List) {
+        list = result;
+      }
+      
+      final foodReviews = list.map((e) => ReviewModel.fromJson(e as Map<String, dynamic>)).toList();
+      
+      dev.log('[INTERACTION] ✅ Loaded ${foodReviews.length} reviews for food $foodId');
+      return foodReviews;
+    } catch (e) {
+      dev.log('[INTERACTION] ⚠️ getFoodReviews error: $e');
+      return [];
+    }
   }
 
   // ── Reviews ────────────────────────────────────────────────────────────────

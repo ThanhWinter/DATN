@@ -109,7 +109,7 @@ class CartController extends GetxController {
     Get.snackbar(
       'Đã thêm vào giỏ',
       '${newItem.quantity}x ${newItem.name}',
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 2),
       backgroundColor: const Color(0xFF1C1C1C),
       colorText: const Color(0xFFFFFFFF),

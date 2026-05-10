@@ -40,8 +40,8 @@ class FavoriteView extends GetView<FavoriteController> {
                     item: controller.favorites[i],
                     onTap: () => controller
                         .navigateToFoodDetail(controller.favorites[i].foodId),
-                    onRemove: () =>
-                        controller.removeFavorite(controller.favorites[i].foodId),
+                    onRemove: () => controller
+                        .removeFavorite(controller.favorites[i].foodId),
                   ),
                 )),
         ),
@@ -130,19 +130,16 @@ class _EmptyFavorite extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.favorite_border,
-              size: 72, color: AppColors.grey300),
+          const Icon(Icons.favorite_border, size: 72, color: AppColors.grey300),
           const SizedBox(height: 16),
           Text(
             'Chưa có món yêu thích',
-            style:
-                AppTextStyles.h3.copyWith(color: AppColors.textGrey),
+            style: AppTextStyles.h3.copyWith(color: AppColors.textGrey),
           ),
           const SizedBox(height: 8),
           Text(
             'Nhấn trái tim trên món ăn để lưu lại',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.grey400),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400),
           ),
         ],
       ),

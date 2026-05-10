@@ -31,7 +31,8 @@ class HomeCategorySection extends GetView<HomeController> {
                 onPressed: () => Get.toNamed(AppRoutes.allCategories),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primaryOrange,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   textStyle: const TextStyle(
@@ -107,15 +108,15 @@ class _CategoryChip extends StatelessWidget {
                     ? AppColors.primaryOrange.withValues(alpha: 0.12)
                     : const Color(0xFFF5F5F5),
                 border: Border.all(
-                  color: isSelected
-                      ? AppColors.primaryOrange
-                      : Colors.transparent,
+                  color:
+                      isSelected ? AppColors.primaryOrange : Colors.transparent,
                   width: 2.5,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.primaryOrange.withValues(alpha: 0.30),
+                          color:
+                              AppColors.primaryOrange.withValues(alpha: 0.30),
                           blurRadius: 8,
                           spreadRadius: 1,
                         ),
@@ -132,11 +133,9 @@ class _CategoryChip extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected
-                    ? AppColors.primaryOrange
-                    : AppColors.textGrey,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    isSelected ? AppColors.primaryOrange : AppColors.textGrey,
               ),
             ),
           ],
@@ -169,8 +168,7 @@ class _CategoryChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color:
-                isSelected ? AppColors.primaryOrange : AppColors.grey400,
+            color: isSelected ? AppColors.primaryOrange : AppColors.grey400,
           ),
         ),
       ),

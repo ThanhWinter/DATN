@@ -118,8 +118,7 @@ class NotificationPushView extends GetView<NotificationPushController> {
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(14),
-                      border:
-                          Border.all(color: AppColors.grey300),
+                      border: Border.all(color: AppColors.grey300),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,14 +140,14 @@ class NotificationPushView extends GetView<NotificationPushController> {
                             children: [
                               Text(
                                 title.isNotEmpty ? title : '...',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                    fontWeight: FontWeight.w700),
+                                style: AppTextStyles.bodyMedium
+                                    .copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 body.isNotEmpty ? body : '...',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textGrey),
+                                style: AppTextStyles.bodySmall
+                                    .copyWith(color: AppColors.textGrey),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -167,10 +166,10 @@ class NotificationPushView extends GetView<NotificationPushController> {
             Obx(() => SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: controller.canSend.value &&
-                            !controller.isSending.value
-                        ? controller.sendBroadcast
-                        : null,
+                    onPressed:
+                        controller.canSend.value && !controller.isSending.value
+                            ? controller.sendBroadcast
+                            : null,
                     icon: controller.isSending.value
                         ? const SizedBox(
                             width: 18,

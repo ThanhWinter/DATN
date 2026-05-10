@@ -18,9 +18,9 @@ Future<List<String>> _searchNominatim(String query) async {
       'limit': '5',
       'accept-language': 'vi',
     });
-    final res = await http
-        .get(uri, headers: {'User-Agent': 'FoodHitCustomerApp/1.0'})
-        .timeout(const Duration(seconds: 6));
+    final res = await http.get(uri, headers: {
+      'User-Agent': 'FoodHitCustomerApp/1.0'
+    }).timeout(const Duration(seconds: 6));
     if (res.statusCode != 200) return [];
     final list = jsonDecode(res.body) as List<dynamic>;
     return list
@@ -68,8 +68,7 @@ class AddressView extends GetView<AddressController> {
                       style: AppTextStyles.bodyLarge),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () =>
-                        _showAddEditSheet(context, null, isPicker),
+                    onPressed: () => _showAddEditSheet(context, null, isPicker),
                     icon: const Icon(Icons.add_rounded),
                     label: const Text('Thêm địa chỉ mới'),
                     style: ElevatedButton.styleFrom(
@@ -93,9 +92,8 @@ class AddressView extends GetView<AddressController> {
               return _AddressTile(
                 address: addr,
                 isPicker: isPicker,
-                onSelect: isPicker
-                    ? () => Get.back(result: addr.fullAddress)
-                    : null,
+                onSelect:
+                    isPicker ? () => Get.back(result: addr.fullAddress) : null,
                 onEdit: () => _showAddEditSheet(context, addr, isPicker),
                 onDelete: () => controller.deleteAddress(addr.id),
                 onSetDefault: () => controller.setDefault(addr.id),
@@ -110,8 +108,7 @@ class AddressView extends GetView<AddressController> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: ElevatedButton.icon(
-                  onPressed: () =>
-                      _showAddEditSheet(context, null, isPicker),
+                  onPressed: () => _showAddEditSheet(context, null, isPicker),
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('Thêm địa chỉ mới'),
                   style: ElevatedButton.styleFrom(
@@ -196,8 +193,8 @@ class _AddressTile extends StatelessWidget {
                           address.label!.isNotEmpty) ...[
                         Text(
                           address.label!,
-                          style: AppTextStyles.labelLarge
-                              .copyWith(fontSize: 13),
+                          style:
+                              AppTextStyles.labelLarge.copyWith(fontSize: 13),
                         ),
                         const SizedBox(width: 6),
                       ],
@@ -324,21 +321,26 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
   void _onAddressChanged(String val) {
     _debounce?.cancel();
     if (val.trim().length < 3) {
-      setState(() { _suggestions = []; _searching = false; });
+      setState(() {
+        _suggestions = [];
+        _searching = false;
+      });
       return;
     }
     setState(() => _searching = true);
     _debounce = Timer(const Duration(milliseconds: 600), () async {
       final results = await _searchNominatim(val);
       if (!mounted) return;
-      setState(() { _suggestions = results; _searching = false; });
+      setState(() {
+        _suggestions = results;
+        _searching = false;
+      });
     });
   }
 
   void _pickSuggestion(String address) {
     _addressCtrl.text = address;
-    _addressCtrl.selection =
-        TextSelection.collapsed(offset: address.length);
+    _addressCtrl.selection = TextSelection.collapsed(offset: address.length);
     setState(() => _suggestions = []);
   }
 
@@ -365,7 +367,9 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              widget.existing == null ? 'Thêm địa chỉ mới' : 'Chỉnh sửa địa chỉ',
+              widget.existing == null
+                  ? 'Thêm địa chỉ mới'
+                  : 'Chỉnh sửa địa chỉ',
               style: AppTextStyles.h3,
             ),
             const SizedBox(height: 16),
@@ -376,8 +380,8 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
                 labelText: 'Nhãn (VD: Nhà, Công ty...)',
                 prefixIcon: const Icon(Icons.label_outline,
                     size: 20, color: AppColors.primaryOrange),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(
@@ -403,8 +407,7 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
                           width: 16,
                           height: 16,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.primaryOrange),
+                              strokeWidth: 2, color: AppColors.primaryOrange),
                         ),
                       )
                     : const Icon(Icons.location_on_outlined,
@@ -419,8 +422,8 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
                         },
                       )
                     : null,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(
@@ -512,7 +515,7 @@ class _AddEditAddressSheetState extends State<_AddEditAddressSheet> {
     final address = _addressCtrl.text.trim();
     if (address.isEmpty) {
       Get.snackbar('Thiếu thông tin', 'Vui lòng nhập địa chỉ.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
       return;
     }
     final label = _labelCtrl.text.trim();

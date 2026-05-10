@@ -72,8 +72,7 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
     );
     if (cropped == null) return;
 
-    final compressed =
-        await compressPickedImageToTempJpeg(File(cropped.path));
+    final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
     setState(() {
       _newImageFile = compressed;
@@ -104,9 +103,8 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
       price: price,
       categoryId: _selectedCategory!.id,
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes: _newImageFile != null
-          ? await _newImageFile!.readAsBytes()
-          : null,
+      imageBytes:
+          _newImageFile != null ? await _newImageFile!.readAsBytes() : null,
       imageFilename: _newImageFilename,
     );
   }

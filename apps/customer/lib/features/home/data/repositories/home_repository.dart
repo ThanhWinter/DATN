@@ -62,9 +62,9 @@ class HomeRepository {
         'zoom': '18',
         'accept-language': 'vi',
       });
-      final res = await http
-          .get(uri, headers: {'User-Agent': _nominatimUserAgent})
-          .timeout(const Duration(seconds: 8));
+      final res = await http.get(uri, headers: {
+        'User-Agent': _nominatimUserAgent
+      }).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
         dev.log('[HOME] ⚠️ reverseGeocode HTTP ${res.statusCode}');
         return 'Không xác định được địa chỉ';

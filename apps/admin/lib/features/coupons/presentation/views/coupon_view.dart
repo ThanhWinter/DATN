@@ -58,8 +58,8 @@ class CouponView extends GetView<CouponController> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   itemCount: controller.coupons.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) =>
-                      _CouponCard(coupon: controller.coupons[i], fmtDate: _fmtDate),
+                  itemBuilder: (_, i) => _CouponCard(
+                      coupon: controller.coupons[i], fmtDate: _fmtDate),
                 )),
         ),
       ),
@@ -122,8 +122,8 @@ class _CouponCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expired = coupon.isExpired;
-    final exhausted = coupon.usageLimit != null &&
-        coupon.usedCount >= coupon.usageLimit!;
+    final exhausted =
+        coupon.usageLimit != null && coupon.usedCount >= coupon.usageLimit!;
     final active = !expired && !exhausted;
 
     return Card(
@@ -138,20 +138,23 @@ class _CouponCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: active
                         ? AppColors.primaryOrange.withValues(alpha: 0.1)
                         : AppColors.grey200,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: active ? AppColors.primaryOrange : AppColors.grey300,
+                      color:
+                          active ? AppColors.primaryOrange : AppColors.grey300,
                     ),
                   ),
                   child: Text(
                     coupon.code,
                     style: AppTextStyles.labelLarge.copyWith(
-                      color: active ? AppColors.primaryOrange : AppColors.grey600,
+                      color:
+                          active ? AppColors.primaryOrange : AppColors.grey600,
                       fontFamily: 'monospace',
                       letterSpacing: 1.5,
                     ),

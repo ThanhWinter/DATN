@@ -42,6 +42,7 @@ class HomeController extends GetxController {
   static const int _uiChunk = 20;
 
   final loadedFoodItems = <FoodItemModel>[].obs;
+
   /// Số món sau khi lọc danh mục (để hiển thị "x / y món").
   final totalFoodCount = 0.obs;
 
@@ -83,7 +84,7 @@ class HomeController extends GetxController {
         Get.snackbar(
           'GPS chưa bật',
           'Vui lòng bật GPS trong cài đặt điện thoại',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -97,7 +98,7 @@ class HomeController extends GetxController {
         Get.snackbar(
           'Không có quyền vị trí',
           'Vui lòng cấp quyền vị trí trong cài đặt điện thoại',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -116,7 +117,7 @@ class HomeController extends GetxController {
         Get.snackbar(
           'Không lấy được vị trí',
           'Vui lòng nhập địa chỉ thủ công hoặc thử lại.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -130,7 +131,7 @@ class HomeController extends GetxController {
       Get.snackbar(
         'Lỗi vị trí',
         'Không thể lấy vị trí. Vui lòng nhập địa chỉ thủ công.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLocating.value = false;

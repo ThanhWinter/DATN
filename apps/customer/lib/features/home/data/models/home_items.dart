@@ -1,4 +1,5 @@
 import 'food_option_model.dart';
+import '../../../interactions/data/models/interaction_models.dart';
 
 // ── Promo Banner ──────────────────────────────────────────────────────────────
 class HomePromoBannerItem {
@@ -91,6 +92,8 @@ class FoodItemModel {
   final String? deliveryEta;
   final bool hasOffer;
   final String? offerText;
+  final FoodRatingModel rating;
+  final List<ReviewModel> reviews;
 
   const FoodItemModel({
     required this.id,
@@ -107,6 +110,8 @@ class FoodItemModel {
     this.deliveryEta,
     this.hasOffer = false,
     this.offerText,
+    this.rating = FoodRatingModel.empty,
+    this.reviews = const [],
   });
 
   factory FoodItemModel.fromJson(Map<String, dynamic> json) {
@@ -127,6 +132,15 @@ class FoodItemModel {
       deliveryEta: json['deliveryEta']?.toString(),
       hasOffer: json['hasOffer'] as bool? ?? false,
       offerText: json['offerText']?.toString(),
+      rating: json['rating'] != null || json['totalReviews'] != null 
+          ? FoodRatingModel(
+              avgRating: (json['rating'] as num?)?.toDouble() ?? 0.0, 
+              totalReviews: (json['totalReviews'] as num?)?.toInt() ?? 0
+            ) 
+          : FoodRatingModel.empty,
+      reviews: (json['reviews'] as List<dynamic>? ?? [])
+          .map((e) => ReviewModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }

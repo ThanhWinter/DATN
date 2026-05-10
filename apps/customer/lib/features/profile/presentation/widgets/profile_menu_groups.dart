@@ -91,21 +91,175 @@ class SupportSection extends StatelessWidget {
             ProfileMenuItem(
               svgPath: AppIcons.helpSvg,
               label: 'Câu hỏi thường gặp',
-              onTap: () {},
+              onTap: () {
+                Get.bottomSheet(
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: const BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Câu hỏi thường gặp',
+                            style: AppTextStyles.h2),
+                        const SizedBox(height: 16),
+                        const Text('1. Làm sao để hủy đơn hàng?',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                            'Bạn chỉ có thể hủy đơn khi nhà hàng chưa xác nhận. Vui lòng vào chi tiết đơn hàng để thực hiện.',
+                            style: AppTextStyles.bodyMedium),
+                        const SizedBox(height: 12),
+                        const Text('2. Phí giao hàng tính thế nào?',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                            'Phí giao hàng được tính dựa trên khoảng cách từ cửa hàng đến địa chỉ của bạn.',
+                            style: AppTextStyles.bodyMedium),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Get.back(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryOrange,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text('Đã hiểu',
+                                style: TextStyle(color: Colors.white)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
               svgPath: AppIcons.supportSvg,
               label: 'Liên hệ hỗ trợ',
-              onTap: () {},
+              onTap: () {
+                Get.snackbar(
+                  'Liên hệ hỗ trợ',
+                  'Vui lòng gọi đến hotline: 1900 1508 hoặc email: support@foodhit.vn',
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: AppColors.white,
+                  colorText: AppColors.textDark,
+                  margin: const EdgeInsets.all(16),
+                  borderRadius: 12,
+                  icon: const Icon(Icons.support_agent_rounded,
+                      color: AppColors.primaryOrange),
+                );
+              },
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(
               icon: Icons.star_outline_rounded,
               label: 'Đánh giá ứng dụng',
-              onTap: () {},
+              onTap: () {
+                Get.dialog(const _RatingDialog());
+              },
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _RatingDialog extends StatefulWidget {
+  const _RatingDialog();
+
+  @override
+  State<_RatingDialog> createState() => _RatingDialogState();
+}
+
+class _RatingDialogState extends State<_RatingDialog> {
+  int _rating = 0;
+  final _reasonController = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_rating == 0) {
+      Get.snackbar('Thông báo', 'Vui lòng chọn số sao.', snackPosition: SnackPosition.TOP);
+      return;
+    }
+    if (_rating <= 3 && _reasonController.text.trim().isEmpty) {
+      Get.snackbar('Thông báo', 'Vui lòng cho chúng tôi biết lý do để cải thiện nhé.', snackPosition: SnackPosition.TOP);
+      return;
+    }
+    
+    Get.back();
+    Get.snackbar(
+      'Cảm ơn bạn!',
+      'Đánh giá của bạn đã được ghi nhận.',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: AppColors.successGreen,
+      colorText: Colors.white,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Center(child: Text('Đánh giá ứng dụng', style: AppTextStyles.h3)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Bạn có thích ứng dụng FoodHit không?', textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              final starIndex = index + 1;
+              return GestureDetector(
+                onTap: () => setState(() => _rating = starIndex),
+                child: Icon(
+                  starIndex <= _rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: AppColors.accentGold,
+                  size: 36,
+                ),
+              );
+            }),
+          ),
+          if (_rating > 0 && _rating <= 3) ...[
+            const SizedBox(height: 16),
+            TextField(
+              controller: _reasonController,
+              decoration: InputDecoration(
+                hintText: 'Xin cho biết lý do (bắt buộc)',
+                hintStyle: const TextStyle(fontSize: 13, color: AppColors.textGrey),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ],
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text('Hủy', style: TextStyle(color: AppColors.textGrey)),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryOrange,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: const Text('Gửi đánh giá', style: TextStyle(color: Colors.white)),
         ),
       ],
     );

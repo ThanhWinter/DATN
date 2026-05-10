@@ -32,7 +32,8 @@ class OrderRepository {
     int page = 0,
     int size = 25,
   }) async {
-    dev.log('[ORDER/REPO] Fetching orders status=$status page=$page size=$size');
+    dev.log(
+        '[ORDER/REPO] Fetching orders status=$status page=$page size=$size');
     final query = <String, String>{
       'page': page.toString(),
       'size': size.toString(),
@@ -51,8 +52,8 @@ class OrderRepository {
     final last = pageData['last'] as bool? ?? true;
     final number = (pageData['number'] as num?)?.toInt() ?? page;
     final totalPages = (pageData['totalPages'] as num?)?.toInt() ?? 0;
-    final totalElements = (pageData['totalElements'] as num?)?.toInt() ??
-        items.length;
+    final totalElements =
+        (pageData['totalElements'] as num?)?.toInt() ?? items.length;
 
     dev.log(
         '[ORDER/REPO] ✅ page $number/${totalPages > 0 ? totalPages - 1 : 0} — ${items.length} orders (last=$last)');

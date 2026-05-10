@@ -37,7 +37,8 @@ class AllCategoriesView extends StatelessWidget {
         final cats = controller.categories;
         if (cats.isEmpty) {
           return const Center(
-            child: Text('Không có danh mục', style: TextStyle(color: AppColors.textGrey)),
+            child: Text('Không có danh mục',
+                style: TextStyle(color: AppColors.textGrey)),
           );
         }
         return GridView.builder(
@@ -93,7 +94,8 @@ class _CategoryGridItem extends StatelessWidget {
                   ? AppColors.primaryOrange.withValues(alpha: 0.12)
                   : const Color(0xFFF5F5F5),
               border: Border.all(
-                color: isSelected ? AppColors.primaryOrange : Colors.transparent,
+                color:
+                    isSelected ? AppColors.primaryOrange : Colors.transparent,
                 width: 2.5,
               ),
               boxShadow: isSelected

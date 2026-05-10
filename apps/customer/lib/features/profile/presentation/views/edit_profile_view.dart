@@ -102,7 +102,7 @@ class _AvatarDisplay extends StatelessWidget {
       child: Obx(() {
         final profileController = Get.find<ProfileController>();
         final url = profileController.user.value?.avatarUrl;
-        
+
         return Container(
           width: 90,
           height: 90,

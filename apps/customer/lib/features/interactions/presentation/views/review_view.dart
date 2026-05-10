@@ -61,14 +61,17 @@ class _FoodSelector extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primaryOrange.withValues(alpha: 0.12)
                       : AppColors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isSelected ? AppColors.primaryOrange : AppColors.grey300,
+                    color: isSelected
+                        ? AppColors.primaryOrange
+                        : AppColors.grey300,
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -91,9 +94,8 @@ class _FoodSelector extends StatelessWidget {
                           color: isSelected
                               ? AppColors.primaryOrange
                               : AppColors.textDark,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),

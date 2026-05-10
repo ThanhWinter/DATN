@@ -73,7 +73,8 @@ class CustomerController extends GetxController {
     selectedCustomer.value = null;
     try {
       selectedCustomer.value = await _repository.getCustomerDetail(id);
-      dev.log('[CUSTOMER/VM] ✅ Detail loaded: ${selectedCustomer.value?.email}');
+      dev.log(
+          '[CUSTOMER/VM] ✅ Detail loaded: ${selectedCustomer.value?.email}');
     } catch (e) {
       dev.log('[CUSTOMER/VM] ❌ loadCustomerDetail error: $e');
       Get.snackbar('Lỗi', 'Không thể tải thông tin khách hàng: $e',

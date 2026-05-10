@@ -30,9 +30,8 @@ class HomeLocationHeader extends StatelessWidget {
     final notifCtrl = Get.isRegistered<NotificationController>()
         ? Get.find<NotificationController>()
         : null;
-    final mainCtrl = Get.isRegistered<MainController>()
-        ? Get.find<MainController>()
-        : null;
+    final mainCtrl =
+        Get.isRegistered<MainController>() ? Get.find<MainController>() : null;
 
     return ColoredBox(
       color: AppColors.white,
@@ -49,16 +48,19 @@ class HomeLocationHeader extends StatelessWidget {
                   _UserAvatar(profileCtrl: profileCtrl),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _DeliveryAddress(locationName: homeCtrl.locationName),
+                    child:
+                        _DeliveryAddress(locationName: homeCtrl.locationName),
                   ),
                   // RepaintBoundary cô lập các badge — khi badge đổi giá trị,
                   // chỉ widget con đó repaint, không kéo theo cả Row.
                   RepaintBoundary(
-                    child: _NotificationBell(unreadCount: notifCtrl?.unreadCount),
+                    child:
+                        _NotificationBell(unreadCount: notifCtrl?.unreadCount),
                   ),
                   const SizedBox(width: 4),
                   RepaintBoundary(
-                    child: _CartButton(badgeCount: mainCtrl?.cartItemBadgeCount),
+                    child:
+                        _CartButton(badgeCount: mainCtrl?.cartItemBadgeCount),
                   ),
                 ],
               ),

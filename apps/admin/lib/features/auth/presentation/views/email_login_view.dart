@@ -20,7 +20,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
   final _emailFocus = FocusNode();
   final _passFocus = FocusNode();
 
-  bool? _emailValid;   // null=empty, true=valid, false=invalid
+  bool? _emailValid; // null=empty, true=valid, false=invalid
   bool? _passValid;
   final Set<String> _shaking = {};
   final List<Worker> _workers = [];
@@ -44,7 +44,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
     _emailCtrl.addListener(() {
       if (!mounted) return;
       final v = _emailCtrl.text;
-      setState(() => _emailValid = v.isEmpty ? null : GetUtils.isEmail(v.trim()));
+      setState(
+          () => _emailValid = v.isEmpty ? null : GetUtils.isEmail(v.trim()));
     });
 
     _passCtrl.addListener(() {
@@ -54,8 +55,12 @@ class _EmailLoginViewState extends State<EmailLoginView> {
     });
 
     _workers.addAll([
-      ever(controller.emailError, (e) { if (e.isNotEmpty) _shake('email'); }),
-      ever(controller.passwordError, (e) { if (e.isNotEmpty) _shake('password'); }),
+      ever(controller.emailError, (e) {
+        if (e.isNotEmpty) _shake('email');
+      }),
+      ever(controller.passwordError, (e) {
+        if (e.isNotEmpty) _shake('password');
+      }),
     ]);
   }
 
@@ -120,11 +125,15 @@ class _EmailLoginViewState extends State<EmailLoginView> {
       child: IgnorePointer(
         child: Stack(
           children: [
-            Positioned(top: -20, right: -20,
-                child: _wm(Icons.eco_rounded, 180)),
-            Positioned(top: 140, left: -30,
+            Positioned(
+                top: -20, right: -20, child: _wm(Icons.eco_rounded, 180)),
+            Positioned(
+                top: 140,
+                left: -30,
                 child: _wm(Icons.restaurant_menu_rounded, 120)),
-            Positioned(bottom: 100, right: -10,
+            Positioned(
+                bottom: 100,
+                right: -10,
                 child: _wm(Icons.local_dining_rounded, 140)),
           ],
         ),
@@ -351,8 +360,8 @@ class _EmailLoginViewState extends State<EmailLoginView> {
                             color: AppColors.emerald, size: 20)
                         : null),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 4),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
               ),
               cursorColor: AppColors.emerald,
             ),
