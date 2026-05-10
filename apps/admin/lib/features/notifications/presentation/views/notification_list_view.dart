@@ -139,9 +139,8 @@ class _NotifTile extends StatelessWidget {
                         child: Text(
                           notif.title,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            fontWeight: unread
-                                ? FontWeight.w700
-                                : FontWeight.w400,
+                            fontWeight:
+                                unread ? FontWeight.w700 : FontWeight.w400,
                           ),
                         ),
                       ),

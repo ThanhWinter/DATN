@@ -70,8 +70,8 @@ class _CartQuantityDialogState extends State<CartQuantityDialog> {
           },
           child: Text(
             'Xác nhận',
-            style:
-                AppTextStyles.bodyLarge.copyWith(color: AppColors.primaryOrange),
+            style: AppTextStyles.bodyLarge
+                .copyWith(color: AppColors.primaryOrange),
           ),
         ),
       ],

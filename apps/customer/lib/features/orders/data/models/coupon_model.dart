@@ -45,7 +45,9 @@ class CouponModel {
   }
 
   double calculateDiscount(double subtotal) {
-    if (!isActive || DateTime.now().toUtc().isAfter(expiresAt.toUtc())) return 0;
+    if (!isActive || DateTime.now().toUtc().isAfter(expiresAt.toUtc())) {
+      return 0;
+    }
     if (minOrderValue != null && subtotal < minOrderValue!) return 0;
 
     final double raw = discountType == typePercent

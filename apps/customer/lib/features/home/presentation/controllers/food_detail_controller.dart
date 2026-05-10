@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../cart/data/models/cart_item_model.dart';
@@ -10,6 +11,7 @@ import '../../data/models/home_items.dart';
 import '../../data/repositories/food_repository.dart';
 import '../../../interactions/data/models/interaction_models.dart';
 import '../../../interactions/data/repositories/interaction_repository.dart';
+import '../widgets/all_reviews_sheet.dart';
 
 class FoodDetailController extends GetxController {
   final FoodRepository _repository;
@@ -28,6 +30,7 @@ class FoodDetailController extends GetxController {
   final canAddToCart = false.obs;
   final isFavorite = false.obs; // Rule #2 — explicit RxBool
   final rating = Rx<FoodRatingModel>(FoodRatingModel.empty);
+  final reviews = <ReviewModel>[].obs;
 
   @override
   void onInit() {
@@ -116,6 +119,16 @@ class FoodDetailController extends GetxController {
     }
   }
 
+  void viewAllReviews() {
+    final f = food.value;
+    if (f == null) return;
+    Get.bottomSheet(
+      AllReviewsSheet(foodId: f.id, foodName: f.name),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   // ── Private ──────────────────────────────────────────────────────────────────
 
   Future<void> _loadFood(int id) async {
@@ -125,6 +138,8 @@ class FoodDetailController extends GetxController {
       rating.value = FoodRatingModel.empty;
       isFavorite.value = false;
       food.value = await _repository.getFoodById(id);
+      rating.value = food.value?.rating ?? FoodRatingModel.empty;
+      reviews.value = food.value?.reviews ?? [];
       dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
       _recalc();
       isLoading.value = false;
@@ -143,7 +158,6 @@ class FoodDetailController extends GetxController {
   Future<void> _loadSecondaryDataTask(int id) async {
     await Future.wait([
       _safeLoadFavorite(id),
-      _safeLoadRating(id),
     ]);
   }
 
@@ -153,15 +167,6 @@ class FoodDetailController extends GetxController {
     } catch (e) {
       dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
       isFavorite.value = false;
-    }
-  }
-
-  Future<void> _safeLoadRating(int id) async {
-    try {
-      rating.value = await _interactionRepository.getFoodRating(id);
-    } catch (e) {
-      dev.log('[FOOD_DETAIL] ⚠️ getRating error: $e');
-      rating.value = FoodRatingModel.empty;
     }
   }
 
@@ -185,5 +190,4 @@ class FoodDetailController extends GetxController {
     totalPrice.value = (f.price + extra) * quantity.value;
     canAddToCart.value = allGroupsSatisfied;
   }
-
 }

@@ -33,7 +33,13 @@ void registerAppServices() {
         Get.offAllNamed(AppRoutes.login);
       },
     );
-    Get.put<IApiClient>(apiClient, permanent: true);
+    final optimizedApiClient = OptimizedApiClient(
+      baseUrl: AppConfig.baseUrl,
+      innerClient: apiClient,
+      enableCache: true,
+      cacheTtl: const Duration(minutes: 5),
+    );
+    Get.put<IApiClient>(optimizedApiClient, permanent: true);
   }
 
   if (!Get.isRegistered<AuthRepository>()) {

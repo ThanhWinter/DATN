@@ -146,8 +146,7 @@ class FoodCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
                 color: AppColors.emerald.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(6),

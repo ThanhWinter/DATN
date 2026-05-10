@@ -35,7 +35,8 @@ class StatisticRepository {
     ].join('-');
     final uri =
         Uri.parse('$_baseUrl/statistics/admin/export-revenue?date=$dateStr');
-    dev.log('[STAT/REPO] Streaming export revenue for $dateStr → ${targetFile.path}');
+    dev.log(
+        '[STAT/REPO] Streaming export revenue for $dateStr → ${targetFile.path}');
 
     final client = http.Client();
     try {

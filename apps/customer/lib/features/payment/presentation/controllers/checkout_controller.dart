@@ -14,16 +14,19 @@ import '../../../home/presentation/controllers/home_controller.dart';
 import '../../../orders/data/repositories/order_repository.dart';
 import '../../data/repositories/coupon_repository.dart';
 import '../../data/repositories/payment_repository.dart';
+import '../../../profile/data/repositories/address_repository.dart';
 
 class CheckoutController extends GetxController {
   final OrderRepository _orderRepository;
   final CouponRepository _couponRepository;
   final PaymentRepository _paymentRepository;
+  final AddressRepository _addressRepository;
 
   CheckoutController(
     this._orderRepository,
     this._couponRepository,
     this._paymentRepository,
+    this._addressRepository,
   );
 
   // ── Form ─────────────────────────────────────────────────────────────────────
@@ -58,6 +61,23 @@ class CheckoutController extends GetxController {
       subtotal.value = val;
       _updateFinalTotal();
     });
+
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    try {
+      final addresses = await _addressRepository.fetchAddresses();
+      final defaultAddr = addresses.firstWhereOrNull((a) => a.isDefault);
+      if (defaultAddr != null) {
+        addressController.text = defaultAddr.fullAddress;
+        deliveryAddress.value = defaultAddr.fullAddress;
+        return;
+      }
+    } catch (e) {
+      dev.log('[CHECKOUT/ADDR] Could not load default address: $e');
+    }
+
     final homeAddr = Get.find<HomeController>().locationName.value;
     if (homeAddr.isNotEmpty) {
       addressController.text = homeAddr;
@@ -135,7 +155,7 @@ class CheckoutController extends GetxController {
       Get.snackbar(
         'Thiếu địa chỉ',
         'Vui lòng nhập địa chỉ giao hàng.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return;
     }
@@ -163,17 +183,20 @@ class CheckoutController extends GetxController {
           items: orderItems,
         ),
       );
-      dev.log('[CHECKOUT/ORDER] ✅ Order created: id=${order.id}, total=${order.totalAmount}');
+      dev.log(
+          '[CHECKOUT/ORDER] ✅ Order created: id=${order.id}, total=${order.totalAmount}');
 
       // Thử thanh toán ZaloPay sau khi tạo đơn thành công
       try {
-        final payment = await _paymentRepository.createZaloPayOrder(orderId: order.id);
+        final payment =
+            await _paymentRepository.createZaloPayOrder(orderId: order.id);
         final result = await ZaloPayService.payOrder(payment.zpTransToken);
         dev.log('[CHECKOUT/ZALOPAY] Result: $result');
 
         if (result == 'SUCCESS') {
           try {
-            final confirmed = await _paymentRepository.queryPaymentStatus(payment.appTransId);
+            final confirmed =
+                await _paymentRepository.queryPaymentStatus(payment.appTransId);
             dev.log('[CHECKOUT/ZALOPAY] Backend query confirmed: $confirmed');
           } catch (e) {
             dev.log('[CHECKOUT/ZALOPAY] ⚠️ queryPaymentStatus failed: $e');
@@ -184,14 +207,15 @@ class CheckoutController extends GetxController {
 
         // CANCELED hoặc ERROR — đơn đã tạo, để trạng thái PENDING để user retry
         final isCanceled = result == 'CANCELED';
-        dev.log('[CHECKOUT/ZALOPAY] ${isCanceled ? "CANCELED" : "ERROR"} — order ${order.id} left PENDING');
+        dev.log(
+            '[CHECKOUT/ZALOPAY] ${isCanceled ? "CANCELED" : "ERROR"} — order ${order.id} left PENDING');
         Get.find<CartController>().clearCart();
         Get.snackbar(
           isCanceled ? 'Đã huỷ thanh toán' : 'Thanh toán thất bại',
           'Đơn hàng đã được đặt. Vào chi tiết đơn để thanh toán lại.',
           backgroundColor: isCanceled ? null : AppColors.errorRed,
           colorText: isCanceled ? null : AppColors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.main);
@@ -213,7 +237,7 @@ class CheckoutController extends GetxController {
         e.message,
         backgroundColor: AppColors.errorRed,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[CHECKOUT/ORDER] ❌ Unexpected error: $e');
@@ -221,7 +245,7 @@ class CheckoutController extends GetxController {
       Get.snackbar(
         'Lỗi',
         errorMessage.value,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isOrderLoading.value = false;
@@ -246,13 +270,14 @@ class CheckoutController extends GetxController {
 
   Future<void> _onOrderSuccess(String orderId) async {
     Get.find<CartController>().clearCart();
-    dev.log('[CHECKOUT/ORDER] ✅ Cart cleared, navigating to order detail: $orderId');
+    dev.log(
+        '[CHECKOUT/ORDER] ✅ Cart cleared, navigating to order detail: $orderId');
     Get.snackbar(
       'Đặt hàng thành công',
       'Đơn hàng của bạn đang được xử lý.',
       backgroundColor: AppColors.successGreen,
       colorText: AppColors.white,
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
     );
     await Future.delayed(const Duration(milliseconds: 500));
     Get.offAllNamed(AppRoutes.main);

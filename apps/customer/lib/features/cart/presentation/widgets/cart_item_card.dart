@@ -29,7 +29,8 @@ class CartItemCard extends GetView<CartController> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         color: AppColors.errorRed,
-        child: const Icon(Icons.delete_outline, color: AppColors.white, size: 22),
+        child:
+            const Icon(Icons.delete_outline, color: AppColors.white, size: 22),
       ),
       onDismissed: (_) => controller.removeItem(item.id),
       child: Padding(
@@ -122,7 +123,8 @@ class CartItemCard extends GetView<CartController> {
       width: 68,
       height: 68,
       color: AppColors.grey200,
-      child: const Icon(Icons.fastfood_outlined, color: AppColors.grey400, size: 28),
+      child: const Icon(Icons.fastfood_outlined,
+          color: AppColors.grey400, size: 28),
     );
   }
 }
@@ -147,9 +149,7 @@ class _QtyButton extends StatelessWidget {
         height: 28,
         decoration: BoxDecoration(
           color: filled ? AppColors.primaryOrange : AppColors.transparent,
-          border: filled
-              ? null
-              : Border.all(color: AppColors.grey300),
+          border: filled ? null : Border.all(color: AppColors.grey300),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(

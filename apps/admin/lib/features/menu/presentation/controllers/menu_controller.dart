@@ -96,8 +96,7 @@ class MenuController extends GetxController {
   void _applyFilters({required bool resetWindow}) {
     _filteredView = _computeFiltered();
     if (resetWindow) {
-      _visibleCount =
-          math.min(_uiChunk, math.max(_filteredView.length, 0));
+      _visibleCount = math.min(_uiChunk, math.max(_filteredView.length, 0));
     } else {
       _visibleCount = math.min(_visibleCount, _filteredView.length);
     }
@@ -328,7 +327,8 @@ class MenuController extends GetxController {
       if (mi != -1) _foodsMaster[mi].isAvailable = prevStatus;
       _syncStatsFromMaster();
       foods.refresh();
-      dev.log('[MENU/VM] ❌ toggleAvailability error: $e — reverted to $prevStatus');
+      dev.log(
+          '[MENU/VM] ❌ toggleAvailability error: $e — reverted to $prevStatus');
       Get.snackbar(
         'Không thể cập nhật',
         'Đã hoàn tác trạng thái. Vui lòng thử lại sau.',

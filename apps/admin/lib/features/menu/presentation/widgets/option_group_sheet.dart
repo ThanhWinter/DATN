@@ -47,8 +47,7 @@ class _OptionGroupSheetState extends State<OptionGroupSheet> {
   void _confirmDelete(OptionGroupModel group) {
     Get.dialog(
       AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Xoá nhóm tuỳ chọn', style: AppTextStyles.h3),
         content: Text(
           'Xoá nhóm "${group.name}"? Tất cả lựa chọn bên trong cũng bị xoá.',
@@ -218,8 +217,8 @@ class _OptionGroupCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(group.name,
-                          style: AppTextStyles.labelLarge
-                              .copyWith(fontSize: 14)),
+                          style:
+                              AppTextStyles.labelLarge.copyWith(fontSize: 14)),
                       const SizedBox(height: 3),
                       Row(
                         children: [
@@ -272,8 +271,7 @@ class _OptionGroupCard extends StatelessWidget {
           // items
           ...group.items.map(
             (item) => Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               child: Row(
                 children: [
                   Container(
@@ -286,8 +284,7 @@ class _OptionGroupCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(item.name,
-                        style: AppTextStyles.bodyMedium),
+                    child: Text(item.name, style: AppTextStyles.bodyMedium),
                   ),
                   Text(
                     item.priceAdjustment == 0
@@ -327,8 +324,8 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.bodySmall.copyWith(
-            fontSize: 10, color: color, fontWeight: FontWeight.w600),
+        style: AppTextStyles.bodySmall
+            .copyWith(fontSize: 10, color: color, fontWeight: FontWeight.w600),
       ),
     );
   }

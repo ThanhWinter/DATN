@@ -123,7 +123,8 @@ class _DeliverToCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryOrange.withValues(alpha: 0.1),
+                            color:
+                                AppColors.primaryOrange.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -193,8 +194,8 @@ class _OrderSummaryCard extends StatelessWidget {
                 GestureDetector(
                   onTap: () => Get.back(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.primaryOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -483,10 +484,12 @@ class _DiscountsCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppColors.successGreen.withValues(alpha: 0.1),
+                              color:
+                                  AppColors.successGreen.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                  color: AppColors.successGreen.withValues(alpha: 0.3)),
+                                  color: AppColors.successGreen
+                                      .withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               applied.code,
@@ -701,7 +704,8 @@ class _PlaceOrderBar extends StatelessWidget {
               onPressed: loading ? null : controller.placeOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryOrange,
-                disabledBackgroundColor: AppColors.primaryOrange.withValues(alpha: 0.6),
+                disabledBackgroundColor:
+                    AppColors.primaryOrange.withValues(alpha: 0.6),
                 foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(

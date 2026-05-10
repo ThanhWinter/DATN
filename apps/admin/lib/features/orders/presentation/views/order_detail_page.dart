@@ -79,8 +79,7 @@ class _OrderDetailBody extends StatelessWidget {
                 icon: Icons.location_on_outlined, text: order.deliveryAddress),
             _InfoRow(icon: Icons.access_time, text: _fmt(order.orderDate)),
             if (order.note != null)
-              _InfoRow(
-                  icon: Icons.sticky_note_2_outlined, text: order.note!),
+              _InfoRow(icon: Icons.sticky_note_2_outlined, text: order.note!),
             if (order.couponCode != null)
               _InfoRow(
                 icon: Icons.local_offer_outlined,
@@ -155,12 +154,16 @@ class _OrderDetailBody extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    order.couponCode != null ? 'Mã ${order.couponCode}' : 'Giảm giá',
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.successGreen),
+                    order.couponCode != null
+                        ? 'Mã ${order.couponCode}'
+                        : 'Giảm giá',
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.successGreen),
                   ),
                   Text(
                     '-${order.discountAmount.toInt().toVnd()}đ',
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.successGreen),
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.successGreen),
                   ),
                 ],
               ),
@@ -192,8 +195,7 @@ class _OrderDetailBody extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () =>
-                    ctrl.updateStatus(_nextStatus(order.status)!),
+                onPressed: () => ctrl.updateStatus(_nextStatus(order.status)!),
                 child: Text(
                   'Chuyển sang: ${OrderModel.statusLabel(_nextStatus(order.status)!)}',
                   style: AppTextStyles.button,
@@ -214,8 +216,7 @@ class _OrderDetailBody extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: () =>
-                    ctrl.updateStatus(OrderModel.statusCancelled),
+                onPressed: () => ctrl.updateStatus(OrderModel.statusCancelled),
                 child: const Text('Huỷ đơn hàng'),
               ),
             ),

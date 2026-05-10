@@ -125,8 +125,7 @@ class SettingsView extends GetView<SettingsController> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: AppColors.white),
+                                  strokeWidth: 2.5, color: AppColors.white),
                             )
                           : const Text('Lưu cài đặt',
                               style: TextStyle(

@@ -68,8 +68,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
     );
     if (cropped == null) return;
 
-    final compressed =
-        await compressPickedImageToTempJpeg(File(cropped.path));
+    final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
     setState(() {
       _previewImageFile = compressed;

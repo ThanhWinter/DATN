@@ -17,13 +17,14 @@ Future<List<String>> _searchNominatim(String query) async {
       'limit': '5',
       'accept-language': 'vi',
     });
-    final res = await http
-        .get(uri, headers: {'User-Agent': 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)'})
-        .timeout(const Duration(seconds: 6));
+    final res = await http.get(uri, headers: {
+      'User-Agent': 'FoodHitCustomerApp/1.0 (contact@foodhit.vn)'
+    }).timeout(const Duration(seconds: 6));
     if (res.statusCode != 200) return [];
     final list = jsonDecode(res.body) as List<dynamic>;
     return list
-        .map((e) => (e as Map<String, dynamic>)['display_name']?.toString() ?? '')
+        .map((e) =>
+            (e as Map<String, dynamic>)['display_name']?.toString() ?? '')
         .where((s) => s.isNotEmpty)
         .toList();
   } catch (_) {
@@ -50,13 +51,15 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   void initState() {
     super.initState();
     _controller = Get.find<HomeController>();
-    _textController = TextEditingController(text: _controller.pickerAddress.value);
+    _textController =
+        TextEditingController(text: _controller.pickerAddress.value);
 
     // Khi GPS lấy được địa chỉ mới → cập nhật text field và xóa gợi ý
     _addressWorker = ever(_controller.pickerAddress, (String address) {
       if (_textController.text != address) {
         _textController.text = address;
-        _textController.selection = TextSelection.collapsed(offset: address.length);
+        _textController.selection =
+            TextSelection.collapsed(offset: address.length);
         if (mounted) setState(() => _suggestions = []);
       }
     });
@@ -107,7 +110,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: const BoxDecoration(
           color: AppColors.white,
@@ -173,7 +177,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
                         size: 20,
                       ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.close, size: 18, color: AppColors.textGrey),
+                  icon: const Icon(Icons.close,
+                      size: 18, color: AppColors.textGrey),
                   onPressed: () {
                     _textController.clear();
                     _controller.updatePickerAddress('');

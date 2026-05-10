@@ -72,8 +72,8 @@ class MainView extends GetView<MainController> {
             destinations: [
               const NavigationDestination(
                 icon: Icon(Icons.restaurant_menu_outlined),
-                selectedIcon: Icon(Icons.restaurant_menu,
-                    color: AppColors.primaryOrange),
+                selectedIcon:
+                    Icon(Icons.restaurant_menu, color: AppColors.primaryOrange),
                 label: 'Thực đơn',
               ),
               NavigationDestination(
@@ -104,8 +104,8 @@ class MainView extends GetView<MainController> {
               ),
               const NavigationDestination(
                 icon: Icon(Icons.manage_accounts_outlined),
-                selectedIcon: Icon(Icons.manage_accounts,
-                    color: AppColors.primaryOrange),
+                selectedIcon:
+                    Icon(Icons.manage_accounts, color: AppColors.primaryOrange),
                 label: 'Hồ sơ',
               ),
             ],

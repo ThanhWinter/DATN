@@ -59,11 +59,10 @@ class AppNetworkImage extends StatelessWidget {
     int? explicit,
     double devicePixelRatio,
   ) {
-    final needed = layoutExtent != null &&
-            layoutExtent.isFinite &&
-            layoutExtent > 0
-        ? (layoutExtent * devicePixelRatio).ceil()
-        : null;
+    final needed =
+        layoutExtent != null && layoutExtent.isFinite && layoutExtent > 0
+            ? (layoutExtent * devicePixelRatio).ceil()
+            : null;
     if (explicit == null) return needed;
     if (needed == null) return explicit;
     return max(explicit, needed);

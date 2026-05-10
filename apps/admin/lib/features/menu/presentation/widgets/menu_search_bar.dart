@@ -37,31 +37,19 @@ class _MenuSearchBarState extends State<MenuSearchBar> {
       duration: const Duration(milliseconds: 200),
       height: 46,
       decoration: BoxDecoration(
-        color: isFocused
-            ? AppColors.white
-            : AppColors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isFocused
-              ? AppColors.emerald
-              : AppColors.emerald.withValues(alpha: 0.15),
-          width: isFocused ? 1.5 : 1,
+          color: isFocused ? AppColors.emerald : Colors.transparent,
+          width: isFocused ? 1.5 : 0,
         ),
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.emerald.withValues(alpha: 0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(

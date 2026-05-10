@@ -39,128 +39,142 @@ class MenuView extends GetView<MenuController> {
             ),
           ),
           SnapHelperWidget(
-        isLoading: controller.isLoading,
-        error: controller.error,
-        onSuccess: () => RefreshIndicator(
-          onRefresh: controller.loadData,
-          color: AppColors.emerald,
-          backgroundColor: AppColors.white,
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification n) {
-              if (n.metrics.pixels >= n.metrics.maxScrollExtent - 360) {
-                controller.maybeLoadMoreVisibleFoods();
-              }
-              return false;
-            },
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics()),
-              slivers: [
-                SliverAppBar(
-                  floating: true,
-                  pinned: true,
-                  backgroundColor: Colors.white,
-                  surfaceTintColor: Colors.transparent,
-                  elevation: 0,
-                  expandedHeight: 120,
-                  title: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Quản lý ',
-                        style: AppTextStyles.h3.copyWith(
-                          color: AppColors.textDark,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      ShaderMask(
-                        shaderCallback: (b) => const LinearGradient(
-                          colors: [
-                            AppColors.emeraldDark,
-                            AppColors.emeraldLight,
-                          ],
-                        ).createShader(b),
-                        child: Text(
-                          'Thực đơn',
-                          style: AppTextStyles.h3.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  actions: [
-                    Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: 0.8),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.emerald.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.add_rounded,
-                            color: AppColors.emerald, size: 20),
-                        onPressed: _showAddCategory,
-                        tooltip: 'Thêm danh mục',
-                        padding: const EdgeInsets.all(6),
-                        constraints: const BoxConstraints(),
-                      ),
-                    ),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Container(
-                      padding: const EdgeInsets.fromLTRB(16, 100, 16, 0),
-                      child: const MenuSearchBar(),
-                    ),
-                  ),
-                ),
-                const SliverToBoxAdapter(child: MenuCategoryFilterBar()),
-                const SliverToBoxAdapter(child: MenuStatsRow()),
-                Obx(() {
-                  final foods = controller.visibleFoodsForList;
-                  if (foods.isEmpty) {
-                    return const SliverFillRemaining(
-                      child: AppEmptyState(
-                        icon: Icons.restaurant_menu_outlined,
-                        message: 'Không tìm thấy món ăn nào',
-                      ),
-                    );
+            isLoading: controller.isLoading,
+            error: controller.error,
+            onSuccess: () => RefreshIndicator(
+              onRefresh: controller.loadData,
+              color: AppColors.emerald,
+              backgroundColor: AppColors.white,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification n) {
+                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 360) {
+                    controller.maybeLoadMoreVisibleFoods();
                   }
-                  return SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, i) {
-                          final food = foods[i];
-                          return RepaintBoundary(
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: FoodCard(
-                                food: food,
-                                onToggle: (_) =>
-                                    controller.toggleAvailability(food),
-                                onEdit: () => _showEditFood(food),
-                                onDelete: () =>
-                                    _confirmDeleteFood(context, food),
-                                onManageOptions: () =>
-                                    _showOptionGroups(food),
+                  return false;
+                },
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics()),
+                  slivers: [
+                    SliverAppBar(
+                      floating: true,
+                      pinned: true,
+                      backgroundColor: Colors.white,
+                      surfaceTintColor: Colors.transparent,
+                      elevation: 0,
+                      expandedHeight: 130,
+                      title: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Manage',
+                            style: AppTextStyles.h1.copyWith(
+                              fontSize: 26,
+                              fontStyle: FontStyle.italic,
+                              color: AppColors.textDark,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          ShaderMask(
+                            shaderCallback: (b) => const LinearGradient(
+                              colors: [
+                                AppColors.emerald,
+                                AppColors.emeraldLight,
+                              ],
+                            ).createShader(b),
+                            child: Text(
+                              'Hit',
+                              style: AppTextStyles.h1.copyWith(
+                                fontSize: 26,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                          );
-                        },
-                        childCount: foods.length,
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        Container(
+                          margin: const EdgeInsets.only(right: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.emerald.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: InkWell(
+                            onTap: _showAddCategory,
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.category_rounded, color: AppColors.emerald, size: 20),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Thêm danh mục', 
+                                    style: TextStyle(
+                                      color: AppColors.emerald, 
+                                      fontWeight: FontWeight.w700, 
+                                      fontSize: 13
+                                    )
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Container(
+                          padding: const EdgeInsets.fromLTRB(16, 110, 16, 0),
+                          child: const MenuSearchBar(),
+                        ),
                       ),
                     ),
-                  );
-                }),
-              ],
+                    const SliverToBoxAdapter(child: MenuCategoryFilterBar()),
+                    const SliverToBoxAdapter(child: MenuStatsRow()),
+                    Obx(() {
+                      final foods = controller.visibleFoodsForList;
+                      if (foods.isEmpty) {
+                        return const SliverFillRemaining(
+                          child: AppEmptyState(
+                            icon: Icons.restaurant_menu_outlined,
+                            message: 'Không tìm thấy món ăn nào',
+                          ),
+                        );
+                      }
+                      return SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) {
+                              final food = foods[i];
+                              return RepaintBoundary(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: FoodCard(
+                                    food: food,
+                                    onToggle: (_) =>
+                                        controller.toggleAvailability(food),
+                                    onEdit: () => _showEditFood(food),
+                                    onDelete: () =>
+                                        _confirmDeleteFood(context, food),
+                                    onManageOptions: () =>
+                                        _showOptionGroups(food),
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: foods.length,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
         ],
       ),
       floatingActionButton: _buildFab(),
@@ -170,17 +184,13 @@ class MenuView extends GetView<MenuController> {
   Widget _buildFab() {
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.emeraldDark, AppColors.emerald, AppColors.emeraldLight],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
+        color: AppColors.emerald,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.emerald.withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: AppColors.emerald.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -188,20 +198,20 @@ class MenuView extends GetView<MenuController> {
         color: Colors.transparent,
         child: InkWell(
           onTap: _showAddFood,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(16),
           child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add_rounded, color: AppColors.white, size: 20),
+                Icon(Icons.add_circle_outline_rounded, color: AppColors.white, size: 22),
                 SizedBox(width: 8),
                 Text(
                   'Thêm món mới',
                   style: TextStyle(
                     color: AppColors.white,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: 15,
                   ),
                 ),
               ],

@@ -51,7 +51,7 @@ class OrderDetailController extends GetxController {
         'Đơn hàng #${current.id.substring(0, 8).toUpperCase()} đã được huỷ.',
         backgroundColor: AppColors.errorRed,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[ORDER_DETAIL] ❌ cancelOrder error: $e');
@@ -60,7 +60,7 @@ class OrderDetailController extends GetxController {
         'Không thể huỷ đơn: $e',
         backgroundColor: AppColors.errorRed,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isMutating.value = false;
@@ -78,7 +78,8 @@ class OrderDetailController extends GetxController {
       final result = await ZaloPayService.payOrder(payment.zpTransToken);
       dev.log('[ORDER_DETAIL] ZaloPay result: $result');
       if (result == 'SUCCESS') {
-        final confirmed = await _paymentRepository.queryPaymentStatus(payment.appTransId);
+        final confirmed =
+            await _paymentRepository.queryPaymentStatus(payment.appTransId);
         dev.log('[ORDER_DETAIL] Server confirmed: $confirmed');
         await loadOrder(current.id);
         Get.snackbar(
@@ -86,13 +87,13 @@ class OrderDetailController extends GetxController {
           'Đơn hàng đang được xử lý.',
           backgroundColor: AppColors.successGreen,
           colorText: AppColors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       } else if (result == 'CANCELED') {
         Get.snackbar(
           'Đã huỷ thanh toán',
           'Bạn có thể thử lại bất cứ lúc nào.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       } else {
         Get.snackbar(
@@ -100,7 +101,7 @@ class OrderDetailController extends GetxController {
           'Vui lòng thử lại.',
           backgroundColor: AppColors.errorRed,
           colorText: AppColors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       }
     } catch (e) {
@@ -110,7 +111,7 @@ class OrderDetailController extends GetxController {
         'Không thể thanh toán: $e',
         backgroundColor: AppColors.errorRed,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isMutating.value = false;

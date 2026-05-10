@@ -11,7 +11,8 @@ import "../../data/repositories/auth_repository.dart";
 import "../../../profile/data/repositories/profile_repository.dart";
 
 class EmailLoginController extends GetxController {
-  EmailLoginController(this._authRepository, this._authService, this._profileRepository);
+  EmailLoginController(
+      this._authRepository, this._authService, this._profileRepository);
 
   final AuthRepository _authRepository;
   final AuthService _authService;

@@ -15,7 +15,7 @@ class ProfileRepository {
       final response = await _apiClient.get('/users/my-info');
       // In log để bác check Docker trả về cái gì
       dev.log("[PROFILE] 🟢 API Response: $response");
-      
+
       final result = response['result'] as Map<String, dynamic>?;
 
       if (result == null) {
@@ -38,7 +38,7 @@ class ProfileRepository {
       return user;
     } catch (e) {
       dev.log("[PROFILE] 🔴 API Error: $e");
-      
+
       // Chỉ fallback nếu có cache, không thì để nó báo lỗi cho bác biết đường sửa Docker
       final cachedJson = _authService.getUserProfile();
       if (cachedJson != null) {

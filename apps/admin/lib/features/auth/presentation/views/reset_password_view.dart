@@ -122,7 +122,8 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
           decoration: BoxDecoration(
             color: AppColors.white.withValues(alpha: 0.8),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
+            border:
+                Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
             boxShadow: [
               BoxShadow(
                 color: AppColors.emerald.withValues(alpha: 0.1),
@@ -393,7 +394,8 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
           children: [
             Text(
               'Độ mạnh mật khẩu',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
             ),
             Text(
               label,

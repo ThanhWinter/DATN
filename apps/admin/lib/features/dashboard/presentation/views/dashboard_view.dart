@@ -57,7 +57,7 @@ class DashboardView extends GetView<DashboardController> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // ── Stats hôm nay ─────────────────────────────────────
-                                    const _SectionHeader(label: 'Hôm nay'),
+                    const _SectionHeader(label: 'Hôm nay'),
                     const SizedBox(height: 12),
                     Obx(() => Row(
                           children: [

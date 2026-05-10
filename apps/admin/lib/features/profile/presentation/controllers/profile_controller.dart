@@ -43,9 +43,7 @@ class ProfileController extends GetxController {
       adminEmail.value = data['email'] as String? ?? '';
       adminPhone.value = data['phone'] as String? ?? '';
       adminRoles.assignAll(
-        (data['roles'] as List<dynamic>?)
-                ?.map((e) => e.toString())
-                .toList() ??
+        (data['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
             [],
       );
       dev.log('[PROFILE/VM] ✅ loaded: ${adminEmail.value}');

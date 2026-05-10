@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../features/main/presentation/controllers/main_controller.dart';
 import '../../../../features/orders/data/models/coupon_model.dart';
-import '../controllers/coupon_list_controller.dart';
+import '../controllers/optimized_coupon_list_controller.dart';
 
 // ── Palette màu cho các card (cycling) ───────────────────────────────────────
 const _kCardColors = [
@@ -18,16 +18,6 @@ const _kCardColors = [
   Color(0xFF3A86FF), // xanh dương
   Color(0xFF8338EC), // tím
   Color(0xFF06D6A0), // xanh ngọc
-];
-
-// Icon food gợi ý — cycling khi không có ảnh thật
-const _kFoodIcons = [
-  Icons.lunch_dining_rounded,
-  Icons.local_pizza_rounded,
-  Icons.ramen_dining_rounded,
-  Icons.rice_bowl_rounded,
-  Icons.bakery_dining_rounded,
-  Icons.fastfood_rounded,
 ];
 
 int _couponListItemCount(int availableLen, int expiredLen) {
@@ -46,7 +36,8 @@ Widget _buildCouponListItem(
   var i = index;
   if (available.isNotEmpty) {
     if (i == 0) {
-      return _SectionLabel(label: 'Ưu đãi đang hoạt động', count: available.length);
+      return _SectionLabel(
+          label: 'Ưu đãi đang hoạt động', count: available.length);
     }
     if (i == 1) return const SizedBox(height: 12);
     if (i < 2 + available.length) {
@@ -90,7 +81,8 @@ class CouponListView extends StatefulWidget {
 }
 
 class _CouponListViewState extends State<CouponListView> {
-  CouponListController get controller => Get.find<CouponListController>();
+  OptimizedCouponListController get controller =>
+      Get.find<OptimizedCouponListController>();
 
   @override
   void initState() {
@@ -212,8 +204,6 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-// ── Coupon Card ───────────────────────────────────────────────────────────────
-
 class _CouponCard extends StatelessWidget {
   const _CouponCard({
     required this.coupon,
@@ -227,12 +217,10 @@ class _CouponCard extends StatelessWidget {
   final int colorIndex;
   final bool isTab;
 
-  Color get _cardColor {
+  Color get _baseColor {
     if (isExpired) return const Color(0xFF9E9E9E);
     return _kCardColors[colorIndex % _kCardColors.length];
   }
-
-  IconData get _foodIcon => _kFoodIcons[colorIndex % _kFoodIcons.length];
 
   String get _discountBig {
     if (coupon.discountType == CouponModel.typePercent) {
@@ -241,24 +229,24 @@ class _CouponCard extends StatelessWidget {
     return '${(coupon.discountValue / 1000).toStringAsFixed(0)}K';
   }
 
-  String get _line1 {
+  String get _title {
     if (coupon.discountType == CouponModel.typePercent) {
       final cap = coupon.maxDiscount != null
-          ? ' TỐI ĐA ${(coupon.maxDiscount! / 1000).toStringAsFixed(0)}K'
+          ? ' - Tối đa ${(coupon.maxDiscount! / 1000).toStringAsFixed(0)}K'
           : '';
-      return 'GIẢM GIÁ$cap';
+      return 'Giảm $_discountBig$cap';
     }
-    return 'GIẢM TIỀN MẶT';
+    return 'Giảm $_discountBig';
   }
 
-  String get _line2 {
+  String get _timeText {
     final now = DateTime.now().toUtc();
     final exp = coupon.expiresAt.toUtc();
     final diff = exp.difference(now).inDays;
-    if (isExpired) return 'ĐÃ HẾT HẠN';
-    if (diff == 0) return 'CHỈ TRONG HÔM NAY!';
-    if (diff <= 3) return 'HẾT HẠN TRONG $diff NGÀY!';
-    return 'ÁP DỤNG NGAY!';
+    if (isExpired) return 'Đã hết hạn';
+    if (diff == 0) return 'Sắp hết hạn: Hôm nay';
+    if (diff <= 3) return 'Sắp hết hạn: Còn $diff ngày';
+    return 'HSD: ${DateFormat('dd/MM/yyyy').format(exp)}';
   }
 
   @override
@@ -266,298 +254,228 @@ class _CouponCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Opacity(
-        opacity: isExpired ? 0.55 : 1.0,
+        opacity: isExpired ? 0.6 : 1.0,
         child: Container(
+          height: 120,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
             boxShadow: isExpired
                 ? null
                 : [
                     BoxShadow(
-                      color: _cardColor.withValues(alpha: 0.35),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
+                      color: AppColors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: [
-                // ── Phần trên: màu + thông tin ưu đãi ──────────────────
-                _CardTop(
-                  cardColor: _cardColor,
-                  discountBig: _discountBig,
-                  line1: _line1,
-                  line2: _line2,
-                  foodIcon: _foodIcon,
+          child: Row(
+            children: [
+              // ── Left: Gradient Ticket Stub ──────────────────────────────
+              Container(
+                width: 100,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _baseColor.withValues(alpha: 0.8),
+                      _baseColor,
+                    ],
+                  ),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(12),
+                  ),
                 ),
-                // ── Phần dưới: mã code + nút bấm ───────────────────────
-                _CardBottom(
-                  coupon: coupon,
-                  cardColor: _cardColor,
-                  isExpired: isExpired,
-                  isTab: isTab,
+                child: Stack(
+                  children: [
+                    // Watermark icon
+                    const Positioned(
+                      right: -15,
+                      bottom: -15,
+                      child: Icon(
+                        Icons.local_offer_rounded,
+                        size: 60,
+                        color: Color(0x33FFFFFF), // Colors.white with 0.2 alpha
+                      ),
+                    ),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _discountBig,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Giảm giá',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              // ── Divider: Dashed Line ──────────────────────────────────────
+              SizedBox(
+                width: 12,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final height = constraints.constrainHeight();
+                    const dashHeight = 4.0;
+                    const dashSpace = 3.0;
+                    final dashCount =
+                        (height / (dashHeight + dashSpace)).floor();
+                    return Flex(
+                      direction: Axis.vertical,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(dashCount, (_) {
+                        return const SizedBox(
+                          width: 1,
+                          height: dashHeight,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: AppColors.grey300),
+                          ),
+                        );
+                      }),
+                    );
+                  },
+                ),
+              ),
+
+              // ── Right: Details ────────────────────────────────────────────
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Text(
+                        _title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      // Min order
+                      if (coupon.minOrderValue != null)
+                        Text(
+                          'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textGrey,
+                          ),
+                        ),
+                      const SizedBox(height: 6),
+                      // Code pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey100,
+                          border: Border.all(color: AppColors.grey300),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          coupon.code,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textDark,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+
+                      // Progress bar / Used count
+                      if (coupon.usageLimit != null) ...[
+                        _RemainingBar(
+                          remaining: coupon.usageLimit! - coupon.usedCount,
+                          total: coupon.usageLimit!,
+                          color: _baseColor,
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+
+                      // Bottom row: Time + Action
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _timeText,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: isExpired
+                                    ? AppColors.errorRed
+                                    : AppColors.primaryOrange,
+                              ),
+                            ),
+                          ),
+                          if (!isExpired)
+                            InkWell(
+                              onTap: () => _useCoupon(context),
+                              borderRadius: BorderRadius.circular(16),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _baseColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Text(
+                                  'Dùng',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-// ── Card top (colored hero area) ──────────────────────────────────────────────
-
-class _CardTop extends StatelessWidget {
-  const _CardTop({
-    required this.cardColor,
-    required this.discountBig,
-    required this.line1,
-    required this.line2,
-    required this.foodIcon,
-  });
-
-  final Color cardColor;
-  final String discountBig;
-  final String line1;
-  final String line2;
-  final IconData foodIcon;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Background
-          Positioned.fill(child: ColoredBox(color: cardColor)),
-
-          // Decorative circles — rear
-          Positioned(
-            right: -32,
-            top: -32,
-            child: _Circle(
-              size: 160,
-              color: Colors.white.withValues(alpha: 0.10),
-            ),
-          ),
-          Positioned(
-            right: 40,
-            bottom: -28,
-            child: _Circle(
-              size: 90,
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
-          ),
-
-          // Food icon circle — front right
-          Positioned(
-            right: -14,
-            top: 10,
-            child: Container(
-              width: 108,
-              height: 108,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.18),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.25),
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                foodIcon,
-                size: 52,
-                color: Colors.white.withValues(alpha: 0.90),
-              ),
-            ),
-          ),
-
-          // Left text content
-          Positioned(
-            left: 20,
-            top: 0,
-            bottom: 0,
-            right: 110,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Big discount number
-                Text(
-                  discountBig,
-                  style: const TextStyle(
-                    fontSize: 52,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1.0,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Line 1
-                Text(
-                  line1,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.8,
-                    height: 1.3,
-                  ),
-                ),
-                // Line 2
-                Text(
-                  line2,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.85),
-                    letterSpacing: 0.6,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Card bottom (white info + actions) ───────────────────────────────────────
-
-class _CardBottom extends StatelessWidget {
-  const _CardBottom({
-    required this.coupon,
-    required this.cardColor,
-    required this.isExpired,
-    required this.isTab,
-  });
-
-  final CouponModel coupon;
-  final Color cardColor;
-  final bool isExpired;
-  final bool isTab;
-
-  @override
-  Widget build(BuildContext context) {
-    final expiryText =
-        'HSD: ${DateFormat('dd/MM/yyyy').format(coupon.expiresAt)}';
-    final minText = coupon.minOrderValue != null
-        ? 'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ'
-        : null;
-
-    return Container(
-      color: AppColors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-      child: Row(
-        children: [
-          // Info + code
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Code pill
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: cardColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: cardColor.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Text(
-                    coupon.code,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: cardColor,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 5),
-                // Expiry + min order
-                Row(
-                  children: [
-                    Icon(
-                      Icons.schedule_rounded,
-                      size: 11,
-                      color: isExpired
-                          ? AppColors.errorRed
-                          : AppColors.textGrey,
-                    ),
-                    const SizedBox(width: 3),
-                    Text(
-                      expiryText,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isExpired
-                            ? AppColors.errorRed
-                            : AppColors.textGrey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (minText != null) ...[
-                      const SizedBox(width: 8),
-                      const Text(
-                        '·',
-                        style: TextStyle(
-                          color: AppColors.grey400,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          minText,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textGrey,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                if (coupon.usageLimit != null) ...[
-                  const SizedBox(height: 3),
-                  _RemainingBar(
-                    remaining: coupon.usageLimit! - coupon.usedCount,
-                    total: coupon.usageLimit!,
-                    color: cardColor,
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // Action buttons
-          if (!isExpired) ...[
-            const SizedBox(width: 8),
-            _ActionBtn(
-              label: 'Dùng ngay',
-              icon: Icons.arrow_forward_rounded,
-              color: cardColor,
-              outlined: false,
-              onTap: () => _useCoupon(),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  void _useCoupon() {
-    // Nếu mở từ checkout (returnOnSelect = true) → trả mã về, không navigate tab
+  void _useCoupon(BuildContext context) {
     final args = Get.arguments;
     final returnOnSelect =
         args is Map && (args['returnOnSelect'] as bool? ?? false);
@@ -571,7 +489,7 @@ class _CardBottom extends StatelessWidget {
     Get.snackbar(
       'Mã "${coupon.code}" đã sao chép',
       'Vào thanh toán để dán mã và áp dụng.',
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       backgroundColor: AppColors.primaryOrange,
       colorText: AppColors.white,
       duration: const Duration(seconds: 3),
@@ -579,25 +497,6 @@ class _CardBottom extends StatelessWidget {
       borderRadius: 10,
     );
   }
-}
-
-// ── Helper widgets ────────────────────────────────────────────────────────────
-
-class _Circle extends StatelessWidget {
-  const _Circle({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
-      );
 }
 
 class _RemainingBar extends StatelessWidget {
@@ -640,59 +539,6 @@ class _RemainingBar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ActionBtn extends StatelessWidget {
-  const _ActionBtn({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.outlined,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color color;
-  final bool outlined;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: outlined ? Colors.transparent : color,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: color,
-            width: outlined ? 1.5 : 0,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: outlined ? color : AppColors.white,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              icon,
-              size: 13,
-              color: outlined ? color : AppColors.white,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

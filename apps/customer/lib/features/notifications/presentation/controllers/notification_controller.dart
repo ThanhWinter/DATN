@@ -51,7 +51,8 @@ class NotificationController extends GetxController {
       await _repository.markAsRead(id);
       notifications[index] = notifications[index].copyWith(isRead: true);
       await refreshUnreadCount();
-      dev.log('[NOTIFICATION] ✅ markAsRead: $id | còn chưa đọc: ${unreadCount.value}');
+      dev.log(
+          '[NOTIFICATION] ✅ markAsRead: $id | còn chưa đọc: ${unreadCount.value}');
     } catch (e) {
       dev.log('[NOTIFICATION] ❌ markAsRead error: $e');
     }
@@ -75,7 +76,8 @@ class NotificationController extends GetxController {
   void deleteNotification(String id) {
     notifications.removeWhere((n) => n.id == id);
     refreshUnreadCount().then((_) {
-      dev.log('[NOTIFICATION] 🗑️ deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
+      dev.log(
+          '[NOTIFICATION] 🗑️ deleteNotification: $id | còn chưa đọc: ${unreadCount.value}');
     });
   }
 }

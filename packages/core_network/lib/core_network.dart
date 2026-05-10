@@ -7,6 +7,10 @@ import "dart:typed_data";
 import "package:http/http.dart" as http;
 import "package:http_parser/http_parser.dart";
 
+export "async/async_utils.dart";
+export "cache/cache_manager.dart";
+export "optimized_api_client.dart";
+
 /// Tránh log response JSON khổng lồ trong bản release (RAM / chồng log DevTools).
 const bool _isReleaseMode = bool.fromEnvironment("dart.vm.product");
 const int _maxLoggedBodyChars = 2500;
@@ -18,14 +22,16 @@ const int _isolateThreshold = 10 * 1024;
 // Thay thế http.Response.fromStream để tránh RAM spike khi server trả về dữ liệu lớn.
 const int _maxResponseBytes = 8 * 1024 * 1024; // 8 MB
 
-Future<http.Response> _readStreamedResponse(http.StreamedResponse streamed) async {
+Future<http.Response> _readStreamedResponse(
+    http.StreamedResponse streamed) async {
   final builder = BytesBuilder(copy: false);
   await for (final chunk in streamed.stream) {
     builder.add(chunk);
     if (builder.length > _maxResponseBytes) {
       throw ApiException(
         statusCode: streamed.statusCode,
-        message: 'Response vượt giới hạn ${_maxResponseBytes ~/ (1024 * 1024)} MB',
+        message:
+            'Response vượt giới hạn ${_maxResponseBytes ~/ (1024 * 1024)} MB',
       );
     }
   }
@@ -315,7 +321,8 @@ class ApiClient implements IApiClient {
             ));
           }
         }
-        dev.log('🚀 [API MULTIPART] POST ${request.url} | fields: ${request.fields.keys.toList()}');
+        dev.log(
+            '🚀 [API MULTIPART] POST ${request.url} | fields: ${request.fields.keys.toList()}');
         final streamed = await _httpClient.send(request);
         final res = await _readStreamedResponse(streamed);
         return await _handleResponse(res);
@@ -344,7 +351,8 @@ class ApiClient implements IApiClient {
             ));
           }
         }
-        dev.log('🚀 [API MULTIPART] PUT ${request.url} | fields: ${request.fields.keys.toList()}');
+        dev.log(
+            '🚀 [API MULTIPART] PUT ${request.url} | fields: ${request.fields.keys.toList()}');
         final streamed = await _httpClient.send(request);
         final res = await _readStreamedResponse(streamed);
         return await _handleResponse(res);

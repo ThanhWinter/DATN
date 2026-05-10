@@ -31,11 +31,14 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     _emailCtrl.addListener(() {
       if (!mounted) return;
       final v = _emailCtrl.text;
-      setState(() => _emailValid = v.isEmpty ? null : GetUtils.isEmail(v.trim()));
+      setState(
+          () => _emailValid = v.isEmpty ? null : GetUtils.isEmail(v.trim()));
     });
 
     _workers.add(
-      ever(controller.emailError, (e) { if (e.isNotEmpty) _shake('email'); }),
+      ever(controller.emailError, (e) {
+        if (e.isNotEmpty) _shake('email');
+      }),
     );
   }
 
@@ -100,11 +103,15 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
       child: IgnorePointer(
         child: Stack(
           children: [
-            Positioned(top: -20, right: -20,
-                child: _wm(Icons.eco_rounded, 180)),
-            Positioned(top: 160, left: -30,
+            Positioned(
+                top: -20, right: -20, child: _wm(Icons.eco_rounded, 180)),
+            Positioned(
+                top: 160,
+                left: -30,
                 child: _wm(Icons.restaurant_menu_rounded, 120)),
-            Positioned(bottom: 80, right: -10,
+            Positioned(
+                bottom: 80,
+                right: -10,
                 child: _wm(Icons.local_dining_rounded, 140)),
           ],
         ),
@@ -190,8 +197,8 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                 spreadRadius: 4),
           ],
         ),
-        child:
-            const Icon(Icons.mark_email_unread_rounded, size: 46, color: AppColors.emerald),
+        child: const Icon(Icons.mark_email_unread_rounded,
+            size: 46, color: AppColors.emerald),
       ),
     );
   }

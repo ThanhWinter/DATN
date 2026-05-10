@@ -15,7 +15,7 @@ class ResetPasswordController extends GetxController {
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
-  
+
   final passwordError = ''.obs;
   final confirmPasswordError = ''.obs;
 

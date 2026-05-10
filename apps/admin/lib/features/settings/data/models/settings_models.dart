@@ -54,8 +54,7 @@ class StoreSettingModel {
         storeName: json['storeName'] as String? ?? '',
         hotline: json['hotline'] as String? ?? '',
         isOpen: json['isOpen'] as bool? ?? true,
-        baseShippingFee:
-            (json['baseShippingFee'] as num?)?.toDouble() ?? 0.0,
+        baseShippingFee: (json['baseShippingFee'] as num?)?.toDouble() ?? 0.0,
         freeShipThreshold:
             (json['freeShipThreshold'] as num?)?.toDouble() ?? 0.0,
       );

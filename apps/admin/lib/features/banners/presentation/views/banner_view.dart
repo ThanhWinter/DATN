@@ -6,9 +6,9 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../settings/data/models/settings_models.dart';
-import '../controllers/banner_controller.dart';
+import '../controllers/optimized_banner_controller.dart';
 
-class BannerView extends GetView<BannerController> {
+class BannerView extends GetView<OptimizedBannerController> {
   const BannerView({super.key});
 
   @override
@@ -65,7 +65,7 @@ class BannerView extends GetView<BannerController> {
 
 class _BannerList extends StatelessWidget {
   const _BannerList({required this.controller});
-  final BannerController controller;
+  final OptimizedBannerController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class _BannerList extends StatelessWidget {
 
 // ── Banner Card ───────────────────────────────────────────────────────────────
 
-class _BannerCard extends GetView<BannerController> {
+class _BannerCard extends GetView<OptimizedBannerController> {
   const _BannerCard({required this.banner});
   final BannerModel banner;
 
@@ -146,8 +146,7 @@ class _BannerCard extends GetView<BannerController> {
             ),
             // ── Info + actions ──────────────────────────────────────────
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
                   Expanded(
@@ -218,20 +217,19 @@ class _BannerCard extends GetView<BannerController> {
       actions: [
         TextButton(
           onPressed: Get.back,
-          child:
-              const Text('Huỷ', style: TextStyle(color: AppColors.textGrey)),
+          child: const Text('Huỷ', style: TextStyle(color: AppColors.textGrey)),
         ),
         ElevatedButton(
           onPressed: () {
             Get.back();
-            controller.deleteBanner(banner.id);
+            controller.deleteBanner(banner);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.errorRed,
             foregroundColor: AppColors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child: const Text('Xoá ngay'),
         ),
@@ -288,7 +286,7 @@ class _AddBannerSheetState extends State<_AddBannerSheet> {
       return;
     }
     Get.back();
-    await Get.find<BannerController>().addBanner(
+    await Get.find<OptimizedBannerController>().addBanner(
       title: title,
       bytes: _pickedBytes!,
       filename: _pickedName.isNotEmpty ? _pickedName : 'banner.jpg',
@@ -341,8 +339,7 @@ class _AddBannerSheetState extends State<_AddBannerSheet> {
                 child: _pickedBytes != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child:
-                            Image.memory(_pickedBytes!, fit: BoxFit.cover),
+                        child: Image.memory(_pickedBytes!, fit: BoxFit.cover),
                       )
                     : const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -369,8 +366,7 @@ class _AddBannerSheetState extends State<_AddBannerSheet> {
                 ),
                 child: const Text('Thêm banner',
                     style: TextStyle(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.bold)),
+                        color: AppColors.white, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 16),
@@ -430,11 +426,10 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
       return;
     }
     Get.back();
-    await Get.find<BannerController>().updateBanner(
+    await Get.find<OptimizedBannerController>().updateBanner(
       id: widget.banner.id,
       title: title,
-      linkUrl:
-          _linkCtrl.text.trim().isNotEmpty ? _linkCtrl.text.trim() : null,
+      linkUrl: _linkCtrl.text.trim().isNotEmpty ? _linkCtrl.text.trim() : null,
       imageBytes: _pickedBytes,
       filename: _pickedName.isNotEmpty ? _pickedName : null,
     );
@@ -485,8 +480,7 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
                 child: _pickedBytes != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child:
-                            Image.memory(_pickedBytes!, fit: BoxFit.cover),
+                        child: Image.memory(_pickedBytes!, fit: BoxFit.cover),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -516,8 +510,7 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
                 ),
                 child: const Text('Lưu thay đổi',
                     style: TextStyle(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.bold)),
+                        color: AppColors.white, fontWeight: FontWeight.bold)),
               ),
             ),
             const SizedBox(height: 16),

@@ -19,7 +19,7 @@ import '../../features/interactions/presentation/controllers/favorite_controller
 import '../../features/main/presentation/controllers/main_controller.dart';
 import '../../features/profile/data/repositories/address_repository.dart';
 import '../../features/payment/data/repositories/coupon_repository.dart';
-import '../../features/coupons/presentation/controllers/coupon_list_controller.dart';
+import '../../features/coupons/presentation/controllers/optimized_coupon_list_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -74,8 +74,8 @@ class MainBinding extends Bindings {
       () => OrderController(Get.find<OrderRepository>()),
     );
 
-    Get.lazyPut<CouponListController>(
-      () => CouponListController(Get.find<CouponRepository>()),
+    Get.lazyPut<OptimizedCouponListController>(
+      () => OptimizedCouponListController(Get.find<CouponRepository>()),
     );
 
     Get.lazyPut<AddressRepository>(

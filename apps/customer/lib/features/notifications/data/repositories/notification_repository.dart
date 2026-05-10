@@ -20,8 +20,7 @@ class NotificationRepository {
   }
 
   Future<int> fetchUnreadCount() async {
-    final response =
-        await _apiClient.get('/user/notifications/unread-count');
+    final response = await _apiClient.get('/user/notifications/unread-count');
     return (response['result'] as num?)?.toInt() ?? 0;
   }
 

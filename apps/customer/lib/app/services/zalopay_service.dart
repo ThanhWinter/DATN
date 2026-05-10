@@ -2,7 +2,8 @@ import 'package:flutter/services.dart';
 
 class ZaloPayService {
   // Channel name must match exactly with the one in MainActivity.kt
-  static const MethodChannel _channel = MethodChannel('com.example.customer/zalopay');
+  static const MethodChannel _channel =
+      MethodChannel('com.example.customer/zalopay');
 
   /// Start ZaloPay payment process
   /// [zpToken] is received from your backend order creation API

@@ -15,9 +15,8 @@ class UserAddressModel {
       UserAddressModel(
         id: (json['id'] as num).toInt(),
         label: json['label'] as String? ?? json['title'] as String?,
-        fullAddress: json['fullAddress'] as String? ??
-            json['address'] as String? ??
-            '',
+        fullAddress:
+            json['fullAddress'] as String? ?? json['address'] as String? ?? '',
         isDefault: json['isDefault'] as bool? ?? false,
       );
 
@@ -28,7 +27,8 @@ class UserAddressModel {
         'longitude': 0.0,
       };
 
-  UserAddressModel copyWith({bool? isDefault, String? label, String? fullAddress}) =>
+  UserAddressModel copyWith(
+          {bool? isDefault, String? label, String? fullAddress}) =>
       UserAddressModel(
         id: id,
         label: label ?? this.label,

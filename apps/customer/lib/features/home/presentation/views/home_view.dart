@@ -97,7 +97,10 @@ class _HomeSkeleton extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       children: [
         // Banner skeleton
-        _box(margin: const EdgeInsets.fromLTRB(16, 12, 16, 0), height: 160, radius: 12),
+        _box(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            height: 160,
+            radius: 12),
         const SizedBox(height: 12),
 
         // Category skeleton
@@ -110,14 +113,16 @@ class _HomeSkeleton extends StatelessWidget {
               _box(height: 14, width: 80, radius: 6),
               const SizedBox(height: 12),
               Row(
-                children: List.generate(5, (i) => Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Column(children: [
-                    _circle(size: 50),
-                    const SizedBox(height: 6),
-                    _box(height: 10, width: 44, radius: 4),
-                  ]),
-                )),
+                children: List.generate(
+                    5,
+                    (i) => Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Column(children: [
+                            _circle(size: 50),
+                            const SizedBox(height: 6),
+                            _box(height: 10, width: 44, radius: 4),
+                          ]),
+                        )),
               ),
             ],
           ),
@@ -133,14 +138,16 @@ class _HomeSkeleton extends StatelessWidget {
             children: [
               _box(height: 15, width: 90, radius: 6),
               const SizedBox(height: 14),
-              ...List.generate(3, (row) => Padding(
-                padding: EdgeInsets.only(top: row == 0 ? 0 : 10),
-                child: Row(children: [
-                  Expanded(child: _foodCardSkeleton()),
-                  const SizedBox(width: 10),
-                  Expanded(child: _foodCardSkeleton()),
-                ]),
-              )),
+              ...List.generate(
+                  3,
+                  (row) => Padding(
+                        padding: EdgeInsets.only(top: row == 0 ? 0 : 10),
+                        child: Row(children: [
+                          Expanded(child: _foodCardSkeleton()),
+                          const SizedBox(width: 10),
+                          Expanded(child: _foodCardSkeleton()),
+                        ]),
+                      )),
             ],
           ),
         ),

@@ -80,7 +80,8 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                         Obx(() => RichText(
                               text: TextSpan(
                                 style: AppTextStyles.bodyLarge.copyWith(
-                                    color: AppColors.white.withValues(alpha: 0.8)),
+                                    color:
+                                        AppColors.white.withValues(alpha: 0.8)),
                                 children: [
                                   const TextSpan(text: "Đặt mật khẩu mới cho "),
                                   TextSpan(
@@ -101,13 +102,15 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                                 controller: _passwordCtrl,
                                 hintText: "Mật khẩu mới",
                                 icon: Icons.lock_outline,
-                                obscureText: !controller.isPasswordVisible.value,
+                                obscureText:
+                                    !controller.isPasswordVisible.value,
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     controller.isPasswordVisible.value
                                         ? Icons.visibility
                                         : Icons.visibility_off,
-                                    color: AppColors.white.withValues(alpha: 0.7),
+                                    color:
+                                        AppColors.white.withValues(alpha: 0.7),
                                     size: 22,
                                   ),
                                   onPressed: controller.togglePassword,
@@ -131,7 +134,8 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                                     controller.isConfirmPasswordVisible.value
                                         ? Icons.visibility
                                         : Icons.visibility_off,
-                                    color: AppColors.white.withValues(alpha: 0.7),
+                                    color:
+                                        AppColors.white.withValues(alpha: 0.7),
                                     size: 22,
                                   ),
                                   onPressed: controller.toggleConfirmPassword,

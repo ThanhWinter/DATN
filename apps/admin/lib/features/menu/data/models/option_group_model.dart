@@ -9,7 +9,8 @@ class OptionItemModel {
   final String name;
   final double priceAdjustment;
 
-  factory OptionItemModel.fromJson(Map<String, dynamic> json) => OptionItemModel(
+  factory OptionItemModel.fromJson(Map<String, dynamic> json) =>
+      OptionItemModel(
         id: (json['id'] as num).toInt(),
         name: json['name'] as String,
         priceAdjustment: (json['priceAdjustment'] as num).toDouble(),
@@ -36,7 +37,8 @@ class OptionGroupModel {
   bool get isRequired => minSelect >= 1;
   bool get isMultiSelect => maxSelect > 1;
 
-  factory OptionGroupModel.fromJson(Map<String, dynamic> json) => OptionGroupModel(
+  factory OptionGroupModel.fromJson(Map<String, dynamic> json) =>
+      OptionGroupModel(
         id: (json['id'] as num).toInt(),
         foodId: (json['foodId'] as num).toInt(),
         name: json['name'] as String,

@@ -32,7 +32,8 @@ class OtpController extends GetxController {
       email.value = args['email'] ?? '';
       otpType.value = args['type'] ?? 'REGISTER';
     }
-    dev.log('[OTP] Screen init — email: ${email.value}, type: ${otpType.value}');
+    dev.log(
+        '[OTP] Screen init — email: ${email.value}, type: ${otpType.value}');
     _startCountdown();
   }
 
@@ -76,7 +77,8 @@ class OtpController extends GetxController {
             colorText: AppColors.white,
             borderRadius: 12,
             margin: const EdgeInsets.all(16),
-            icon: const Icon(Icons.check_circle_rounded, color: AppColors.white),
+            icon:
+                const Icon(Icons.check_circle_rounded, color: AppColors.white),
           );
           await Future.delayed(const Duration(milliseconds: 1200));
           Get.offAllNamed(AppRoutes.login);

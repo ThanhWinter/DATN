@@ -84,9 +84,8 @@ class _AddEditOptionGroupSheetState extends State<AddEditOptionGroupSheet> {
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
-    final validItems = _items
-        .where((e) => e.nameCtrl.text.trim().isNotEmpty)
-        .toList();
+    final validItems =
+        _items.where((e) => e.nameCtrl.text.trim().isNotEmpty).toList();
     if (validItems.isEmpty) {
       Get.snackbar('Thiếu thông tin', 'Vui lòng thêm ít nhất 1 lựa chọn.',
           snackPosition: SnackPosition.BOTTOM);
@@ -293,9 +292,8 @@ class _AddEditOptionGroupSheetState extends State<AddEditOptionGroupSheet> {
                           padding: EdgeInsets.zero,
                           icon: const Icon(Icons.remove_circle_outline,
                               size: 20, color: AppColors.errorRed),
-                          onPressed: _items.length > 1
-                              ? () => _removeItem(i)
-                              : null,
+                          onPressed:
+                              _items.length > 1 ? () => _removeItem(i) : null,
                         ),
                       ),
                     ],
@@ -425,8 +423,7 @@ class _StepBtn extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon,
-            size: 16,
-            color: enabled ? AppColors.white : AppColors.grey400),
+            size: 16, color: enabled ? AppColors.white : AppColors.grey400),
       ),
     );
   }

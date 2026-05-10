@@ -69,13 +69,27 @@ class _RegisterViewState extends State<RegisterView> {
     _addListener(_confirmPasswordCtrl, 'confirmPassword');
 
     _workers.addAll([
-      ever(controller.lastNameError, (e) { if (e.isNotEmpty) _shake('lastName'); }),
-      ever(controller.firstNameError, (e) { if (e.isNotEmpty) _shake('firstName'); }),
-      ever(controller.emailError, (e) { if (e.isNotEmpty) _shake('email'); }),
-      ever(controller.phoneError, (e) { if (e.isNotEmpty) _shake('phone'); }),
-      ever(controller.dobError, (e) { if (e.isNotEmpty) _shake('dob'); }),
-      ever(controller.passwordError, (e) { if (e.isNotEmpty) _shake('password'); }),
-      ever(controller.confirmPasswordError, (e) { if (e.isNotEmpty) _shake('confirmPassword'); }),
+      ever(controller.lastNameError, (e) {
+        if (e.isNotEmpty) _shake('lastName');
+      }),
+      ever(controller.firstNameError, (e) {
+        if (e.isNotEmpty) _shake('firstName');
+      }),
+      ever(controller.emailError, (e) {
+        if (e.isNotEmpty) _shake('email');
+      }),
+      ever(controller.phoneError, (e) {
+        if (e.isNotEmpty) _shake('phone');
+      }),
+      ever(controller.dobError, (e) {
+        if (e.isNotEmpty) _shake('dob');
+      }),
+      ever(controller.passwordError, (e) {
+        if (e.isNotEmpty) _shake('password');
+      }),
+      ever(controller.confirmPasswordError, (e) {
+        if (e.isNotEmpty) _shake('confirmPassword');
+      }),
 
       // Button morphing: success → show checkmark → navigate to OTP
       ever(controller.registerSuccess, (bool ok) {
@@ -250,10 +264,18 @@ class _RegisterViewState extends State<RegisterView> {
       child: IgnorePointer(
         child: Stack(
           children: [
-            Positioned(top: -20, right: -20, child: _wm(Icons.eco_rounded, 180)),
-            Positioned(top: 200, left: -30, child: _wm(Icons.restaurant_menu_rounded, 120)),
-            Positioned(bottom: 60, right: -10, child: _wm(Icons.local_dining_rounded, 140)),
-            Positioned(bottom: 280, left: -20, child: _wm(Icons.grass_rounded, 100)),
+            Positioned(
+                top: -20, right: -20, child: _wm(Icons.eco_rounded, 180)),
+            Positioned(
+                top: 200,
+                left: -30,
+                child: _wm(Icons.restaurant_menu_rounded, 120)),
+            Positioned(
+                bottom: 60,
+                right: -10,
+                child: _wm(Icons.local_dining_rounded, 140)),
+            Positioned(
+                bottom: 280, left: -20, child: _wm(Icons.grass_rounded, 100)),
           ],
         ),
       ),
@@ -272,9 +294,12 @@ class _RegisterViewState extends State<RegisterView> {
           decoration: BoxDecoration(
             color: AppColors.white.withValues(alpha: 0.8),
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
+            border:
+                Border.all(color: AppColors.emerald.withValues(alpha: 0.25)),
             boxShadow: [
-              BoxShadow(color: AppColors.emerald.withValues(alpha: 0.1), blurRadius: 8),
+              BoxShadow(
+                  color: AppColors.emerald.withValues(alpha: 0.1),
+                  blurRadius: 8),
             ],
           ),
           child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -310,7 +335,8 @@ class _RegisterViewState extends State<RegisterView> {
         ),
         const SizedBox(height: 4),
         Text('Vui lòng điền đầy đủ thông tin bên dưới',
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey)),
+            style:
+                AppTextStyles.bodyMedium.copyWith(color: AppColors.textGrey)),
       ],
     );
   }
@@ -559,8 +585,8 @@ class _RegisterViewState extends State<RegisterView> {
                         : null),
                 border: InputBorder.none,
                 counterText: '',
-                contentPadding: const EdgeInsets.symmetric(
-                    vertical: 16, horizontal: 4),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
               ),
               cursorColor: AppColors.emerald,
             ),
@@ -611,8 +637,8 @@ class _RegisterViewState extends State<RegisterView> {
                 style: AppTextStyles.bodySmall
                     .copyWith(color: AppColors.textGrey)),
             Text(label,
-                style: AppTextStyles.bodySmall.copyWith(
-                    color: color, fontWeight: FontWeight.w700)),
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: color, fontWeight: FontWeight.w700)),
           ],
         ),
         const SizedBox(height: 6),
@@ -791,5 +817,4 @@ class _RegisterViewState extends State<RegisterView> {
       ),
     );
   }
-
 }

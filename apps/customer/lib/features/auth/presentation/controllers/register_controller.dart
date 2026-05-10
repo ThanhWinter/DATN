@@ -46,7 +46,10 @@ class RegisterController extends GetxController {
     required String password,
     required String confirmPassword,
   }) async {
-    if (!_validate(firstName, lastName, email, phone, password, confirmPassword)) return;
+    if (!_validate(
+        firstName, lastName, email, phone, password, confirmPassword)) {
+      return;
+    }
 
     dev.log("[AUTH/REGISTER] Attempting register for: $email");
     isLoading.value = true;
@@ -143,8 +146,10 @@ class RegisterController extends GetxController {
   }
 
   String _mapErrorCode(String message) => switch (message) {
-        "User already existed!" => "Email này đã được đăng ký. Vui lòng dùng email khác.",
-        "Validation failed" => "Thông tin đăng ký không hợp lệ. Vui lòng kiểm tra lại.",
+        "User already existed!" =>
+          "Email này đã được đăng ký. Vui lòng dùng email khác.",
+        "Validation failed" =>
+          "Thông tin đăng ký không hợp lệ. Vui lòng kiểm tra lại.",
         "Unknow exception!" => "Lỗi máy chủ. Vui lòng thử lại sau.",
         "Kết nối quá lâu. Vui lòng kiểm tra mạng và thử lại." =>
           "Kết nối quá lâu. Vui lòng kiểm tra mạng và thử lại.",

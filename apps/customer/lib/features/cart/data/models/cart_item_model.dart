@@ -1,7 +1,8 @@
 import '../../../home/data/models/food_option_model.dart';
 
 class CartItemModel {
-  final String id; // "${foodId}_${sortedOptionIds}" hoặc "$foodId" nếu không có options
+  final String
+      id; // "${foodId}_${sortedOptionIds}" hoặc "$foodId" nếu không có options
   final int foodId;
   final String name;
   final double price; // base price + sum(selectedOptions.priceAdjustment)
@@ -69,8 +70,7 @@ class CartItemModel {
   }
 
   // Label hiển thị trong cart: "Ít đá, Ít đường"
-  String get optionsLabel =>
-      selectedOptions.map((o) => o.name).join(', ');
+  String get optionsLabel => selectedOptions.map((o) => o.name).join(', ');
 }
 
 // Tạo cart item key duy nhất từ foodId + options đã chọn

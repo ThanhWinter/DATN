@@ -54,12 +54,12 @@ class AddressController extends GetxController {
         'Địa chỉ mới đã được thêm.',
         backgroundColor: AppColors.successGreen,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[ADDRESS/VM] ❌ create: $e');
       Get.snackbar('Lỗi', 'Không thể thêm địa chỉ.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isSubmitting.value = false;
     }
@@ -86,12 +86,12 @@ class AddressController extends GetxController {
         'Địa chỉ đã được cập nhật.',
         backgroundColor: AppColors.successGreen,
         colorText: AppColors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[ADDRESS/VM] ❌ update: $e');
       Get.snackbar('Lỗi', 'Không thể cập nhật địa chỉ.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } finally {
       isSubmitting.value = false;
     }
@@ -103,11 +103,11 @@ class AddressController extends GetxController {
       addresses.removeWhere((a) => a.id == id);
       dev.log('[ADDRESS/VM] ✅ Deleted: $id');
       Get.snackbar('Đã xoá', 'Địa chỉ đã được xoá.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     } catch (e) {
       dev.log('[ADDRESS/VM] ❌ delete: $e');
       Get.snackbar('Lỗi', 'Không thể xoá địa chỉ.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     }
   }
 
@@ -121,7 +121,7 @@ class AddressController extends GetxController {
     } catch (e) {
       dev.log('[ADDRESS/VM] ❌ setDefault: $e');
       Get.snackbar('Lỗi', 'Không thể đặt địa chỉ mặc định.',
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     }
   }
 }

@@ -12,7 +12,8 @@ class CustomerRepository {
   /// GET /users — Spring Page response: result.content = List<UserResponse>
   /// NOTE: Backend UserResponse chưa có trường `id` — CustomerModel.id sẽ dùng email
   /// làm fallback cho đến khi backend thêm id vào UserResponse.
-  Future<List<CustomerModel>> fetchCustomers({int page = 0, int size = 50}) async {
+  Future<List<CustomerModel>> fetchCustomers(
+      {int page = 0, int size = 50}) async {
     dev.log('[CUSTOMER/REPO] Fetching customers... page=$page size=$size');
     final res = await _apiClient.get(
       '/users',
@@ -34,8 +35,7 @@ class CustomerRepository {
   Future<CustomerModel> getCustomerDetail(String id) async {
     dev.log('[CUSTOMER/REPO] Fetching customer detail: $id');
     final res = await _apiClient.get('/users/$id');
-    final model =
-        CustomerModel.fromJson(res['result'] as Map<String, dynamic>);
+    final model = CustomerModel.fromJson(res['result'] as Map<String, dynamic>);
     dev.log('[CUSTOMER/REPO] ✅ Customer detail loaded: ${model.email}');
     return model;
   }

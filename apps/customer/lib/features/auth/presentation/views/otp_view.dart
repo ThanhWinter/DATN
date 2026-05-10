@@ -51,7 +51,8 @@ class _OtpViewState extends State<OtpView> {
       // Cập nhật notifier — KHÔNG gọi setState.
       _focusNodes[index].addListener(() {
         _focusedNotifiers[index].value = _focusNodes[index].hasFocus;
-        if (_focusNodes[index].hasFocus && _controllers[index].text.isNotEmpty) {
+        if (_focusNodes[index].hasFocus &&
+            _controllers[index].text.isNotEmpty) {
           _controllers[index].selection = TextSelection(
             baseOffset: 0,
             extentOffset: _controllers[index].text.length,
@@ -126,7 +127,6 @@ class _OtpViewState extends State<OtpView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildAppBar(),
-
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -134,7 +134,6 @@ class _OtpViewState extends State<OtpView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 32),
-
                         Text(
                           "Xác thực OTP",
                           style: AppTextStyles.h1.copyWith(
@@ -144,13 +143,12 @@ class _OtpViewState extends State<OtpView> {
                             letterSpacing: 0.5,
                           ),
                         ),
-
                         const SizedBox(height: 10),
-
                         Obx(() => RichText(
                               text: TextSpan(
                                 style: AppTextStyles.bodyLarge.copyWith(
-                                  color: AppColors.white.withValues(alpha: 0.75),
+                                  color:
+                                      AppColors.white.withValues(alpha: 0.75),
                                   height: 1.5,
                                 ),
                                 children: [
@@ -166,13 +164,9 @@ class _OtpViewState extends State<OtpView> {
                                 ],
                               ),
                             )),
-
                         const SizedBox(height: 52),
-
                         _buildOtpInput(),
-
                         const SizedBox(height: 52),
-
                         Obx(() => GradientActionButton(
                               icon: Icons.verified_user_outlined,
                               iconColor: AppColors.primaryOrange,
@@ -182,9 +176,7 @@ class _OtpViewState extends State<OtpView> {
                                   ? () {}
                                   : controller.verify,
                             )),
-
                         const SizedBox(height: 28),
-
                         Obx(() {
                           final countdown = controller.resendCountdown.value;
                           final isResending = controller.isResending.value;

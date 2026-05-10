@@ -72,7 +72,7 @@ class ReviewController extends GetxController {
       Get.snackbar(
         'Cảm ơn bạn!',
         'Đánh giá của bạn đã được ghi nhận.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: AppColors.successGreen,
         colorText: AppColors.white,
       );
@@ -81,14 +81,14 @@ class ReviewController extends GetxController {
       Get.snackbar(
         'Lỗi',
         e.message,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
       dev.log('[REVIEW] ❌ Unexpected error: $e');
       Get.snackbar(
         'Lỗi',
         'Không thể gửi đánh giá. Vui lòng thử lại.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isLoading.value = false;

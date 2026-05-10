@@ -233,7 +233,10 @@ class _OrderTimeline extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: done
                       ? const LinearGradient(
-                          colors: [AppColors.primaryOrange, AppColors.primaryOrange],
+                          colors: [
+                            AppColors.primaryOrange,
+                            AppColors.primaryOrange
+                          ],
                         )
                       : null,
                   color: done ? null : AppColors.grey200,
@@ -403,7 +406,8 @@ class _IconInfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
+                style:
+                    AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
               ),
               const SizedBox(height: 2),
               Text(
@@ -548,8 +552,10 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isZaloPay = order.paymentMethod.toUpperCase() == OrderModel.methodZaloPay;
-    final subtotal = order.totalAmount + order.discountAmount - order.shippingFee;
+    final isZaloPay =
+        order.paymentMethod.toUpperCase() == OrderModel.methodZaloPay;
+    final subtotal =
+        order.totalAmount + order.discountAmount - order.shippingFee;
 
     return _SectionCard(
       child: Column(
@@ -780,7 +786,8 @@ class _ActionsSection extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Huỷ đơn hàng?',
             style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('Bạn có chắc muốn huỷ đơn này không?\nHành động này không thể hoàn tác.'),
+        content: const Text(
+            'Bạn có chắc muốn huỷ đơn này không?\nHành động này không thể hoàn tác.'),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           OutlinedButton(
@@ -840,15 +847,14 @@ class _ActionButton extends StatelessWidget {
         ? const SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(
-                strokeWidth: 2, color: Colors.white),
+            child:
+                CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon,
-                  size: 18,
-                  color: isOutlined ? outlineColor : Colors.white),
+                  size: 18, color: isOutlined ? outlineColor : Colors.white),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -869,8 +875,8 @@ class _ActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: outlineColor ?? AppColors.primaryOrange),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
           child: inner,
         ),
@@ -884,11 +890,11 @@ class _ActionButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppColors.primaryOrange,
-          disabledBackgroundColor:
-              (backgroundColor ?? AppColors.primaryOrange).withValues(alpha: 0.6),
+          disabledBackgroundColor: (backgroundColor ?? AppColors.primaryOrange)
+              .withValues(alpha: 0.6),
           elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: inner,
       ),

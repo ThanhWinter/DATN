@@ -29,37 +29,11 @@ class LoginView extends StatelessWidget {
 
   Widget _buildWatermarks() {
     return Positioned.fill(
-      child: IgnorePointer(
-        child: Stack(
-          children: [
-            Positioned(
-              top: -20,
-              right: -20,
-              child: _watermarkIcon(Icons.eco_rounded, 180),
-            ),
-            Positioned(
-              top: 120,
-              left: -30,
-              child: _watermarkIcon(Icons.restaurant_menu_rounded, 130),
-            ),
-            Positioned(
-              bottom: 200,
-              right: -10,
-              child: _watermarkIcon(Icons.local_dining_rounded, 140),
-            ),
-            Positioned(
-              bottom: 80,
-              left: -20,
-              child: _watermarkIcon(Icons.grass_rounded, 110),
-            ),
-          ],
-        ),
+      child: Image.asset(
+        'assets/images/login_bg.jpg',
+        fit: BoxFit.cover,
       ),
     );
-  }
-
-  Widget _watermarkIcon(IconData icon, double size) {
-    return Icon(icon, size: size, color: AppColors.emerald.withValues(alpha: 0.05));
   }
 
   Widget _buildHeaderSection() {
@@ -69,47 +43,19 @@ class LoginView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Glass shield icon
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                color: AppColors.white.withValues(alpha: 0.7),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.emerald.withValues(alpha: 0.4),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.emerald.withValues(alpha: 0.18),
-                    blurRadius: 28,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.admin_panel_settings_rounded,
-                size: 56,
-                color: AppColors.emerald,
-              ),
-            ),
-
-            const SizedBox(height: 22),
-
-            // FoodHit title
+            // ManageHit title
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Text(
-                  'Food',
+                  'Manage',
                   style: AppTextStyles.h1.copyWith(
-                    fontSize: 40,
+                    fontSize: 44,
                     fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.white,
                   ),
                 ),
                 ShaderMask(
@@ -119,9 +65,9 @@ class LoginView extends StatelessWidget {
                   child: Text(
                     'Hit',
                     style: AppTextStyles.h1.copyWith(
-                      fontSize: 40,
+                      fontSize: 44,
                       fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.white,
                     ),
                   ),
@@ -134,7 +80,7 @@ class LoginView extends StatelessWidget {
             Text(
               'Hệ thống quản trị nội bộ',
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textGrey,
+                color: AppColors.white.withValues(alpha: 0.9),
                 letterSpacing: 0.3,
               ),
             ),
@@ -148,26 +94,6 @@ class LoginView extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: AppColors.emerald.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.emerald.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -199,11 +125,7 @@ class LoginView extends StatelessWidget {
       child: Container(
         height: 56,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.emeraldDark, AppColors.emerald, AppColors.emeraldLight],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
+          color: AppColors.emerald,
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
@@ -244,19 +166,19 @@ class LoginView extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.transparent,
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: AppColors.emerald, width: 1.5),
+          border: Border.all(color: AppColors.white, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.emerald, size: 20),
+            Icon(icon, color: AppColors.white, size: 20),
             const SizedBox(width: 10),
             Text(
               text,
               style: AppTextStyles.button.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.emerald,
+                color: AppColors.white,
                 letterSpacing: 0.3,
               ),
             ),
@@ -295,7 +217,7 @@ class LoginView extends StatelessWidget {
           child: Text(
             'hoặc',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.emerald,
+              color: AppColors.white,
               fontWeight: FontWeight.w600,
             ),
           ),
