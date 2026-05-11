@@ -10,6 +10,7 @@ class SnapHelperWidget<T> extends StatelessWidget {
   final bool Function()? isEmpty;
   final Widget Function() onSuccess;
   final VoidCallback? onRetry;
+  final Future<void> Function()? onRefresh;
   final Widget? loadingWidget;
   final String? emptyMessage;
   final Widget? emptyWidget;
@@ -21,6 +22,7 @@ class SnapHelperWidget<T> extends StatelessWidget {
     this.error,
     this.isEmpty,
     this.onRetry,
+    this.onRefresh,
     this.loadingWidget,
     this.emptyMessage,
     this.emptyWidget,
@@ -36,6 +38,7 @@ class SnapHelperWidget<T> extends StatelessWidget {
           empty: isEmpty?.call() ?? false,
           onSuccess: onSuccess,
           onRetry: onRetry,
+          onRefresh: onRefresh,
           loadingWidget: loadingWidget,
           emptyMessage: emptyMessage,
           emptyWidget: emptyWidget,
@@ -78,6 +81,7 @@ class _SnapContent<T> extends StatelessWidget {
   final bool empty;
   final Widget Function() onSuccess;
   final VoidCallback? onRetry;
+  final Future<void> Function()? onRefresh;
   final Widget? loadingWidget;
   final String? emptyMessage;
   final Widget? emptyWidget;
@@ -88,6 +92,7 @@ class _SnapContent<T> extends StatelessWidget {
     required this.empty,
     required this.onSuccess,
     this.onRetry,
+    this.onRefresh,
     this.loadingWidget,
     this.emptyMessage,
     this.emptyWidget,
@@ -104,7 +109,7 @@ class _SnapContent<T> extends StatelessWidget {
 
     if (error != null) {
       final detail = SnapHelperWidget._extractMessage(error!);
-      return Center(
+      Widget errorContent = Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
@@ -136,10 +141,13 @@ class _SnapContent<T> extends StatelessWidget {
                 style: AppTextStyles.bodySmall.copyWith(fontSize: 12),
                 textAlign: TextAlign.center,
               ),
-              if (onRetry != null) ...[
+              if (onRetry != null || onRefresh != null) ...[
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: onRetry,
+                  onPressed: () {
+                    if (onRetry != null) onRetry!();
+                    if (onRefresh != null) onRefresh!();
+                  },
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('Thử lại'),
                   style: ElevatedButton.styleFrom(
@@ -158,11 +166,27 @@ class _SnapContent<T> extends StatelessWidget {
           ),
         ),
       );
+
+      if (onRefresh != null) {
+        return RefreshIndicator(
+          onRefresh: onRefresh!,
+          color: AppColors.primaryOrange,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: errorContent,
+              ),
+            ],
+          ),
+        );
+      }
+      return errorContent;
     }
 
     if (empty) {
-      if (emptyWidget != null) return emptyWidget!;
-      return Center(
+      Widget emptyContent = emptyWidget ?? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -174,6 +198,23 @@ class _SnapContent<T> extends StatelessWidget {
           ],
         ),
       );
+
+      if (onRefresh != null) {
+        return RefreshIndicator(
+          onRefresh: onRefresh!,
+          color: AppColors.primaryOrange,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: emptyContent,
+              ),
+            ],
+          ),
+        );
+      }
+      return emptyContent;
     }
 
     return onSuccess();

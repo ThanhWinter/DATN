@@ -11,38 +11,17 @@ class MenuStatsRow extends GetView<MenuController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final isFiltered = controller.isFiltered;
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
-        child: Row(
-          children: [
-            _Pill(
-              icon: Icons.restaurant_menu_rounded,
-              value: '${controller.totalFoodCount.value}',
-              label: 'tổng',
-              color: AppColors.emerald,
-            ),
-            const SizedBox(width: 8),
-            _Pill(
-              icon: Icons.check_circle_outline_rounded,
-              value: '${controller.availableFoodCount.value}',
-              label: 'bán',
-              color: AppColors.emeraldDark,
-            ),
-            const SizedBox(width: 8),
-            _Pill(
-              icon: Icons.remove_circle_outline_rounded,
-              value: '${controller.unavailableFoodCount.value}',
-              label: 'hết',
-              color: AppColors.errorRed,
-            ),
-            const Spacer(),
-            if (isFiltered)
-              TextButton.icon(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (isFiltered)
+            Padding(
+              padding: const EdgeInsets.only(right: 16, bottom: 4),
+              child: TextButton.icon(
                 onPressed: controller.clearFilters,
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.emerald,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   textStyle: const TextStyle(
@@ -53,8 +32,41 @@ class MenuStatsRow extends GetView<MenuController> {
                 icon: const Icon(Icons.filter_alt_off_rounded, size: 14),
                 label: const Text('Xem tất cả'),
               ),
-          ],
-        ),
+            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, isFiltered ? 0 : 10, 16, 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _Pill(
+                    icon: Icons.restaurant_menu_rounded,
+                    value: '${controller.totalFoodCount.value}',
+                    label: 'tổng',
+                    color: AppColors.emerald,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _Pill(
+                    icon: Icons.check_circle_outline_rounded,
+                    value: '${controller.availableFoodCount.value}',
+                    label: 'bán',
+                    color: AppColors.emeraldDark,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _Pill(
+                    icon: Icons.remove_circle_outline_rounded,
+                    value: '${controller.unavailableFoodCount.value}',
+                    label: 'hết',
+                    color: AppColors.errorRed,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       );
     });
   }
@@ -90,12 +102,14 @@ class _Pill extends StatelessWidget {
         ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 value,

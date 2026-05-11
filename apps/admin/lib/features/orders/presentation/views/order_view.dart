@@ -76,6 +76,7 @@ class _OrderViewState extends State<OrderView>
       body: SnapHelperWidget(
         isLoading: _controller.isLoading,
         error: _controller.error,
+        onRefresh: _controller.loadOrders,
         onSuccess: () => TabBarView(
           controller: _tabController,
           children: [

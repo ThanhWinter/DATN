@@ -44,6 +44,7 @@ class CustomerView extends GetView<CustomerController> {
             child: SnapHelperWidget(
               isLoading: controller.isLoading,
               error: controller.error,
+              onRefresh: controller.loadCustomers,
               onSuccess: () => RefreshIndicator(
                 onRefresh: controller.loadCustomers,
                 color: AppColors.primaryOrange,

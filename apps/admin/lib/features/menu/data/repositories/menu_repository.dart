@@ -25,6 +25,12 @@ class MenuRepository {
         .toList();
   }
 
+  Future<CategoryModel> fetchCategoryById(int id) async {
+    dev.log('[MENU/REPO] Fetching category detail id=$id');
+    final res = await _apiClient.get('/categories/$id');
+    return CategoryModel.fromJson(res['result'] as Map<String, dynamic>);
+  }
+
   Future<CategoryModel> createCategory({
     required String name,
     String? description,

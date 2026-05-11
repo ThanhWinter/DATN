@@ -35,29 +35,21 @@ class _MenuSearchBarState extends State<MenuSearchBar> {
     final isFocused = _focus.hasFocus;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: 46,
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(100),
         border: Border.all(
-          color: isFocused ? AppColors.emerald : Colors.transparent,
-          width: isFocused ? 1.5 : 0,
+          color: isFocused ? AppColors.emerald : AppColors.emerald.withValues(alpha: 0.3),
+          width: 1.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         children: [
           Icon(
             Icons.search_rounded,
-            color: isFocused ? AppColors.emerald : AppColors.grey400,
-            size: 20,
+            color: isFocused ? AppColors.emerald : AppColors.textGrey,
+            size: 22,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -74,6 +66,7 @@ class _MenuSearchBarState extends State<MenuSearchBar> {
                   color: AppColors.textLight,
                 ),
                 border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 isDense: true,
               ),
               cursorColor: AppColors.emerald,

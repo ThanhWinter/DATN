@@ -24,6 +24,7 @@ class MenuController extends GetxController {
   final selectedCategoryId = Rxn<int>();
   final isMutating = false.obs;
   final searchQuery = ''.obs;
+  final activeMenuTab = 0.obs; // 0 = categories, 1 = foods
 
   final totalFoodCount = 0.obs;
   final availableFoodCount = 0.obs;
@@ -119,6 +120,16 @@ class MenuController extends GetxController {
     _applyFilters(resetWindow: true);
   }
 
+  void showCategoriesTab() => activeMenuTab.value = 0;
+
+  void showFoodsTab() => activeMenuTab.value = 1;
+
+  void openFoodsForCategory(int id) {
+    selectedCategoryId.value = id;
+    activeMenuTab.value = 1;
+    _applyFilters(resetWindow: true);
+  }
+
   bool get isFiltered =>
       selectedCategoryId.value != null || searchQuery.value.isNotEmpty;
 
@@ -133,6 +144,7 @@ class MenuController extends GetxController {
   }
 
   void maybeLoadMoreVisibleFoods() {
+    if (activeMenuTab.value != 1) return;
     _loadMoreDebounce?.cancel();
     _loadMoreDebounce = Timer(const Duration(milliseconds: 200), loadMoreFoods);
   }
@@ -154,6 +166,16 @@ class MenuController extends GetxController {
   }
 
   List<FoodModel> get visibleFoodsForList => foods.toList();
+
+  int categoryFoodCount(int categoryId) =>
+      _foodsMaster.where((food) => food.categoryId == categoryId).length;
+
+  int categoryAvailableFoodCount(int categoryId) => _foodsMaster
+      .where((food) => food.categoryId == categoryId && food.isAvailable)
+      .length;
+
+  Future<CategoryModel> getCategoryDetail(int id) =>
+      _repository.fetchCategoryById(id);
 
   Future<void> _refetchFoodsMaster() async {
     final list = await _repository.fetchFoods();

@@ -28,7 +28,14 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     loadMyInfo();
-    _loadStats();
+    loadStats();
+  }
+
+  Future<void> reload() async {
+    await Future.wait([
+      loadMyInfo(),
+      loadStats(),
+    ]);
   }
 
   Future<void> loadMyInfo() async {
@@ -54,7 +61,7 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> _loadStats() async {
+  Future<void> loadStats() async {
     try {
       isStatsLoading.value = true;
       final stats = await _statisticRepository.getDashboard();

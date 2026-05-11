@@ -21,6 +21,7 @@ class DashboardView extends GetView<DashboardController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRefresh: controller.loadDashboard,
         onSuccess: () => RefreshIndicator(
           onRefresh: controller.loadDashboard,
           color: AppColors.emerald,

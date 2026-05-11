@@ -21,6 +21,7 @@ class AdminReviewView extends GetView<AdminReviewController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRefresh: controller.loadReviews,
         onSuccess: () => RefreshIndicator(
           onRefresh: controller.loadReviews,
           color: AppColors.primaryOrange,

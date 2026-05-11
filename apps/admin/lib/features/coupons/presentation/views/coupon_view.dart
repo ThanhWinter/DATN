@@ -38,6 +38,7 @@ class CouponView extends GetView<CouponController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRefresh: controller.loadCoupons,
         onSuccess: () => RefreshIndicator(
           onRefresh: controller.loadCoupons,
           color: AppColors.primaryOrange,

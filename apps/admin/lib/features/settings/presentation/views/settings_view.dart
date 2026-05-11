@@ -21,8 +21,13 @@ class SettingsView extends GetView<SettingsController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        onSuccess: () => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        onRefresh: controller.loadData,
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadData,
+          color: AppColors.primaryOrange,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -137,6 +142,7 @@ class SettingsView extends GetView<SettingsController> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

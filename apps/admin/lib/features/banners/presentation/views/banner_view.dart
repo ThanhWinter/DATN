@@ -24,6 +24,7 @@ class BannerView extends GetView<OptimizedBannerController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRefresh: controller.loadData,
         onSuccess: () => _BannerList(controller: controller),
       ),
       floatingActionButton: Obx(() => FloatingActionButton.extended(

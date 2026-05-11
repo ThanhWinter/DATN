@@ -14,9 +14,13 @@ class ProfileView extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.grey100,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
+      body: RefreshIndicator(
+        onRefresh: controller.reload,
+        color: AppColors.primaryOrange,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
             _AdminHeader(),
             const SizedBox(height: 16),
             const _StatsRow(),
@@ -105,6 +109,7 @@ class ProfileView extends GetView<ProfileController> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -38,6 +38,7 @@ class NotificationListView extends GetView<NotificationListController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
+        onRefresh: controller.loadNotifications,
         onSuccess: () => RefreshIndicator(
           onRefresh: controller.loadNotifications,
           color: AppColors.primaryOrange,

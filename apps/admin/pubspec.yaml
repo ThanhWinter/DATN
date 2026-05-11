@@ -29,6 +29,7 @@ dependencies:
     path: ../../packages/core_ui
   core_utils:
     path: ../../packages/core_utils
+  flutter_speed_dial: ^7.0.0
 
 dev_dependencies:
   flutter_test:

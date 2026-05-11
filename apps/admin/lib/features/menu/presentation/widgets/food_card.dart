@@ -10,6 +10,7 @@ class FoodCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onManageOptions,
+    required this.onView,
     super.key,
   });
 
@@ -18,87 +19,143 @@ class FoodCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onManageOptions;
+  final VoidCallback onView;
 
   @override
   Widget build(BuildContext context) {
-    final bool isAvailable = food.isAvailable;
+    final isAvailable = food.isAvailable;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isAvailable
-              ? AppColors.emerald.withValues(alpha: 0.20)
-              : AppColors.grey300.withValues(alpha: 0.6),
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // ── Food Image ──────────────────────────────────────────────────
-            _buildImage(isAvailable),
-            const SizedBox(width: 14),
-
-            // ── Info ────────────────────────────────────────────────────────
-            Expanded(child: _buildInfo()),
-
-            // ── Actions ─────────────────────────────────────────────────────
-            _buildActions(isAvailable),
-          ],
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onView,
+        borderRadius: BorderRadius.circular(10),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isAvailable
+                  ? AppColors.emerald.withValues(alpha: 0.22)
+                  : AppColors.grey300,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withValues(alpha: 0.035),
+                blurRadius: 12,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _FoodImage(food: food, isAvailable: isAvailable),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _FoodInfo(food: food)),
+                          const SizedBox(width: 8),
+                          _StatusButton(
+                            isAvailable: isAvailable,
+                            onChanged: () => onToggle(!isAvailable),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _ActionChipButton(
+                            icon: Icons.tune_rounded,
+                            label: 'Tuỳ chọn',
+                            color: AppColors.emerald,
+                            onTap: onManageOptions,
+                          ),
+                          const SizedBox(width: 6),
+                          _ActionChipButton(
+                            icon: Icons.edit_outlined,
+                            label: 'Sửa',
+                            color: AppColors.grey600,
+                            onTap: onEdit,
+                          ),
+                          const SizedBox(width: 6),
+                          _ActionChipButton(
+                            icon: Icons.delete_outline_rounded,
+                            label: 'Xoá',
+                            color: AppColors.errorRed,
+                            onTap: onDelete,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildImage(bool isAvailable) {
+class _FoodImage extends StatelessWidget {
+  const _FoodImage({required this.food, required this.isAvailable});
+
+  final FoodModel food;
+  final bool isAvailable;
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(9),
           child: food.imageUrl != null
               ? AppNetworkImage(
                   url: food.imageUrl!,
-                  width: 84,
-                  height: 84,
+                  width: 74,
+                  height: 74,
                   fit: BoxFit.cover,
                 )
               : Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    color: AppColors.emerald.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(14),
+                  width: 74,
+                  height: 74,
+                  color: AppColors.grey100,
+                  child: const Icon(
+                    Icons.restaurant_menu_rounded,
+                    color: AppColors.grey600,
+                    size: 28,
                   ),
-                  child: const Icon(Icons.fastfood_outlined,
-                      color: AppColors.emerald, size: 32),
                 ),
         ),
         if (!isAvailable)
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.black.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(14),
+                color: AppColors.black.withValues(alpha: 0.48),
+                borderRadius: BorderRadius.circular(9),
               ),
-              child: Center(
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorRed.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'HẾT HÀNG',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
+              alignment: Alignment.center,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'TẠM ẨN',
+                  style: TextStyle(
+                    color: AppColors.textDark,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
@@ -107,8 +164,15 @@ class FoodCard extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildInfo() {
+class _FoodInfo extends StatelessWidget {
+  const _FoodInfo({required this.food});
+
+  final FoodModel food;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -116,7 +180,7 @@ class FoodCard extends StatelessWidget {
           food.name,
           style: AppTextStyles.labelLarge.copyWith(
             fontSize: 15,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: AppColors.textDark,
           ),
           maxLines: 1,
@@ -124,109 +188,159 @@ class FoodCard extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          food.description ?? 'Không có mô tả',
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.textGrey),
+          food.description?.trim().isNotEmpty == true
+              ? food.description!.trim()
+              : 'Không có mô tả',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.textGrey,
+            fontSize: 12,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
+          spacing: 7,
+          runSpacing: 5,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            ShaderMask(
-              shaderCallback: (b) => const LinearGradient(
-                colors: [AppColors.emeraldDark, AppColors.emeraldLight],
-              ).createShader(b),
-              child: Text(
-                '${food.price.toInt().toVnd()}đ',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+            Text(
+              '${food.price.toInt().toVnd()}đ',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.emeraldDark,
+                fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.emerald.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: AppColors.emerald.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Text(
-                food.categoryName,
-                style: AppTextStyles.bodySmall.copyWith(
-                  fontSize: 10,
-                  color: AppColors.emeraldDark,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
+            _CategoryTag(label: food.categoryName),
           ],
         ),
       ],
     );
   }
+}
 
-  Widget _buildActions(bool isAvailable) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Transform.scale(
-          scale: 0.85,
-          child: Switch(
-            value: isAvailable,
-            onChanged: onToggle,
-            activeThumbColor: AppColors.emerald,
-            activeTrackColor: AppColors.emerald.withValues(alpha: 0.25),
-            inactiveThumbColor: AppColors.grey400,
-            inactiveTrackColor: AppColors.grey200,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+class _StatusButton extends StatelessWidget {
+  const _StatusButton({required this.isAvailable, required this.onChanged});
+
+  final bool isAvailable;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isAvailable ? 'Ngừng bán món này' : 'Mở bán món này',
+      child: InkWell(
+        onTap: onChanged,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+          decoration: BoxDecoration(
+            color: isAvailable
+                ? AppColors.emerald.withValues(alpha: 0.10)
+                : AppColors.grey100,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isAvailable
+                  ? AppColors.emerald.withValues(alpha: 0.30)
+                  : AppColors.grey300,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isAvailable
+                    ? Icons.pause_circle_outline_rounded
+                    : Icons.play_circle_outline_rounded,
+                size: 15,
+                color: isAvailable ? AppColors.emeraldDark : AppColors.grey600,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isAvailable ? 'Ngừng bán' : 'Mở bán',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color:
+                      isAvailable ? AppColors.emeraldDark : AppColors.textGrey,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Row(
+      ),
+    );
+  }
+}
+
+class _ActionChipButton extends StatelessWidget {
+  const _ActionChipButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(7),
+      child: Container(
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.075),
+          borderRadius: BorderRadius.circular(7),
+          border: Border.all(color: color.withValues(alpha: 0.16)),
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _actionBtn(
-              icon: Icons.tune_rounded,
-              color: AppColors.emerald,
-              tooltip: 'Tuỳ chọn',
-              onTap: onManageOptions,
-            ),
-            _actionBtn(
-              icon: Icons.edit_outlined,
-              color: AppColors.grey600,
-              tooltip: 'Chỉnh sửa',
-              onTap: onEdit,
-            ),
-            _actionBtn(
-              icon: Icons.delete_outline_rounded,
-              color: AppColors.errorRed,
-              tooltip: 'Xoá món',
-              onTap: onDelete,
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
+}
 
-  Widget _actionBtn({
-    required IconData icon,
-    required Color color,
-    required String tooltip,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      width: 32,
-      height: 32,
-      child: IconButton(
-        icon: Icon(icon, size: 17, color: color),
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        tooltip: tooltip,
+class _CategoryTag extends StatelessWidget {
+  const _CategoryTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.grey100,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.bodySmall.copyWith(
+          fontSize: 10,
+          color: AppColors.textGrey,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

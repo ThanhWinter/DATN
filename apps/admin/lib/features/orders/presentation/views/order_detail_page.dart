@@ -21,11 +21,20 @@ class OrderDetailPage extends GetView<OrderDetailController> {
       body: SnapHelperWidget(
         isLoading: controller.isLoading,
         error: controller.error,
-        onSuccess: () => Obx(() {
-          final order = controller.order.value;
-          if (order == null) return const SizedBox.shrink();
-          return _OrderDetailBody(order: order, ctrl: controller);
-        }),
+        onRefresh: controller.loadOrder,
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadOrder,
+          color: AppColors.primaryOrange,
+          child: Obx(() {
+            final order = controller.order.value;
+            if (order == null) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+              );
+            }
+            return _OrderDetailBody(order: order, ctrl: controller);
+          }),
+        ),
       ),
     );
   }
@@ -51,6 +60,7 @@ class _OrderDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

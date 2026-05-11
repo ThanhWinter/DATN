@@ -35,6 +35,16 @@ class OrderDetailController extends GetxController {
     }
   }
 
+  Future<void> loadOrder() async {
+    final o = order.value;
+    if (o != null) {
+      await _load(o.id);
+    } else {
+      final id = Get.arguments as String?;
+      if (id != null) await _load(id);
+    }
+  }
+
   Future<void> updateStatus(String newStatus) async {
     final o = order.value;
     if (o == null) return;
