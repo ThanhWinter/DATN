@@ -675,7 +675,7 @@ class _FoodDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               _DetailInfoBlock(
-                title: 'Thông tin backend',
+                title: 'Mô tả',
                 rows: [
                   ('Mã món', '#${food.id}'),
                   ('Tên món', food.name),
@@ -683,12 +683,6 @@ class _FoodDetailSheet extends StatelessWidget {
                   ('Mã danh mục', '#${food.categoryId}'),
                   ('Tên danh mục', food.categoryName),
                   ('Trạng thái', food.isAvailable ? 'Đang bán' : 'Tạm ẩn'),
-                  (
-                    'Ảnh',
-                    food.imageUrl?.isNotEmpty == true
-                        ? food.imageUrl!
-                        : 'Chưa có ảnh'
-                  ),
                   (
                     'Mô tả',
                     food.description?.trim().isNotEmpty == true

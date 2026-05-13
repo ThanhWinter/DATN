@@ -18,6 +18,9 @@ class OrderController extends GetxController {
   final error = Rxn<String>();
   final isUpdating = false.obs;
 
+  // 'all' | 'pending' | 'active' | 'completed' | 'cancelled'
+  final selectedFilter = 'all'.obs;
+
   // Null = không có tab nào đang lazy-load; có giá trị = index tab đang tải.
   final loadingTabIndex = Rxn<int>();
 
@@ -75,17 +78,20 @@ class OrderController extends GetxController {
     super.onClose();
   }
 
-  /// Tải lần đầu / kéo refresh — reset phân trang và CHỈ nạp Tab 0 (Pending).
-  /// Các tab còn lại sẽ được tải theo yêu cầu qua [loadTabOnDemand].
+  /// Tải lần đầu / kéo refresh — nạp Tab 0 (Pending) và Tab 1 (Active) đồng thời.
   Future<void> loadOrders() async {
-    dev.log('[ORDER/VM] Loading orders — eager: tab 0 only...');
+    dev.log('[ORDER/VM] Loading orders — eager: tab 0 + tab 1...');
     isLoading.value = true;
     error.value = null;
     try {
       _resetBucketsAndPaging();
-      await _loadPendingBucket();
+      await Future.wait([
+        _loadPendingBucket(),
+        _loadActiveBucket(),
+      ]);
       _tabLoaded[0] = true;
-      dev.log('[ORDER/VM] ✅ Tab 0 (Pending) loaded');
+      _tabLoaded[1] = true;
+      dev.log('[ORDER/VM] ✅ Tab 0 (Pending) + Tab 1 (Active) loaded');
       if (Get.isRegistered<MainController>()) {
         await Get.find<MainController>().refreshPendingBadgeFromNetwork();
       }
@@ -94,6 +100,28 @@ class OrderController extends GetxController {
       error.value = e.toString();
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  bool isTabLoaded(int index) => _tabLoaded[index];
+
+  /// Load thêm dữ liệu phân trang cho filter đang chọn.
+  Future<void> loadMoreForFilter(String filter) async {
+    switch (filter) {
+      case 'pending':
+        await loadMoreForTab(0);
+      case 'active':
+        await loadMoreForTab(1);
+      case 'completed':
+        await loadMoreForTab(2);
+      case 'cancelled':
+        await loadMoreForTab(3);
+      default: // 'all'
+        if (_pendingHasMore) {
+          await loadMoreForTab(0);
+        } else {
+          await loadMoreForTab(1);
+        }
     }
   }
 

@@ -472,18 +472,12 @@ class _CategoryDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               _DetailInfoBlock(
-                title: 'Thông tin backend',
+                title: 'Mô tả',
                 rows: [
                   ('Mã danh mục', '#${category.id}'),
                   ('Tên danh mục', category.name),
                   ('Số món', '$foodCount món'),
                   ('Đang bán', '$availableFoodCount món'),
-                  (
-                    'Ảnh',
-                    category.imageUrl?.isNotEmpty == true
-                        ? category.imageUrl!
-                        : 'Chưa có ảnh'
-                  ),
                   (
                     'Mô tả',
                     category.description?.trim().isNotEmpty == true
