@@ -11,83 +11,148 @@ class CustomerView extends GetView<CustomerController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.grey100,
-      appBar: AppBar(
-        title: const Text('Khách hàng', style: AppTextStyles.h3),
-        backgroundColor: AppColors.white,
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.white,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: TextField(
-              onChanged: controller.search,
-              decoration: InputDecoration(
-                hintText: 'Tìm theo tên, email, số điện thoại...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.grey100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.grey100,
+        appBar: AppBar(
+          title: const Text('Người dùng', style: AppTextStyles.h3),
+          backgroundColor: AppColors.white,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Khách hàng'),
+              Tab(text: 'Admin'),
+            ],
+            labelColor: AppColors.primaryOrange,
+            indicatorColor: AppColors.primaryOrange,
+            unselectedLabelColor: AppColors.grey600,
+            dividerColor: AppColors.grey200,
           ),
-          Expanded(
-            child: SnapHelperWidget(
-              isLoading: controller.isLoading,
-              error: controller.error,
+        ),
+        body: TabBarView(
+          children: [
+            _UserListTab(
+              isLoading: controller.isLoadingCustomers,
+              error: controller.errorCustomers,
+              filteredList: controller.filteredCustomers,
               onRefresh: controller.loadCustomers,
-              onSuccess: () => RefreshIndicator(
-                onRefresh: controller.loadCustomers,
-                color: AppColors.primaryOrange,
-                child: Obx(() {
-                  final list = controller.filteredCustomers;
-                  if (list.isEmpty) {
-                    return const CustomScrollView(
-                      physics: AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverFillRemaining(
-                          child: AppEmptyState(
-                            icon: Icons.people_outline,
-                            message: 'Không tìm thấy khách hàng',
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    itemCount: list.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (_, i) => _CustomerCard(customer: list[i]),
-                  );
-                }),
-              ),
+              onSearch: controller.searchCustomers,
+              hintText: 'Tìm theo tên, email, số điện thoại...',
+              emptyMessage: 'Không tìm thấy khách hàng',
+              canLock: true,
             ),
-          ),
-        ],
+            _UserListTab(
+              isLoading: controller.isLoadingAdmins,
+              error: controller.errorAdmins,
+              filteredList: controller.filteredAdmins,
+              onRefresh: controller.loadAdmins,
+              onSearch: controller.searchAdmins,
+              hintText: 'Tìm theo tên, email, số điện thoại...',
+              emptyMessage: 'Không tìm thấy admin',
+              canLock: false,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _CustomerCard extends GetView<CustomerController> {
-  const _CustomerCard({required this.customer});
+class _UserListTab extends GetView<CustomerController> {
+  const _UserListTab({
+    required this.isLoading,
+    required this.error,
+    required this.filteredList,
+    required this.onRefresh,
+    required this.onSearch,
+    required this.hintText,
+    required this.emptyMessage,
+    required this.canLock,
+  });
 
-  final CustomerModel customer;
+  final RxBool isLoading;
+  final Rxn<String> error;
+  final RxList<CustomerModel> filteredList;
+  final Future<void> Function() onRefresh;
+  final void Function(String) onSearch;
+  final String hintText;
+  final String emptyMessage;
+  final bool canLock;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          color: AppColors.white,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: TextField(
+            onChanged: onSearch,
+            decoration: InputDecoration(
+              hintText: hintText,
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: AppColors.grey100,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: SnapHelperWidget(
+            isLoading: isLoading,
+            error: error,
+            onRefresh: onRefresh,
+            onSuccess: () => RefreshIndicator(
+              onRefresh: onRefresh,
+              color: AppColors.primaryOrange,
+              child: Obx(() {
+                final list = filteredList;
+                if (list.isEmpty) {
+                  return CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverFillRemaining(
+                        child: AppEmptyState(
+                          icon: Icons.people_outline,
+                          message: emptyMessage,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) =>
+                      _UserCard(user: list[i], canLock: canLock),
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UserCard extends GetView<CustomerController> {
+  const _UserCard({required this.user, required this.canLock});
+
+  final CustomerModel user;
+  final bool canLock;
 
   void _showDetail() {
     Get.bottomSheet(
-      CustomerDetailSheet(customer: customer),
+      CustomerDetailSheet(customer: user),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -95,21 +160,22 @@ class _CustomerCard extends GetView<CustomerController> {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
+  void _confirmLock(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Xoá khách hàng'),
-        content: Text('Bạn muốn xoá "${customer.fullName}"?'),
+        title: const Text('Khoá tài khoản'),
+        content: Text(
+            'Bạn muốn khoá tài khoản "${user.fullName}"?\nNgười dùng sẽ không thể đăng nhập cho đến khi được mở khoá.'),
         actions: [
           TextButton(onPressed: Get.back, child: const Text('Huỷ')),
           TextButton(
             onPressed: () {
               Get.back();
-              controller.deleteCustomer(customer.id);
+              controller.lockCustomer(user.id);
             },
-            child: const Text('Xoá', style: TextStyle(color: Colors.red)),
+            child: const Text('Khoá', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -118,80 +184,146 @@ class _CustomerCard extends GetView<CustomerController> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: AppColors.primaryOrange.withValues(alpha: 0.15),
-              child: Text(
-                customer.initials,
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.primaryOrange,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final locked = user.isLocked;
+    return Opacity(
+      opacity: locked ? 0.55 : 1.0,
+      child: Card(
+        elevation: 0,
+        color: locked ? AppColors.grey100 : AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Stack(
                 children: [
-                  Text(customer.fullName, style: AppTextStyles.labelLarge),
-                  const SizedBox(height: 2),
-                  Text(customer.email, style: AppTextStyles.bodySmall),
-                  Text(customer.phone, style: AppTextStyles.bodySmall),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _Stat(
-                        icon: Icons.receipt_outlined,
-                        label: '${customer.totalOrders} đơn',
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: locked
+                        ? AppColors.grey300
+                        : AppColors.primaryOrange.withValues(alpha: 0.15),
+                    child: Text(
+                      user.initials,
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: locked
+                            ? AppColors.grey600
+                            : AppColors.primaryOrange,
+                        fontSize: 16,
                       ),
-                      const SizedBox(width: 12),
-                      _Stat(
-                        icon: Icons.payments_outlined,
-                        label: '${customer.totalSpent.toInt().toVnd()}đ',
-                        color: AppColors.primaryOrange,
-                      ),
-                    ],
+                    ),
                   ),
+                  if (locked)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: AppColors.errorRed,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.lock,
+                            size: 10, color: AppColors.white),
+                      ),
+                    ),
                 ],
               ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: AppColors.grey600),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              onSelected: (v) {
-                if (v == 'view') _showDetail();
-                if (v == 'delete') _confirmDelete(context);
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
-                  value: 'view',
-                  child: Row(children: [
-                    Icon(Icons.visibility_outlined, size: 18),
-                    SizedBox(width: 8),
-                    Text('Xem chi tiết'),
-                  ]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                            child: Text(user.fullName,
+                                style: AppTextStyles.labelLarge)),
+                        if (locked) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.errorRed.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Đã khoá',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.errorRed,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(user.email, style: AppTextStyles.bodySmall),
+                    Text(user.phone, style: AppTextStyles.bodySmall),
+                    if (!user.isAdmin) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          _Stat(
+                            icon: Icons.receipt_outlined,
+                            label: '${user.totalOrders} đơn',
+                          ),
+                          const SizedBox(width: 12),
+                          _Stat(
+                            icon: Icons.payments_outlined,
+                            label: '${user.totalSpent.toInt().toVnd()}đ',
+                            color: locked ? null : AppColors.primaryOrange,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(children: [
-                    Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Xoá', style: TextStyle(color: Colors.red)),
-                  ]),
-                ),
-              ],
-            ),
-          ],
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: AppColors.grey600),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                onSelected: (v) {
+                  if (v == 'view') _showDetail();
+                  if (v == 'lock') _confirmLock(context);
+                  if (v == 'unlock') controller.unlockCustomer(user.id);
+                },
+                itemBuilder: (_) => [
+                  const PopupMenuItem(
+                    value: 'view',
+                    child: Row(children: [
+                      Icon(Icons.visibility_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('Xem chi tiết'),
+                    ]),
+                  ),
+                  if (canLock && !locked)
+                    const PopupMenuItem(
+                      value: 'lock',
+                      child: Row(children: [
+                        Icon(Icons.lock_outline, size: 18, color: Colors.red),
+                        SizedBox(width: 8),
+                        Text('Khoá tài khoản',
+                            style: TextStyle(color: Colors.red)),
+                      ]),
+                    ),
+                  if (canLock && locked)
+                    const PopupMenuItem(
+                      value: 'unlock',
+                      child: Row(children: [
+                        Icon(Icons.lock_open_outlined,
+                            size: 18, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text('Mở khoá tài khoản',
+                            style: TextStyle(color: Colors.green)),
+                      ]),
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -36,13 +36,13 @@ class ProfileView extends GetView<ProfileController> {
                     AppMenuTile(
                       icon: Icons.person_outline,
                       label: 'Thông tin cá nhân',
-                      onTap: () {},
+                      onTap: () => Get.toNamed(AppRoutes.personalInfo),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
                       icon: Icons.lock_outline,
                       label: 'Đổi mật khẩu',
-                      onTap: () {},
+                      onTap: () => Get.toNamed(AppRoutes.changePassword),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
@@ -82,7 +82,7 @@ class ProfileView extends GetView<ProfileController> {
                     AppMenuTile(
                       icon: Icons.help_outline,
                       label: 'Trợ giúp & Hỗ trợ',
-                      onTap: () {},
+                      onTap: () => Get.toNamed(AppRoutes.helpSupport),
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
@@ -170,18 +170,32 @@ class _AdminHeader extends GetView<ProfileController> {
       ),
       child: Column(
         children: [
-          Container(
-            width: 76,
-            height: 76,
-            decoration: BoxDecoration(
-              color: AppColors.white.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: AppColors.white.withValues(alpha: 0.7), width: 2),
-            ),
-            child: const Icon(Icons.admin_panel_settings,
-                size: 38, color: AppColors.white),
-          ),
+          Obx(() {
+            final url = controller.avatarUrl.value;
+            return Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.white.withValues(alpha: 0.7), width: 2),
+              ),
+              child: ClipOval(
+                child: url != null && url.isNotEmpty
+                    ? Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.admin_panel_settings,
+                            size: 38,
+                            color: AppColors.white),
+                      )
+                    : const Icon(Icons.admin_panel_settings,
+                        size: 38, color: AppColors.white),
+              ),
+            );
+          }),
           const SizedBox(height: 12),
           Obx(() => Text(controller.adminName.value,
               style: AppTextStyles.h3.copyWith(color: AppColors.white))),

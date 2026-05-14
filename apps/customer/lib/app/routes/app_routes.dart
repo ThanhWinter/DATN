@@ -20,4 +20,5 @@ abstract class AppRoutes {
   static const search = "/search";
   static const coupons = "/coupons";
   static const addresses = "/addresses";
+  static const changePassword = "/change-password";
 }

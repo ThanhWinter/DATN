@@ -13,4 +13,7 @@ abstract class AppRoutes {
   static const adminNotifications = '/admin-notifications';
   static const orderDetail = '/order-detail';
   static const banners = '/banners';
+  static const personalInfo = '/personal-info';
+  static const changePassword = '/change-password';
+  static const helpSupport = '/help-support';
 }

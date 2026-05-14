@@ -100,7 +100,7 @@ class MainView extends GetView<MainController> {
                 icon: Icon(Icons.people_outline),
                 selectedIcon:
                     Icon(Icons.people, color: AppColors.primaryOrange),
-                label: 'Khách hàng',
+                label: 'Người dùng',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.manage_accounts_outlined),

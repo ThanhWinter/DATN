@@ -10,15 +10,13 @@ class CustomerRepository {
   final IApiClient _apiClient;
 
   /// GET /users — Spring Page response: result.content = List<UserResponse>
-  /// NOTE: Backend UserResponse chưa có trường `id` — CustomerModel.id sẽ dùng email
-  /// làm fallback cho đến khi backend thêm id vào UserResponse.
+  /// [role] lọc theo vai trò: 'CUSTOMER' | 'ADMIN' | null (tất cả).
   Future<List<CustomerModel>> fetchCustomers(
-      {int page = 0, int size = 50}) async {
-    dev.log('[CUSTOMER/REPO] Fetching customers... page=$page size=$size');
-    final res = await _apiClient.get(
-      '/users',
-      query: {'page': '$page', 'size': '$size'},
-    );
+      {int page = 0, int size = 50, String? role}) async {
+    dev.log('[CUSTOMER/REPO] Fetching users... page=$page size=$size role=$role');
+    final query = <String, String>{'page': '$page', 'size': '$size'};
+    if (role != null) query['role'] = role;
+    final res = await _apiClient.get('/users', query: query);
 
     // Tuỳ backend trả List thẳng hay Page object
     final result = res['result'];
@@ -26,7 +24,7 @@ class CustomerRepository {
         ? result
         : (result as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
 
-    dev.log('[CUSTOMER/REPO] ✅ Got ${list.length} customers');
+    dev.log('[CUSTOMER/REPO] ✅ Got ${list.length} users (role=$role)');
     return list
         .map((e) => CustomerModel.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -41,8 +39,14 @@ class CustomerRepository {
   }
 
   Future<void> deleteCustomer(String id) async {
-    dev.log('[CUSTOMER/REPO] Deleting customer id=$id');
+    dev.log('[CUSTOMER/REPO] Locking customer id=$id');
     await _apiClient.delete('/users/$id');
-    dev.log('[CUSTOMER/REPO] ✅ Customer $id deleted');
+    dev.log('[CUSTOMER/REPO] ✅ Customer $id locked');
+  }
+
+  Future<void> unlockCustomer(String id) async {
+    dev.log('[CUSTOMER/REPO] Unlocking customer id=$id');
+    await _apiClient.patch('/users/$id/unlock');
+    dev.log('[CUSTOMER/REPO] ✅ Customer $id unlocked');
   }
 }

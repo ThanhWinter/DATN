@@ -329,8 +329,8 @@ class SettingsSection extends GetView<ProfileController> {
             const ProfileMenuDivider(),
             ProfileMenuItem(
               svgPath: AppIcons.lockSvg,
-              label: 'Bảo mật & Mật khẩu',
-              onTap: () {},
+              label: 'Đổi mật khẩu',
+              onTap: () => Get.toNamed(AppRoutes.changePassword),
             ),
             const ProfileMenuDivider(),
             ProfileMenuItem(

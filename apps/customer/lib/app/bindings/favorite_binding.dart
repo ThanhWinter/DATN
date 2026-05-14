@@ -8,6 +8,7 @@ class FavoriteBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<FavoriteController>(
       () => FavoriteController(Get.find<InteractionRepository>()),
+      fenix: true,
     );
   }
 }

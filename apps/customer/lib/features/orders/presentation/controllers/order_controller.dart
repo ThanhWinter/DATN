@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:core_network/core_network.dart';
 import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
@@ -24,7 +25,13 @@ class OrderController extends GetxController with AutoRefreshMixin {
   void onInit() {
     super.onInit();
     loadOrders();
-    startPolling(const Duration(seconds: 30), loadOrders);
+    startPolling(const Duration(seconds: 30), _silentPoll);
+  }
+
+  // Polling phải xóa cache trước — không xóa thì TTL 5 phút luôn trả data cũ
+  Future<void> _silentPoll() async {
+    apiCache.invalidate('GET_/orders/my-orders_');
+    await loadOrders();
   }
 
   Future<void> loadOrders() async {

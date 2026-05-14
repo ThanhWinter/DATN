@@ -94,26 +94,47 @@ class CustomerDetailSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Get.back();
-                      Get.find<CustomerController>()
-                          .deleteCustomer(customer.id);
-                    },
-                    icon: const Icon(Icons.delete_outline,
-                        size: 18, color: AppColors.errorRed),
-                    label: const Text('Xoá',
-                        style: TextStyle(color: AppColors.errorRed)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.errorRed),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
+                // Chỉ hiển thị nút khoá/mở khoá cho CUSTOMER, không cho ADMIN
+                if (!customer.isAdmin) ...[
+                  Expanded(
+                    child: customer.isLocked
+                        ? OutlinedButton.icon(
+                            onPressed: () {
+                              Get.back();
+                              Get.find<CustomerController>()
+                                  .unlockCustomer(customer.id);
+                            },
+                            icon: const Icon(Icons.lock_open_outlined,
+                                size: 18, color: Colors.green),
+                            label: const Text('Mở khoá',
+                                style: TextStyle(color: Colors.green)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.green),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          )
+                        : OutlinedButton.icon(
+                            onPressed: () {
+                              Get.back();
+                              Get.find<CustomerController>()
+                                  .lockCustomer(customer.id);
+                            },
+                            icon: const Icon(Icons.lock_outline,
+                                size: 18, color: AppColors.errorRed),
+                            label: const Text('Khoá tài khoản',
+                                style: TextStyle(color: AppColors.errorRed)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.errorRed),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: ElevatedButton(
                     onPressed: Get.back,

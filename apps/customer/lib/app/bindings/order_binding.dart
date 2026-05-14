@@ -9,9 +9,11 @@ class OrderBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<OrderRepository>(
       () => OrderRepository(Get.find<IApiClient>()),
+      fenix: true,
     );
     Get.lazyPut<OrderController>(
       () => OrderController(Get.find<OrderRepository>()),
+      fenix: true,
     );
   }
 }

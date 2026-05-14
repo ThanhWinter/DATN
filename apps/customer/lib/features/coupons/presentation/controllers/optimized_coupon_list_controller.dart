@@ -55,12 +55,11 @@ class OptimizedCouponListController extends GetxController {
     // Update computed values when data changes
     ever(availableCoupons, (_) => _updateComputedValues());
     ever(expiredCoupons, (_) => _updateComputedValues());
-    ever(searchText, (_) => _updateFilteredCoupons());
     ever(selectedCategory, (_) => _updateFilteredCoupons());
+    // searchText dùng debounce riêng trong _setupSearchListener — không ever ở đây
   }
 
   void _setupSearchListener() {
-    // Debounce search to avoid excessive filtering
     ever(searchText, (_) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 300), () {

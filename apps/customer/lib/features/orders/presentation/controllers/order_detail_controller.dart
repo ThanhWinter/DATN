@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
 
+import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
 import '../../../../../app/services/zalopay_service.dart';
@@ -8,7 +10,7 @@ import '../../data/models/order_model.dart';
 import '../../data/repositories/order_repository.dart';
 import '../../../payment/data/repositories/payment_repository.dart';
 
-class OrderDetailController extends GetxController {
+class OrderDetailController extends GetxController with AutoRefreshMixin {
   final OrderRepository _repository;
   final PaymentRepository _paymentRepository;
 
@@ -19,11 +21,31 @@ class OrderDetailController extends GetxController {
   final error = Rxn<Object>();
   final order = Rxn<OrderModel>();
 
+  static const _terminalStatuses = {'COMPLETED', 'CANCELLED'};
+
   @override
   void onInit() {
     super.onInit();
     final orderId = Get.arguments as String?;
-    if (orderId != null) loadOrder(orderId);
+    if (orderId != null) {
+      loadOrder(orderId);
+      startPolling(const Duration(seconds: 15), _silentPoll);
+    }
+  }
+
+  // Fallback polling — xóa cache rồi fetch lặng lẽ (không bật loading spinner).
+  // Dừng sớm nếu đơn đã ở trạng thái kết thúc để tránh gọi API không cần thiết.
+  Future<void> _silentPoll() async {
+    final current = order.value;
+    if (current == null) return;
+    if (_terminalStatuses.contains(current.status.toUpperCase())) return;
+    try {
+      apiCache.invalidate('GET_/orders/${current.id}_');
+      final fresh = await _repository.getOrderById(current.id);
+      order.value = fresh;
+    } catch (e) {
+      dev.log('[ORDER_DETAIL] ⚠️ silentPoll error (ignored): $e');
+    }
   }
 
   Future<void> loadOrder(String id) async {

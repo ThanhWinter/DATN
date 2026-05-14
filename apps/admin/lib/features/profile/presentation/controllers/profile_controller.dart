@@ -18,6 +18,7 @@ class ProfileController extends GetxController with AutoRefreshMixin {
   final adminEmail = ''.obs;
   final adminPhone = ''.obs;
   final adminRoles = <String>[].obs;
+  final avatarUrl = Rxn<String>();
 
   // Dashboard stats — displayed on profile tab
   final todayOrders = 0.obs;
@@ -41,6 +42,7 @@ class ProfileController extends GetxController with AutoRefreshMixin {
           '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
       adminEmail.value = data['email'] as String? ?? '';
       adminPhone.value = data['phone'] as String? ?? '';
+      avatarUrl.value = data['avatarUrl'] as String?;
       adminRoles.assignAll(
         (data['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
             [],
@@ -72,6 +74,7 @@ class ProfileController extends GetxController with AutoRefreshMixin {
       adminName.value = '$firstName $lastName'.trim();
       adminEmail.value = data['email'] as String? ?? '';
       adminPhone.value = data['phone'] as String? ?? '';
+      avatarUrl.value = data['avatarUrl'] as String?;
       adminRoles.assignAll(
         (data['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
             [],

@@ -39,6 +39,8 @@ import "../../features/coupons/presentation/views/coupon_list_view.dart";
 import "../bindings/coupon_list_binding.dart";
 import "../../features/profile/presentation/views/address_view.dart";
 import "../bindings/address_binding.dart";
+import "../bindings/change_password_binding.dart";
+import "../../features/profile/presentation/views/change_password_view.dart";
 
 import "../../features/auth/presentation/views/email_login_view.dart";
 import "../../features/auth/presentation/views/forgot_password_view.dart";
@@ -157,6 +159,11 @@ class AppPages {
       name: AppRoutes.addresses,
       page: () => const AddressView(),
       binding: AddressBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.changePassword,
+      page: () => const CustomerChangePasswordView(),
+      binding: ChangePasswordBinding(),
     ),
   ];
 }

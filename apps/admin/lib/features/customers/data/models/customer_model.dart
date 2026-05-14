@@ -11,6 +11,8 @@ class CustomerModel {
     this.gender = 0,
     this.totalOrders = 0,
     this.totalSpent = 0,
+    this.roles = const [],
+    this.isActive = true,
   });
 
   final String id;
@@ -22,6 +24,11 @@ class CustomerModel {
   final int gender;
   final int totalOrders;
   final double totalSpent;
+  final List<String> roles;
+  final bool isActive;
+
+  bool get isAdmin => roles.contains('ADMIN');
+  bool get isLocked => !isActive;
 
   String get fullName => '$firstName $lastName'.trim();
 
@@ -31,8 +38,6 @@ class CustomerModel {
     return '$f$l'.toUpperCase();
   }
 
-  /// NOTE: Backend UserResponse hiện chưa có trường `id`.
-  /// Dùng email làm fallback cho đến khi backend thêm id vào UserResponse.
   factory CustomerModel.fromJson(Map<String, dynamic> json) => CustomerModel(
         id: json['id']?.toString() ?? json['email'] as String,
         firstName: json['firstName'] as String? ?? '',
@@ -45,5 +50,7 @@ class CustomerModel {
         gender: (json['gender'] as num?)?.toInt() ?? 0,
         totalOrders: (json['totalOrders'] as num?)?.toInt() ?? 0,
         totalSpent: (json['totalSpent'] as num?)?.toDouble() ?? 0,
+        roles: (json['roles'] as List<dynamic>? ?? []).cast<String>(),
+        isActive: (json['isActive'] as bool?) ?? true,
       );
 }

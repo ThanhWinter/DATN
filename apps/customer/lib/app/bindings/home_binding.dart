@@ -11,15 +11,19 @@ class HomeBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<HomeRepository>(
       () => HomeRepository(Get.find<IApiClient>()),
+      fenix: true,
     );
     Get.lazyPut<NotificationRepository>(
       () => NotificationRepository(Get.find<IApiClient>()),
+      fenix: true,
     );
     Get.lazyPut<NotificationController>(
       () => NotificationController(Get.find<NotificationRepository>()),
+      fenix: true,
     );
     Get.lazyPut<HomeController>(
       () => HomeController(Get.find<HomeRepository>()),
+      fenix: true,
     );
   }
 }

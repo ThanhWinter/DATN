@@ -27,6 +27,11 @@ import '../bindings/review_binding.dart';
 import '../bindings/banner_binding.dart';
 import '../bindings/settings_binding.dart';
 import '../../features/banners/presentation/views/banner_view.dart';
+import '../../features/profile/presentation/views/personal_info_view.dart';
+import '../../features/profile/presentation/views/change_password_view.dart';
+import '../../features/profile/presentation/views/help_support_view.dart';
+import '../bindings/personal_info_binding.dart';
+import '../bindings/change_password_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -99,6 +104,20 @@ class AppPages {
       name: AppRoutes.banners,
       page: () => const BannerView(),
       binding: BannerBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.personalInfo,
+      page: () => const PersonalInfoView(),
+      binding: PersonalInfoBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.changePassword,
+      page: () => const ChangePasswordView(),
+      binding: ChangePasswordBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.helpSupport,
+      page: () => const HelpSupportView(),
     ),
   ];
 }

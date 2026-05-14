@@ -66,4 +66,14 @@ class ProfileRepository {
       },
     );
   }
+
+  Future<void> changePassword({
+    required String userId,
+    required String newPassword,
+  }) async {
+    await _apiClient.put(
+      '/users/$userId',
+      body: {'password': newPassword},
+    );
+  }
 }
