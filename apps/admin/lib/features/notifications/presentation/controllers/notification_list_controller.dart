@@ -1,12 +1,13 @@
 import 'dart:developer' as dev;
 
 import 'package:core_ui/core_ui.dart';
+import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/admin_notification_model.dart';
 import '../../data/repositories/notification_list_repository.dart';
 
-class NotificationListController extends GetxController {
+class NotificationListController extends GetxController with AutoRefreshMixin {
   NotificationListController(this._repository);
 
   final NotificationListRepository _repository;
@@ -21,6 +22,17 @@ class NotificationListController extends GetxController {
   void onInit() {
     super.onInit();
     loadNotifications();
+    startPolling(const Duration(seconds: 30), _silentPoll);
+  }
+
+  Future<void> _silentPoll() async {
+    try {
+      final list = await _repository.fetchNotifications();
+      notifications.assignAll(list);
+      hasUnread.value = list.any((n) => !n.isRead);
+    } catch (e) {
+      dev.log('[NOTIF_LIST/VM] ⚠️ silentPoll error (ignored): $e');
+    }
   }
 
   Future<void> loadNotifications() async {

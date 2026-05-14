@@ -1,11 +1,12 @@
 import 'dart:developer' as dev;
 
+import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/notification_model.dart';
 import '../../data/repositories/notification_repository.dart';
 
-class NotificationController extends GetxController {
+class NotificationController extends GetxController with AutoRefreshMixin {
   final NotificationRepository _repository;
 
   NotificationController(this._repository);
@@ -18,6 +19,22 @@ class NotificationController extends GetxController {
   void onInit() {
     super.onInit();
     refreshUnreadCount();
+    startPolling(const Duration(seconds: 30), _silentPoll);
+  }
+
+  Future<void> _silentPoll() async {
+    try {
+      final newCount = await _repository.fetchUnreadCount();
+      final changed = newCount != unreadCount.value;
+      unreadCount.value = newCount;
+      // Nếu có thông báo mới và màn hình đang hiển thị danh sách thì reload
+      if (changed && notifications.isNotEmpty) {
+        final list = await _repository.fetchNotifications();
+        notifications.assignAll(list);
+      }
+    } catch (e) {
+      dev.log('[NOTIFICATION] ⚠️ silentPoll error (ignored): $e');
+    }
   }
 
   /// Luôn đồng bộ badge với server — tránh lệch local (+1 mãi / không giảm sau đọc).

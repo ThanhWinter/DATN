@@ -11,11 +11,19 @@ class PaymentRepository {
     final response = await _apiClient.post(
       '/payments/zalopay/create?orderId=$orderId',
     );
-    final result = response['result'] as Map<String, dynamic>;
-    return (
-      zpTransToken: result['zp_trans_token'] as String,
-      appTransId: result['app_trans_id'] as String,
-    );
+    final result = response['result'] as Map<String, dynamic>?;
+    if (result == null) {
+      throw Exception('Phản hồi ZaloPay không hợp lệ từ máy chủ.');
+    }
+    final zpTransToken = result['zp_trans_token'] as String?;
+    final appTransId = result['app_trans_id'] as String?;
+    if (zpTransToken == null || zpTransToken.isEmpty) {
+      throw Exception('Không nhận được token thanh toán ZaloPay.');
+    }
+    if (appTransId == null || appTransId.isEmpty) {
+      throw Exception('Không nhận được mã giao dịch ZaloPay.');
+    }
+    return (zpTransToken: zpTransToken, appTransId: appTransId);
   }
 
   /// Queries the backend to verify the actual ZaloPay transaction status.

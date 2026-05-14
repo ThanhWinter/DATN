@@ -52,7 +52,17 @@ class _AddCouponSheetState extends State<AddCouponSheet> {
       return;
     }
     final value = double.tryParse(_valueCtrl.text);
-    if (value == null) return;
+    if (value == null || value <= 0) {
+      Get.snackbar('Giá trị không hợp lệ', 'Vui lòng nhập số lớn hơn 0',
+          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+      return;
+    }
+    if (_type == CouponModel.typePercent && value > 100) {
+      Get.snackbar('Giá trị không hợp lệ',
+          'Phần trăm giảm giá không được vượt quá 100%',
+          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+      return;
+    }
     Get.find<CouponController>().addCoupon(CouponModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       code: _codeCtrl.text.trim().toUpperCase(),

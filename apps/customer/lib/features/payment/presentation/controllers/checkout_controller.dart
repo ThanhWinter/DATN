@@ -219,14 +219,18 @@ class CheckoutController extends GetxController {
         );
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.main);
-        Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        });
         return;
       } catch (e) {
         dev.log('[CHECKOUT/ZALOPAY] ⚠️ ZaloPay exception (order created): $e');
         Get.find<CartController>().clearCart();
         await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(AppRoutes.main);
-        Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.toNamed(AppRoutes.orderDetail, arguments: order.id);
+        });
         return;
       }
     } on ApiException catch (e) {
@@ -281,6 +285,8 @@ class CheckoutController extends GetxController {
     );
     await Future.delayed(const Duration(milliseconds: 500));
     Get.offAllNamed(AppRoutes.main);
-    Get.toNamed(AppRoutes.orderDetail, arguments: orderId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.toNamed(AppRoutes.orderDetail, arguments: orderId);
+    });
   }
 }

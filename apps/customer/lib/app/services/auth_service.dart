@@ -22,6 +22,7 @@ class AuthService extends GetxService {
   static const _savedPasswordKey = 'saved_password';
   static const _avatarUrlKey = 'avatar_url';
   static const _userProfileKey = 'user_profile';
+  static const _avatarPromptSeenKey = 'avatar_prompt_seen';
 
   /// Cache the parsed `user-id` for the current access token (no repeated decode).
   String? _cachedUserId;
@@ -119,6 +120,7 @@ class AuthService extends GetxService {
       _prefs.remove(_tokenKey),
       _prefs.remove(_refreshTokenKey),
       _prefs.remove(_avatarUrlKey),
+      _prefs.remove(_avatarPromptSeenKey),
     ]);
     _token.value = null;
     _refreshToken.value = null;
@@ -126,6 +128,12 @@ class AuthService extends GetxService {
     _isAuthenticated.value = false;
     _invalidateUserIdCache();
   }
+
+  bool hasSeenAvatarPrompt() =>
+      _prefs.getBool(_avatarPromptSeenKey) ?? false;
+
+  Future<void> markAvatarPromptSeen() =>
+      _prefs.setBool(_avatarPromptSeenKey, true);
 
   Future<void> saveUserProfile(Map<String, dynamic> userJson) async {
     await _prefs.setString(_userProfileKey, jsonEncode(userJson));

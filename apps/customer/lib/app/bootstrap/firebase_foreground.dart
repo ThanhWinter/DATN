@@ -4,6 +4,8 @@ import "package:flutter/widgets.dart";
 import "package:get/get.dart";
 
 import "../../features/notifications/presentation/controllers/notification_controller.dart";
+import "../../features/orders/presentation/controllers/order_controller.dart";
+import "../../features/orders/presentation/controllers/order_detail_controller.dart";
 
 /// Xin quyền + đăng ký listener FCM sau frame đầu — không chặn [runApp],
 /// login / splash hiển thị nhanh hơn so với await permission trước [runApp].
@@ -26,6 +28,21 @@ void registerCustomerFirebaseForegroundListeners() {
 
       if (Get.isRegistered<NotificationController>()) {
         Get.find<NotificationController>().refreshUnreadCount();
+      }
+
+      // Cập nhật danh sách đơn hàng khi nhận FCM liên quan đến order
+      final orderId = message.data['orderId'] as String?;
+      if (orderId != null) {
+        if (Get.isRegistered<OrderController>()) {
+          Get.find<OrderController>().loadOrders();
+        }
+        // Nếu đang xem chi tiết đơn này thì reload luôn
+        if (Get.isRegistered<OrderDetailController>()) {
+          final ctrl = Get.find<OrderDetailController>();
+          if (ctrl.order.value?.id == orderId) {
+            ctrl.loadOrder(orderId);
+          }
+        }
       }
     });
 

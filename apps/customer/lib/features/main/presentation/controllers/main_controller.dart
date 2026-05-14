@@ -25,6 +25,8 @@ class MainController extends GetxController {
   final availableCouponCount = 0.obs;
 
   static const int _tabOrders = 2;
+  static const _badgeThrottle = Duration(seconds: 30);
+  DateTime? _lastBadgeRefresh;
 
   @override
   void onInit() {
@@ -53,12 +55,18 @@ class MainController extends GetxController {
 
   void syncActiveOrderBadgeFromOrderTab(int activeCount) {
     activeOrderBadgeCount.value = activeCount;
+    _lastBadgeRefresh = DateTime.now();
   }
 
   void onTabChanged(int index) {
     selectedIndex.value = index;
     if (index == _tabOrders) {
-      refreshActiveOrderBadgeFromNetwork();
+      final now = DateTime.now();
+      if (_lastBadgeRefresh == null ||
+          now.difference(_lastBadgeRefresh!) > _badgeThrottle) {
+        _lastBadgeRefresh = now;
+        unawaited(refreshActiveOrderBadgeFromNetwork());
+      }
     }
   }
 }

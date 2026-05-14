@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:core_utils/core_utils.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
@@ -12,7 +13,7 @@ import '../../data/models/food_model.dart';
 import '../../data/models/option_group_model.dart';
 import '../../data/repositories/menu_repository.dart';
 
-class MenuController extends GetxController {
+class MenuController extends GetxController with AutoRefreshMixin {
   MenuController(this._repository);
 
   final MenuRepository _repository;
@@ -47,7 +48,27 @@ class MenuController extends GetxController {
       (_) => _applyFilters(resetWindow: true),
       time: const Duration(milliseconds: 300),
     );
-    SchedulerBinding.instance.addPostFrameCallback((_) => loadData());
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      loadData();
+      startPolling(const Duration(seconds: 60), _silentRefresh);
+    });
+  }
+
+  Future<void> _silentRefresh() async {
+    try {
+      final results = await Future.wait([
+        _repository.fetchCategories(),
+        _repository.fetchFoods(),
+      ]);
+      categories.value = results[0] as List<CategoryModel>;
+      _foodsMaster
+        ..clear()
+        ..addAll(results[1] as List<FoodModel>);
+      _syncStatsFromMaster();
+      _applyFilters(resetWindow: false);
+    } catch (e) {
+      dev.log('[MENU/VM] ⚠️ silentRefresh error (ignored): $e');
+    }
   }
 
   Future<void> loadData() async {

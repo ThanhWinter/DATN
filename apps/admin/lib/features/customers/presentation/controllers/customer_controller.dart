@@ -19,6 +19,9 @@ class CustomerController extends GetxController {
   final filteredCustomers = <CustomerModel>[].obs;
   final searchQuery = ''.obs;
 
+  // Pre-computed lowercase search keys — index tương ứng với allCustomers
+  final List<String> _searchKeys = [];
+
   // Detail sheet state
   final selectedCustomer = Rxn<CustomerModel>();
   final isLoadingDetail = false.obs;
@@ -39,7 +42,12 @@ class CustomerController extends GetxController {
     isLoading.value = true;
     error.value = null;
     try {
-      allCustomers.value = await _repository.fetchCustomers();
+      final customers = await _repository.fetchCustomers();
+      allCustomers.value = customers;
+      _searchKeys
+        ..clear()
+        ..addAll(customers.map(
+            (c) => '${c.fullName} ${c.email} ${c.phone}'.toLowerCase()));
       _applySearch(searchQuery.value);
       dev.log('[CUSTOMER/VM] ✅ Loaded ${allCustomers.length} customers');
     } catch (e) {
@@ -57,14 +65,14 @@ class CustomerController extends GetxController {
 
   void _applySearch(String q) {
     final lower = q.toLowerCase().trim();
-    filteredCustomers.value = lower.isEmpty
-        ? List.of(allCustomers)
-        : allCustomers
-            .where((c) =>
-                c.fullName.toLowerCase().contains(lower) ||
-                c.email.toLowerCase().contains(lower) ||
-                c.phone.contains(lower))
-            .toList();
+    if (lower.isEmpty) {
+      filteredCustomers.value = List.of(allCustomers);
+      return;
+    }
+    filteredCustomers.value = [
+      for (var i = 0; i < allCustomers.length; i++)
+        if (_searchKeys[i].contains(lower)) allCustomers[i],
+    ];
   }
 
   Future<void> loadCustomerDetail(String id) async {
@@ -89,7 +97,11 @@ class CustomerController extends GetxController {
     isMutating.value = true;
     try {
       await _repository.deleteCustomer(id);
-      allCustomers.removeWhere((c) => c.id == id);
+      final idx = allCustomers.indexWhere((c) => c.id == id);
+      if (idx != -1) {
+        allCustomers.removeAt(idx);
+        if (idx < _searchKeys.length) _searchKeys.removeAt(idx);
+      }
       filteredCustomers.removeWhere((c) => c.id == id);
       Get.snackbar(
         'Đã xoá',

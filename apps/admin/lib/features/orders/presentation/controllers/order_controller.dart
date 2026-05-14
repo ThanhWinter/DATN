@@ -476,65 +476,36 @@ class OrderController extends GetxController {
     list.assignAll(kept);
   }
 
-  void _distribute(List<OrderModel> all) {
-    pendingOrders.assignAll(all
-        .where((o) => const [
-              OrderModel.statusPending,
-              OrderModel.statusPaid,
-            ].contains(o.status))
-        .toList());
-
-    activeOrders.assignAll(all
-        .where((o) => const [
-              OrderModel.statusPreparing,
-              OrderModel.statusDelivering,
-            ].contains(o.status))
-        .toList());
-
-    completedOrders.assignAll(
-        all.where((o) => o.status == OrderModel.statusCompleted).toList());
-    cancelledOrders.assignAll(
-        all.where((o) => o.status == OrderModel.statusCancelled).toList());
-
-    for (final bucket in [
-      pendingOrders,
-      activeOrders,
-      completedOrders,
-      cancelledOrders,
-    ]) {
-      _sortBucket(bucket);
-    }
-
-    // Rebuild O(1) index sau khi phân phối lại toàn bộ
-    _bucketOf.clear();
-    for (final o in pendingOrders) {
-      _bucketOf[o.id] = pendingOrders;
-    }
-    for (final o in activeOrders) {
-      _bucketOf[o.id] = activeOrders;
-    }
-    for (final o in completedOrders) {
-      _bucketOf[o.id] = completedOrders;
-    }
-    for (final o in cancelledOrders) {
-      _bucketOf[o.id] = cancelledOrders;
-    }
-  }
-
   Future<void> updateStatus(OrderModel order, String newStatus) async {
     dev.log(
         '[ORDER/VM] Updating order ${order.id}: ${order.status} → $newStatus');
     isUpdating.value = true;
     try {
       await _repository.updateOrderStatus(order.id, newStatus);
-      order.status = newStatus;
-      final all = [
-        ...pendingOrders,
-        ...activeOrders,
-        ...completedOrders,
-        ...cancelledOrders,
-      ];
-      _distribute(all);
+
+      // Tìm object đang nằm trong bucket (có thể là object mới hơn do polling thay thế).
+      // Không dùng _distribute() vì polling có thể đã thay thế reference 'order'.
+      final currentBucket = _bucketOf[order.id];
+      final inBucket = currentBucket?.firstWhereOrNull((o) => o.id == order.id);
+      final target = inBucket ?? order;
+      target.status = newStatus;
+
+      final newBucket = _rxTargetForStatus(newStatus);
+
+      if (currentBucket == newBucket) {
+        // Order đã ở đúng bucket (poll đã move trước) — chỉ cần sort lại, không xóa+thêm.
+        _sortBucket(newBucket);
+      } else {
+        // Xoá khỏi bucket cũ, thêm vào bucket mới.
+        _bucketOf.remove(order.id);
+        currentBucket?.removeWhere((o) => o.id == order.id);
+        if (!newBucket.any((o) => o.id == order.id)) {
+          newBucket.add(target);
+        }
+        _bucketOf[order.id] = newBucket;
+        _sortBucket(newBucket);
+      }
+
       if (Get.isRegistered<MainController>()) {
         unawaited(Get.find<MainController>().refreshPendingBadgeFromNetwork());
       }

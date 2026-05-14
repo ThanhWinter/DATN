@@ -2,21 +2,27 @@ import 'dart:developer' as dev;
 import 'package:core_network/core_network.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
+import '../../../../app/config/app_config.dart';
+import '../../data/repositories/media_repository.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'profile_controller.dart';
 
 class EditProfileController extends GetxController {
   final ProfileRepository _repository;
+  final MediaRepository _mediaRepository;
 
-  EditProfileController(this._repository);
+  EditProfileController(this._repository, this._mediaRepository);
 
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final phoneController = TextEditingController();
 
   final isLoading = false.obs;
+  final isUploadingAvatar = false.obs;
   final errorMessage = ''.obs;
+  final selectedAvatarUrl = RxnString();
 
   @override
   void onInit() {
@@ -26,6 +32,7 @@ class EditProfileController extends GetxController {
       firstNameController.text = user.firstName;
       lastNameController.text = user.lastName;
       phoneController.text = user.phone;
+      selectedAvatarUrl.value = user.avatarUrl;
     }
   }
 
@@ -35,6 +42,42 @@ class EditProfileController extends GetxController {
     lastNameController.dispose();
     phoneController.dispose();
     super.onClose();
+  }
+
+  Future<void> pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1080,
+      maxHeight: 1080,
+    );
+    if (picked == null) return;
+
+    try {
+      isUploadingAvatar.value = true;
+      final bytes = await picked.readAsBytes();
+      final filename = picked.name.isNotEmpty ? picked.name : 'avatar.jpg';
+      final uploadedName = await _mediaRepository.uploadImage(bytes, filename);
+      selectedAvatarUrl.value = '${AppConfig.baseUrl}/media/$uploadedName';
+      dev.log('[EDIT_PROFILE] ✅ Avatar uploaded: $uploadedName');
+    } on ApiException catch (e) {
+      dev.log('[EDIT_PROFILE] ❌ Upload failed: ${e.statusCode} ${e.message}');
+      Get.snackbar(
+        'Upload thất bại',
+        e.message,
+        snackPosition: SnackPosition.TOP,
+      );
+    } catch (e) {
+      dev.log('[EDIT_PROFILE] ❌ Upload error: $e');
+      Get.snackbar(
+        'Lỗi',
+        'Không thể tải ảnh lên. Vui lòng thử lại.',
+        snackPosition: SnackPosition.TOP,
+      );
+    } finally {
+      isUploadingAvatar.value = false;
+    }
   }
 
   Future<void> saveProfile() async {
@@ -72,11 +115,11 @@ class EditProfileController extends GetxController {
         firstName: firstName,
         lastName: lastName,
         phone: phone,
+        avatarUrl: selectedAvatarUrl.value,
       );
 
       await profileController.reloadProfile();
 
-      // Rule #3: delay trước khi điều hướng để tránh lỗi giao diện sau async
       await Future.delayed(const Duration(milliseconds: 500));
       Get.back();
 

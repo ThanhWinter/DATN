@@ -16,29 +16,37 @@ class CacheManager<T> {
 
     if (entry.expiresAt.isBefore(DateTime.now())) {
       _cache.remove(key);
-      dev.log('[CACHE] Expired: $key');
+      assert(() { dev.log('[CACHE] Expired: $key'); return true; }());
       return null;
     }
 
-    dev.log('[CACHE] Hit: $key');
+    assert(() { dev.log('[CACHE] Hit: $key'); return true; }());
     return entry.value;
   }
 
   void set(String key, T value, {Duration? ttl}) {
     final expiresAt = DateTime.now().add(ttl ?? _defaultTtl);
     _cache[key] = _CacheEntry(value, expiresAt);
-    dev.log(
-        '[CACHE] Set: $key (expires in ${(ttl ?? _defaultTtl).inMinutes}min)');
+    assert(() {
+      dev.log('[CACHE] Set: $key (expires in ${(ttl ?? _defaultTtl).inMinutes}min)');
+      return true;
+    }());
   }
 
   void invalidate(String key) {
     _cache.remove(key);
-    dev.log('[CACHE] Invalidated: $key');
+    assert(() { dev.log('[CACHE] Invalidated: $key'); return true; }());
   }
 
   void clear() {
     _cache.clear();
-    dev.log('[CACHE] Cleared all entries');
+    assert(() { dev.log('[CACHE] Cleared all entries'); return true; }());
+  }
+
+  /// Xóa tất cả entries đã hết hạn khỏi bộ nhớ.
+  void cleanExpired() {
+    final now = DateTime.now();
+    _cache.removeWhere((_, entry) => entry.expiresAt.isBefore(now));
   }
 
   int get size => _cache.length;

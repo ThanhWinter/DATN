@@ -5,6 +5,7 @@ import "package:flutter/widgets.dart";
 import "package:get/get.dart";
 
 import "../services/auth_service.dart";
+import "../../features/orders/presentation/controllers/order_controller.dart";
 
 /// Xin quyền + đăng ký listener FCM sau frame đầu — không chặn [runApp].
 void registerAdminFirebaseForegroundListeners() {
@@ -15,6 +16,8 @@ void registerAdminFirebaseForegroundListeners() {
       sound: true,
     );
 
+    await FirebaseMessaging.instance.subscribeToTopic('admin_orders');
+
     FirebaseMessaging.onMessage.listen((message) {
       final title = message.notification?.title ?? 'Thông báo';
       final body = message.notification?.body ?? '';
@@ -23,6 +26,10 @@ void registerAdminFirebaseForegroundListeners() {
           backgroundColor: AppColors.primaryOrange,
           colorText: AppColors.white,
           duration: const Duration(seconds: 5));
+
+      if (Get.isRegistered<OrderController>()) {
+        Get.find<OrderController>().loadOrders();
+      }
     });
 
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {

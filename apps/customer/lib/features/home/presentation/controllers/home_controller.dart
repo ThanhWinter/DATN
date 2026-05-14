@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
-import 'dart:isolate';
 import 'dart:math' as math;
 
+import 'package:core_utils/core_utils.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -10,7 +10,7 @@ import '../../../../app/routes/app_routes.dart';
 import '../../data/models/home_items.dart';
 import '../../data/repositories/home_repository.dart';
 
-class HomeController extends GetxController {
+class HomeController extends GetxController with AutoRefreshMixin {
   final HomeRepository _repository;
 
   HomeController(this._repository);
@@ -52,12 +52,17 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    SchedulerBinding.instance.addPostFrameCallback((_) => loadData());
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      loadData();
+      startPolling(const Duration(seconds: 60), _silentRefresh);
+    });
   }
 
-  Future<void> selectCategory(int? id) async {
+  void selectCategory(int? id) {
     selectedCategoryId.value = id;
-    await _applyFilters(resetWindow: true);
+    _computeFiltered();
+    _visibleCount = math.min(_uiChunk, math.max(_filteredView.length, 0));
+    _applyUiSlice();
   }
 
   void navigateToFoodDetail(FoodItemModel item) {
@@ -147,19 +152,11 @@ class HomeController extends GetxController {
 
   // ── Client-side filtered list + UI window ───────────────────────────────────
 
-  Future<void> _computeFiltered() async {
+  void _computeFiltered() {
     final id = selectedCategoryId.value;
-    final master = _foodsMaster;
-    if (master.length > 200) {
-      _filteredView = await Isolate.run(() {
-        if (id == null) return List<FoodItemModel>.from(master);
-        return master.where((f) => f.categoryId == id).toList();
-      });
-    } else {
-      _filteredView = id == null
-          ? List<FoodItemModel>.from(master)
-          : master.where((f) => f.categoryId == id).toList();
-    }
+    _filteredView = id == null
+        ? List<FoodItemModel>.from(_foodsMaster)
+        : _foodsMaster.where((f) => f.categoryId == id).toList();
     totalFoodCount.value = _filteredView.length;
   }
 
@@ -172,8 +169,8 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> _applyFilters({required bool resetWindow}) async {
-    await _computeFiltered();
+  void _applyFilters({required bool resetWindow}) {
+    _computeFiltered();
     if (resetWindow) {
       _visibleCount = math.min(_uiChunk, math.max(_filteredView.length, 0));
     } else {
@@ -202,6 +199,46 @@ class HomeController extends GetxController {
     } catch (e) {
       dev.log('[HOME] ⚠️ non-critical API error (ignored): $e');
       return fallback;
+    }
+  }
+
+  /// Polling ngầm — không bật skeleton, chỉ cập nhật dữ liệu.
+  Future<void> _silentRefresh() async {
+    try {
+      final results = await Future.wait([
+        _repository.fetchCategories(),
+        _safe(_repository.fetchPromoBanners, <HomePromoBannerItem>[]),
+        _repository.fetchFoodItems(),
+        _safe(
+          _repository.fetchStoreSetting,
+          const StoreSettingModel(
+            storeName: '',
+            hotline: '',
+            isOpen: true,
+            baseShippingFee: 0,
+            freeShipThreshold: 0,
+          ),
+        ),
+      ]);
+      final newCats = results[0] as List<CategoryItem>;
+      categories.assignAll(newCats);
+
+      // Nếu category đang chọn bị xóa khỏi server → reset về "Tất cả"
+      final selId = selectedCategoryId.value;
+      if (selId != null && !newCats.any((c) => c.id == selId)) {
+        selectedCategoryId.value = null;
+      }
+
+      promoBanners.assignAll(
+        (results[1] as List<HomePromoBannerItem>).where((b) => b.isActive),
+      );
+      storeSetting.value = results[3] as StoreSettingModel;
+      _foodsMaster
+        ..clear()
+        ..addAll(results[2] as List<FoodItemModel>);
+      _applyFilters(resetWindow: false);
+    } catch (e) {
+      dev.log('[HOME] ⚠️ silentRefresh error (ignored): $e');
     }
   }
 
@@ -239,7 +276,7 @@ class HomeController extends GetxController {
       _foodsMaster
         ..clear()
         ..addAll(results[2] as List<FoodItemModel>);
-      await _applyFilters(resetWindow: true);
+      _applyFilters(resetWindow: true);
 
       await Future.delayed(Duration.zero);
       isLoading.value = false;

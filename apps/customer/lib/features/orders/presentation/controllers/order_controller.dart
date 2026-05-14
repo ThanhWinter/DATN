@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'dart:developer' as dev;
 
+import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
 import '../../../../app/routes/app_routes.dart';
@@ -8,7 +8,7 @@ import '../../../main/presentation/controllers/main_controller.dart';
 import '../../data/models/order_model.dart';
 import '../../data/repositories/order_repository.dart';
 
-class OrderController extends GetxController {
+class OrderController extends GetxController with AutoRefreshMixin {
   final OrderRepository _repository;
 
   OrderController(this._repository);
@@ -20,22 +20,11 @@ class OrderController extends GetxController {
 
   static const _activeStatuses = {'PENDING', 'PAID', 'PREPARING', 'DELIVERING'};
 
-  Timer? _pollTimer;
-
   @override
   void onInit() {
     super.onInit();
     loadOrders();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 30),
-      (_) => loadOrders(),
-    );
-  }
-
-  @override
-  void onClose() {
-    _pollTimer?.cancel();
-    super.onClose();
+    startPolling(const Duration(seconds: 30), loadOrders);
   }
 
   Future<void> loadOrders() async {

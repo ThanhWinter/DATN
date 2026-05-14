@@ -72,7 +72,10 @@ class OrderRepository {
 
   Future<OrderModel> getOrderById(String id) async {
     final response = await _apiClient.get('/orders/$id');
-    final result = response['result'] as Map<String, dynamic>;
+    final result = response['result'] as Map<String, dynamic>?;
+    if (result == null) {
+      throw Exception('Không tìm thấy đơn hàng.');
+    }
     return OrderModel.fromJson(result);
   }
 

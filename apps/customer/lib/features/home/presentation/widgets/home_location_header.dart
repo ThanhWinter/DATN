@@ -99,23 +99,36 @@ class _UserAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.editProfile),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFE8D6),
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: profileCtrl == null
-              ? const Text('?', style: _kStyle)
-              : Obx(() {
-                  // Chỉ Obx nhỏ này rebuild khi user thay đổi — không bọc Container.
-                  final u = profileCtrl!.user.value;
-                  return Text(_initials(u?.firstName, u?.lastName),
-                      style: _kStyle);
-                }),
-        ),
+      child: profileCtrl == null
+          ? _buildContainer(avatarUrl: null, initials: '?')
+          : Obx(() {
+              final u = profileCtrl!.user.value;
+              return _buildContainer(
+                avatarUrl: u?.avatarUrl,
+                initials: _initials(u?.firstName, u?.lastName),
+              );
+            }),
+    );
+  }
+
+  Widget _buildContainer({required String? avatarUrl, required String initials}) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFFE8D6),
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: avatarUrl != null && avatarUrl.isNotEmpty
+            ? AppNetworkImage(
+                url: avatarUrl,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorWidget: Center(child: Text(initials, style: _kStyle)),
+              )
+            : Center(child: Text(initials, style: _kStyle)),
       ),
     );
   }

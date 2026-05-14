@@ -72,6 +72,7 @@ class MainBinding extends Bindings {
 
     Get.lazyPut<OrderController>(
       () => OrderController(Get.find<OrderRepository>()),
+      fenix: true,
     );
 
     Get.lazyPut<OptimizedCouponListController>(

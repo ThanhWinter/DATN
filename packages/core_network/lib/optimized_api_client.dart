@@ -33,14 +33,14 @@ class OptimizedApiClient implements IApiClient {
     if (enableCache) {
       final cached = apiCache.get(cacheKey);
       if (cached != null) {
-        dev.log('[OPTIMIZED_API] Cache hit: $path');
+        assert(() { dev.log('[OPTIMIZED_API] Cache hit: $path'); return true; }());
         return cached;
       }
     }
 
     // Prevent duplicate requests
     if (_pendingRequests.containsKey(cacheKey)) {
-      dev.log('[OPTIMIZED_API] Request deduplication: $path');
+      assert(() { dev.log('[OPTIMIZED_API] Request deduplication: $path'); return true; }());
       return await _pendingRequests[cacheKey]!;
     }
 
@@ -163,17 +163,19 @@ class OptimizedApiClient implements IApiClient {
   void _invalidateRelevantCache(String path) {
     if (!enableCache) return;
 
-    // Simple cache invalidation - in production, you might want more sophisticated logic
-    final keysToInvalidate = apiCache.keys.where((key) => key.contains(
-            path.split('/').where((segment) => segment.isNotEmpty).first))
-        .toList();
+    // Lấy resource segment đầu tiên (vd: '/orders/123' → 'orders')
+    // rồi xóa tất cả GET cache bắt đầu bằng 'GET_/<resource>'
+    final segments = path.split('/').where((s) => s.isNotEmpty).toList();
+    if (segments.isEmpty) return;
+    final resource = segments.first;
+    final prefix = 'GET_/$resource';
+
+    final keysToInvalidate =
+        apiCache.keys.where((key) => key.startsWith(prefix)).toList();
 
     for (final key in keysToInvalidate) {
       apiCache.invalidate(key);
     }
-
-    dev.log(
-        '[OPTIMIZED_API] Invalidated ${keysToInvalidate.length} cache entries for $path');
   }
 
   /// Clear all cache
@@ -187,13 +189,13 @@ class OptimizedApiClient implements IApiClient {
   Future<void> preloadData(List<String> paths) async {
     if (!enableCache) return;
 
-    dev.log('[OPTIMIZED_API] Preloading ${paths.length} endpoints');
+    assert(() { dev.log('[OPTIMIZED_API] Preloading ${paths.length} endpoints'); return true; }());
 
     await Future.wait(
       paths.map((path) => get(path)),
       eagerError: false,
     );
 
-    dev.log('[OPTIMIZED_API] Preloading completed');
+    assert(() { dev.log('[OPTIMIZED_API] Preloading completed'); return true; }());
   }
 }

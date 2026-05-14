@@ -106,24 +106,38 @@ class _HomeSkeleton extends StatelessWidget {
         // Category skeleton
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _box(height: 14, width: 80, radius: 6),
-              const SizedBox(height: 12),
-              Row(
-                children: List.generate(
-                    5,
-                    (i) => Padding(
-                          padding: const EdgeInsets.only(right: 16),
-                          child: Column(children: [
-                            _circle(size: 50),
-                            const SizedBox(height: 6),
-                            _box(height: 10, width: 44, radius: 4),
-                          ]),
-                        )),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+                child: _box(height: 14, width: 80, radius: 6),
               ),
+              SizedBox(
+                height: 78,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: List.generate(
+                      5,
+                      (i) => SizedBox(
+                        width: 68,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _circle(size: 52),
+                            const SizedBox(height: 5),
+                            _box(height: 10, width: 44, radius: 4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
             ],
           ),
         ),

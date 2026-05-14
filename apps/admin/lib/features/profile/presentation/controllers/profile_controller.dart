@@ -1,12 +1,13 @@
 import 'dart:developer' as dev;
 
 import 'package:core_network/core_network.dart';
+import 'package:core_utils/core_utils.dart';
 import 'package:get/get.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../dashboard/data/repositories/statistic_repository.dart';
 
-class ProfileController extends GetxController {
+class ProfileController extends GetxController with AutoRefreshMixin {
   ProfileController(this._apiClient, this._statisticRepository);
 
   final IApiClient _apiClient;
@@ -29,6 +30,28 @@ class ProfileController extends GetxController {
     super.onInit();
     loadMyInfo();
     loadStats();
+    startPolling(const Duration(seconds: 120), _silentRefresh);
+  }
+
+  Future<void> _silentRefresh() async {
+    try {
+      final res = await _apiClient.get('/users/my-info');
+      final data = res['result'] as Map<String, dynamic>;
+      adminName.value =
+          '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+      adminEmail.value = data['email'] as String? ?? '';
+      adminPhone.value = data['phone'] as String? ?? '';
+      adminRoles.assignAll(
+        (data['roles'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+            [],
+      );
+      final stats = await _statisticRepository.getDashboard();
+      todayOrders.value = stats.todayOrders;
+      todayRevenue.value = stats.todayRevenue;
+      totalFoods.value = stats.totalFoods;
+    } catch (e) {
+      dev.log('[PROFILE/VM] ⚠️ silentRefresh error (ignored): $e');
+    }
   }
 
   Future<void> reload() async {

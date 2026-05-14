@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../controllers/edit_profile_controller.dart';
-import '../controllers/profile_controller.dart';
 
 class EditProfileView extends GetView<EditProfileController> {
   const EditProfileView({super.key});
@@ -36,10 +35,10 @@ class EditProfileView extends GetView<EditProfileController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _AvatarDisplay(),
+              const _AvatarPicker(),
               const SizedBox(height: 8),
               Text(
-                'Ảnh đại diện chỉ đọc — không đổi ảnh trên app khách (upload media chỉ dành cho quản trị viên).',
+                'Nhấn vào ảnh để thay đổi ảnh đại diện.',
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.textGrey,
                   height: 1.35,
@@ -93,40 +92,71 @@ class EditProfileView extends GetView<EditProfileController> {
   }
 }
 
-class _AvatarDisplay extends StatelessWidget {
-  const _AvatarDisplay();
+class _AvatarPicker extends GetView<EditProfileController> {
+  const _AvatarPicker();
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Obx(() {
-        final profileController = Get.find<ProfileController>();
-        final url = profileController.user.value?.avatarUrl;
+        final url = controller.selectedAvatarUrl.value;
+        final isUploading = controller.isUploadingAvatar.value;
 
-        return Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.grey200,
-            border: Border.all(color: AppColors.primaryOrange, width: 2),
-          ),
-          child: ClipOval(
-            child: url != null && url.isNotEmpty
-                ? AppNetworkImage(
-                    url: url,
-                    fit: BoxFit.cover,
-                    errorWidget: const Icon(
-                      Icons.person,
-                      size: 40,
-                      color: AppColors.grey400,
-                    ),
-                  )
-                : const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: AppColors.grey400,
+        return GestureDetector(
+          onTap: isUploading ? null : controller.pickAndUploadAvatar,
+          child: Stack(
+            children: [
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.grey200,
+                  border: Border.all(color: AppColors.primaryOrange, width: 2),
+                ),
+                child: ClipOval(
+                  child: isUploading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryOrange,
+                          ),
+                        )
+                      : url != null && url.isNotEmpty
+                          ? AppNetworkImage(
+                              url: url,
+                              fit: BoxFit.cover,
+                              errorWidget: const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: AppColors.grey400,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: AppColors.grey400,
+                            ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primaryOrange,
                   ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 14,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       }),
