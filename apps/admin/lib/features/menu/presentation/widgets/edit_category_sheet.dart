@@ -65,6 +65,7 @@ class _EditCategorySheetState extends State<EditCategorySheet> {
 
     final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
+    if (!mounted) return;
     setState(() {
       _newImageFile = compressed;
       _imageFilename = picked.name;
@@ -78,14 +79,20 @@ class _EditCategorySheetState extends State<EditCategorySheet> {
           backgroundColor: AppColors.errorRed, colorText: AppColors.white);
       return;
     }
+    final desc = _descCtrl.text.trim();
+    final imageFile = _newImageFile;
+    final imageFilename = _imageFilename;
+
+    final imageBytes = imageFile != null ? await imageFile.readAsBytes() : null;
+    if (!mounted) return;
+
     Get.back();
     Get.find<MenuController>().updateCategory(
       widget.category.id,
       name: name,
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes:
-          _newImageFile != null ? await _newImageFile!.readAsBytes() : null,
-      imageFilename: _imageFilename,
+      description: desc.isEmpty ? null : desc,
+      imageBytes: imageBytes,
+      imageFilename: imageFilename,
     );
   }
 

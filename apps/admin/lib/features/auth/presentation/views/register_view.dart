@@ -185,6 +185,7 @@ class _RegisterViewState extends State<RegisterView> {
       ),
     );
     if (picked != null) {
+      if (!mounted) return;
       controller.setDob(picked);
       final d = picked.day.toString().padLeft(2, '0');
       final m = picked.month.toString().padLeft(2, '0');

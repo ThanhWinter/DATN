@@ -70,6 +70,7 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
 
     final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
+    if (!mounted) return;
     setState(() {
       _previewImageFile = compressed;
       _imageFilename = picked.name;
@@ -92,16 +93,22 @@ class _AddFoodSheetState extends State<AddFoodSheet> {
       return;
     }
 
+    final desc = _descCtrl.text.trim();
+    final category = _selectedCategory!;
+    final imageFile = _previewImageFile;
+    final imageFilename = _imageFilename;
+
+    final imageBytes = imageFile != null ? await imageFile.readAsBytes() : null;
+    if (!mounted) return;
+
     Get.back();
     Get.find<MenuController>().addFood(
       name,
       price,
-      _selectedCategory!.id,
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes: _previewImageFile != null
-          ? await _previewImageFile!.readAsBytes()
-          : null,
-      imageFilename: _imageFilename,
+      category.id,
+      description: desc.isEmpty ? null : desc,
+      imageBytes: imageBytes,
+      imageFilename: imageFilename,
     );
   }
 

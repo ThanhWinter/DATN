@@ -31,12 +31,19 @@ class SettingsView extends GetView<SettingsController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Banner navigation ───────────────────────────────────────
+              // ── Content navigation ──────────────────────────────────────
               _NavCard(
                 icon: Icons.image_outlined,
                 label: 'Quản lý Banner quảng cáo',
                 subtitle: 'Thêm, sửa, xoá và bật/tắt banner hiển thị cho khách',
                 onTap: () => Get.toNamed(AppRoutes.banners),
+              ),
+              const SizedBox(height: 12),
+              _NavCard(
+                icon: Icons.star_half_rounded,
+                label: 'Quản lý Đánh giá',
+                subtitle: 'Xem và phản hồi đánh giá từ khách hàng',
+                onTap: () => Get.toNamed(AppRoutes.reviews),
               ),
               const SizedBox(height: 16),
 

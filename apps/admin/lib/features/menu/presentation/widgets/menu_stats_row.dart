@@ -12,126 +12,113 @@ class MenuStatsRow extends GetView<MenuController> {
     return Obx(() {
       final isFiltered = controller.isFiltered;
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (isFiltered)
-            Padding(
-              padding: const EdgeInsets.only(right: 16, bottom: 4),
-              child: TextButton.icon(
-                onPressed: controller.clearFilters,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.emerald,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                icon: const Icon(Icons.filter_alt_off_rounded, size: 14),
-                label: const Text('Xem tất cả'),
-              ),
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFEBEBEB)),
             ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(16, isFiltered ? 0 : 10, 16, 4),
             child: Row(
               children: [
-                Expanded(
-                  child: _Pill(
-                    icon: Icons.restaurant_menu_rounded,
-                    value: '${controller.totalFoodCount.value}',
-                    label: 'tổng',
-                    color: AppColors.emerald,
-                  ),
+                _StatCell(
+                  label: 'Tổng',
+                  value: '${controller.totalFoodCount.value}',
+                  color: AppColors.emeraldDark,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _Pill(
-                    icon: Icons.check_circle_outline_rounded,
-                    value: '${controller.availableFoodCount.value}',
-                    label: 'bán',
-                    color: AppColors.emeraldDark,
-                  ),
+                const _VerticalDivider(),
+                _StatCell(
+                  label: 'Đang bán',
+                  value: '${controller.availableFoodCount.value}',
+                  color: const Color(0xFF16A34A),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _Pill(
-                    icon: Icons.remove_circle_outline_rounded,
-                    value: '${controller.unavailableFoodCount.value}',
-                    label: 'hết',
-                    color: AppColors.errorRed,
-                  ),
+                const _VerticalDivider(),
+                _StatCell(
+                  label: 'Tạm ẩn',
+                  value: '${controller.unavailableFoodCount.value}',
+                  color: const Color(0xFFDC2626),
                 ),
               ],
             ),
           ),
+          if (isFiltered)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 6),
+              child: GestureDetector(
+                onTap: controller.clearFilters,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.filter_alt_off_rounded, size: 13, color: AppColors.emerald),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Bỏ lọc danh mục',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.emerald,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       );
     });
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({
-    required this.icon,
-    required this.value,
+class _StatCell extends StatelessWidget {
+  const _StatCell({
     required this.label,
+    required this.value,
     required this.color,
   });
 
-  final IconData icon;
-  final String value;
   final String label;
+  final String value;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 4),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                  height: 1.1,
-                ),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: color,
+                height: 1,
               ),
-              Text(
-                label.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textGrey,
-                ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF9CA3AF),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(width: 1, height: 36, color: const Color(0xFFEBEBEB));
   }
 }

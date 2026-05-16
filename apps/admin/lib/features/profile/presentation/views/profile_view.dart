@@ -74,12 +74,6 @@ class ProfileView extends GetView<ProfileController> {
                     ),
                     const AppMenuDivider(),
                     AppMenuTile(
-                      icon: Icons.star_half_rounded,
-                      label: 'Quản lý đánh giá',
-                      onTap: () => Get.toNamed(AppRoutes.reviews),
-                    ),
-                    const AppMenuDivider(),
-                    AppMenuTile(
                       icon: Icons.help_outline,
                       label: 'Trợ giúp & Hỗ trợ',
                       onTap: () => Get.toNamed(AppRoutes.helpSupport),
@@ -183,10 +177,10 @@ class _AdminHeader extends GetView<ProfileController> {
               ),
               child: ClipOval(
                 child: url != null && url.isNotEmpty
-                    ? Image.network(
-                        url,
+                    ? AppNetworkImage(
+                        url: url,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorWidget: const Icon(
                             Icons.admin_panel_settings,
                             size: 38,
                             color: AppColors.white),

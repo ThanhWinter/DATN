@@ -13,60 +13,58 @@ class MenuSearchBar extends StatefulWidget {
 
 class _MenuSearchBarState extends State<MenuSearchBar> {
   final _ctrl = TextEditingController();
-  final _focus = FocusNode();
   late final MenuController _menuController;
+  Worker? _queryWorker;
 
   @override
   void initState() {
     super.initState();
     _menuController = Get.find<MenuController>();
-    _focus.addListener(() => setState(() {}));
+    // Khôi phục text field nếu controller vẫn còn query (sau pull-to-refresh hoặc remount)
+    final existing = _menuController.searchQuery.value;
+    if (existing.isNotEmpty) {
+      _ctrl.text = existing;
+      _ctrl.selection = TextSelection.collapsed(offset: existing.length);
+    }
+    // Sync text field khi query bị reset từ bên ngoài (đổi tab, clear filter)
+    _queryWorker = ever(_menuController.searchQuery, (q) {
+      if (q.isEmpty && _ctrl.text.isNotEmpty) {
+        _ctrl.clear();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _queryWorker?.dispose();
     _ctrl.dispose();
-    _focus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isFocused = _focus.hasFocus;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+    return Container(
+      height: 42,
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: isFocused ? AppColors.emerald : AppColors.emerald.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
+        color: const Color(0xFFF0F1F3),
+        borderRadius: BorderRadius.circular(8),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         children: [
-          Icon(
-            Icons.search_rounded,
-            color: isFocused ? AppColors.emerald : AppColors.textGrey,
-            size: 22,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: Icon(Icons.search_rounded, color: Color(0xFF9CA3AF), size: 20),
           ),
-          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _ctrl,
-              focusNode: _focus,
               onChanged: _menuController.updateSearch,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textDark,
-              ),
-              decoration: InputDecoration(
+              style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
+              decoration: const InputDecoration(
                 hintText: 'Tìm kiếm món ăn...',
-                hintStyle: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textLight,
-                ),
+                hintStyle: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                contentPadding: EdgeInsets.zero,
                 isDense: true,
               ),
               cursorColor: AppColors.emerald,
@@ -78,17 +76,12 @@ class _MenuSearchBarState extends State<MenuSearchBar> {
                     _ctrl.clear();
                     _menuController.updateSearch('');
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: AppColors.emerald.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close_rounded,
-                        color: AppColors.emerald, size: 14),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Icon(Icons.close_rounded, color: Color(0xFF9CA3AF), size: 18),
                   ),
                 )
-              : const SizedBox.shrink()),
+              : const SizedBox(width: 12)),
         ],
       ),
     );

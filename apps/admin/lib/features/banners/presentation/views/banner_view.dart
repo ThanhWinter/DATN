@@ -273,6 +273,7 @@ class _AddBannerSheetState extends State<_AddBannerSheet> {
         .pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (img == null) return;
     final bytes = await img.readAsBytes();
+    if (!mounted) return;
     setState(() {
       _pickedBytes = bytes;
       _pickedName = img.name;
@@ -281,17 +282,21 @@ class _AddBannerSheetState extends State<_AddBannerSheet> {
 
   Future<void> _submit() async {
     final title = _titleCtrl.text.trim();
+    final linkUrl = _linkCtrl.text.trim();
     if (title.isEmpty || _pickedBytes == null) {
       Get.snackbar('Thiếu thông tin', 'Vui lòng nhập tiêu đề và chọn ảnh.',
           snackPosition: SnackPosition.BOTTOM);
       return;
     }
+    final bytes = _pickedBytes!;
+    final filename = _pickedName.isNotEmpty ? _pickedName : 'banner.jpg';
+
     Get.back();
     await Get.find<OptimizedBannerController>().addBanner(
       title: title,
-      bytes: _pickedBytes!,
-      filename: _pickedName.isNotEmpty ? _pickedName : 'banner.jpg',
-      linkUrl: _linkCtrl.text.trim().isNotEmpty ? _linkCtrl.text.trim() : null,
+      bytes: bytes,
+      filename: filename,
+      linkUrl: linkUrl.isNotEmpty ? linkUrl : null,
     );
   }
 
@@ -413,6 +418,7 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
         .pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (img == null) return;
     final bytes = await img.readAsBytes();
+    if (!mounted) return;
     setState(() {
       _pickedBytes = bytes;
       _pickedName = img.name;
@@ -421,6 +427,7 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
 
   Future<void> _submit() async {
     final title = _titleCtrl.text.trim();
+    final linkUrl = _linkCtrl.text.trim();
     if (title.isEmpty) {
       Get.snackbar('Thiếu thông tin', 'Vui lòng nhập tiêu đề.',
           snackPosition: SnackPosition.BOTTOM);
@@ -430,7 +437,7 @@ class _EditBannerSheetState extends State<_EditBannerSheet> {
     await Get.find<OptimizedBannerController>().updateBanner(
       id: widget.banner.id,
       title: title,
-      linkUrl: _linkCtrl.text.trim().isNotEmpty ? _linkCtrl.text.trim() : null,
+      linkUrl: linkUrl.isNotEmpty ? linkUrl : null,
       imageBytes: _pickedBytes,
       filename: _pickedName.isNotEmpty ? _pickedName : null,
     );

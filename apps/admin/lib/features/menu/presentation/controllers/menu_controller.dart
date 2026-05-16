@@ -39,11 +39,12 @@ class MenuController extends GetxController with AutoRefreshMixin {
   static const int _uiChunk = 20;
 
   Timer? _loadMoreDebounce;
+  late final Worker _searchWorker;
 
   @override
   void onInit() {
     super.onInit();
-    debounce(
+    _searchWorker = debounce(
       searchQuery,
       (_) => _applyFilters(resetWindow: true),
       time: const Duration(milliseconds: 300),
@@ -181,6 +182,7 @@ class MenuController extends GetxController with AutoRefreshMixin {
 
   @override
   void onClose() {
+    _searchWorker.dispose();
     _loadMoreDebounce?.cancel();
     _foodsMaster.clear();
     super.onClose();

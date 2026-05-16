@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../app/config/app_config.dart';
 import '../../data/repositories/profile_admin_repository.dart';
 import 'profile_controller.dart';
 
@@ -72,9 +73,9 @@ class PersonalInfoController extends GetxController {
     try {
       final bytes = await picked.readAsBytes();
       final filename = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final url = await _repository.uploadAvatar(bytes, filename);
-      avatarUrl.value = url;
-      dev.log('[PERSONAL_INFO/VM] ✅ Avatar uploaded: $url');
+      final uploadedName = await _repository.uploadAvatar(bytes, filename);
+      avatarUrl.value = '${AppConfig.baseUrl}/media/$uploadedName';
+      dev.log('[PERSONAL_INFO/VM] ✅ Avatar uploaded: ${avatarUrl.value}');
     } catch (e) {
       dev.log('[PERSONAL_INFO/VM] ❌ pickAvatar error: $e');
       Get.snackbar('Lỗi', 'Không thể tải ảnh lên: $e',

@@ -55,6 +55,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
 
     final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
+    if (!mounted) return;
     setState(() {
       _previewImageFile = compressed;
       _imageFilename = picked.name;
@@ -68,14 +69,19 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
           backgroundColor: AppColors.errorRed, colorText: AppColors.white);
       return;
     }
+    final desc = _descCtrl.text.trim();
+    final imageFile = _previewImageFile;
+    final imageFilename = _imageFilename;
+
+    final imageBytes = imageFile != null ? await imageFile.readAsBytes() : null;
+    if (!mounted) return;
+
     Get.back();
     Get.find<MenuController>().addCategory(
       name,
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes: _previewImageFile != null
-          ? await _previewImageFile!.readAsBytes()
-          : null,
-      imageFilename: _imageFilename,
+      description: desc.isEmpty ? null : desc,
+      imageBytes: imageBytes,
+      imageFilename: imageFilename,
     );
   }
 

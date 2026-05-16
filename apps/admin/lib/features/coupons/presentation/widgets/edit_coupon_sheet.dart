@@ -50,7 +50,10 @@ class _EditCouponSheetState extends State<EditCouponSheet> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) setState(() => _expiresAt = picked);
+    if (picked != null) {
+      if (!mounted) return;
+      setState(() => _expiresAt = picked);
+    }
   }
 
   void _submit() {

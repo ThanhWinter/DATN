@@ -1,6 +1,5 @@
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart' hide MenuController;
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/food_model.dart';
@@ -11,6 +10,7 @@ import '../widgets/edit_food_sheet.dart';
 import '../widgets/food_card.dart';
 import '../widgets/menu_category_filter_bar.dart';
 import '../widgets/menu_search_bar.dart';
+import '../widgets/menu_stats_row.dart';
 import '../widgets/option_group_sheet.dart';
 
 class MenuView extends GetView<MenuController> {
@@ -19,184 +19,163 @@ class MenuView extends GetView<MenuController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Gradient backdrop: xanh lá nhạt → trắng, chỉ phần trên cùng
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFE8F5E9), // emerald 10% tint
-                  Colors.white,
-                  Colors.white,
-                ],
-                stops: [0.0, 0.28, 1.0],
-              ),
-            ),
-          ),
-          SnapHelperWidget(
-            isLoading: controller.isLoading,
-            error: controller.error,
-            onRefresh: controller.loadData,
-            onSuccess: () => RefreshIndicator(
-              onRefresh: controller.loadData,
-              color: AppColors.emerald,
-              backgroundColor: AppColors.white,
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification n) {
-                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 360) {
-                    controller.maybeLoadMoreVisibleFoods();
-                  }
-                  return false;
-                },
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onHorizontalDragEnd: _handleHorizontalSwipe,
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics()),
-                    slivers: [
-                      SliverAppBar(
-                        floating: false,
-                        pinned: true,
-                        backgroundColor: Colors.white,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        title: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Manage',
-                              style: AppTextStyles.h1.copyWith(
-                                fontSize: 26,
-                                fontStyle: FontStyle.italic,
-                                color: AppColors.textDark,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            ShaderMask(
-                              shaderCallback: (b) => const LinearGradient(
-                                colors: [
-                                  AppColors.emerald,
-                                  AppColors.emeraldLight,
-                                ],
-                              ).createShader(b),
-                              child: Text(
-                                'Hit',
-                                style: AppTextStyles.h1.copyWith(
-                                  fontSize: 26,
-                                  fontStyle: FontStyle.italic,
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: const [],
-                        bottom: PreferredSize(
-                          preferredSize: const Size.fromHeight(112),
-                          child: DecoratedBox(
-                            decoration:
-                                const BoxDecoration(color: Colors.white),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const MenuSearchBar(),
-                                  const SizedBox(height: 10),
-                                  _MenuSegmentedTabs(controller: controller),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Obx(() {
-                        if (controller.activeMenuTab.value == 0) {
-                          return const SliverToBoxAdapter(
-                            child: MenuCategoryFilterBar(),
-                          );
-                        }
-                        return SliverToBoxAdapter(
-                          child: _FoodManagementSection(
-                            controller: controller,
-                            onEdit: _showEditFood,
-                            onDelete: (food) =>
-                                _confirmDeleteFood(context, food),
-                            onManageOptions: _showOptionGroups,
-                            onView: (food) => _showFoodDetail(context, food),
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
+      backgroundColor: const Color(0xFFF5F6F8),
+      body: SnapHelperWidget(
+        isLoading: controller.isLoading,
+        error: controller.error,
+        onRefresh: controller.loadData,
+        onSuccess: () => RefreshIndicator(
+          onRefresh: controller.loadData,
+          color: AppColors.emerald,
+          backgroundColor: Colors.white,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (n) {
+              if (n.metrics.pixels >= n.metrics.maxScrollExtent - 360) {
+                controller.maybeLoadMoreVisibleFoods();
+              }
+              return false;
+            },
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragEnd: _handleHorizontalSwipe,
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
                 ),
+                slivers: [
+                  SliverAppBar(
+                    floating: false,
+                    pinned: true,
+                    backgroundColor: Colors.white,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 0,
+                    forceElevated: true,
+                    shadowColor: Colors.black12,
+                    title: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Manage',
+                          style: AppTextStyles.h1.copyWith(
+                            fontSize: 22,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.textDark,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        ShaderMask(
+                          shaderCallback: (b) => const LinearGradient(
+                            colors: [AppColors.emerald, AppColors.emeraldLight],
+                          ).createShader(b),
+                          child: Text(
+                            'Hit',
+                            style: AppTextStyles.h1.copyWith(
+                              fontSize: 22,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(44),
+                      child: _MenuTabBar(controller: controller),
+                    ),
+                  ),
+                  // Search bar dính — chỉ hiện ở tab Món ăn
+                  Obx(() => controller.activeMenuTab.value == 1
+                      ? const SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _SearchBarDelegate(),
+                        )
+                      : const SliverToBoxAdapter(child: SizedBox.shrink())),
+                  Obx(() {
+                    if (controller.activeMenuTab.value == 0) {
+                      return const SliverToBoxAdapter(
+                        child: MenuCategoryFilterBar(),
+                      );
+                    }
+                    return SliverToBoxAdapter(
+                      child: _FoodsTabHeader(controller: controller),
+                    );
+                  }),
+                  // Food cards — lazy SliverList (foods tab only)
+                  Obx(() {
+                    if (controller.activeMenuTab.value != 1) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    final foods = controller.visibleFoodsForList;
+                    if (foods.isEmpty) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                      sliver: SliverList.separated(
+                        itemCount: foods.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (_, i) {
+                          final food = foods[i];
+                          return FoodCard(
+                            food: food,
+                            onToggle: (_) => controller.toggleAvailability(food),
+                            onEdit: () => _showEditFood(food),
+                            onDelete: () => _confirmDeleteFood(context, food),
+                            onManageOptions: () => _showOptionGroups(food),
+                            onView: () => _showFoodDetail(context, food),
+                          );
+                        },
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
-      floatingActionButton: _buildFab(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddMenu(context),
+        backgroundColor: AppColors.emerald,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        child: const Icon(Icons.add_rounded, size: 28),
+      ),
     );
   }
 
-  Widget _buildFab() {
-    return SpeedDial(
-      icon: Icons.add_rounded,
-      activeIcon: Icons.close_rounded,
-      backgroundColor: AppColors.emerald,
-      foregroundColor: Colors.white,
-      activeBackgroundColor: AppColors.errorRed,
-      activeForegroundColor: Colors.white,
-      spacing: 12,
-      spaceBetweenChildren: 12,
-      elevation: 8,
-      animationCurve: Curves.elasticInOut,
-      overlayColor: Colors.black,
-      overlayOpacity: 0.15,
-      children: [
-        SpeedDialChild(
-          child: const Icon(Icons.category_rounded, color: AppColors.emerald),
-          backgroundColor: Colors.white,
-          label: 'Tạo danh mục',
-          labelStyle: const TextStyle(
-              fontWeight: FontWeight.w600, color: AppColors.textDark),
-          onTap: _showAddCategory,
-        ),
-        SpeedDialChild(
-          child: const Icon(Icons.restaurant_menu_rounded,
-              color: AppColors.emerald),
-          backgroundColor: Colors.white,
-          label: 'Tạo món mới',
-          labelStyle: const TextStyle(
-              fontWeight: FontWeight.w600, color: AppColors.textDark),
-          onTap: _showAddFood,
-        ),
-      ],
-    );
-  }
-
-  void _handleHorizontalSwipe(DragEndDetails details) {
-    final velocity = details.primaryVelocity ?? 0;
-    if (velocity < -320) {
+  void _handleHorizontalSwipe(DragEndDetails d) {
+    final v = d.primaryVelocity ?? 0;
+    if (v < -320) {
       controller.showFoodsTab();
-    } else if (velocity > 320) {
+    } else if (v > 320) {
+      controller.updateSearch(''); // xoá search khi vuốt về Danh mục
       controller.showCategoriesTab();
     }
+  }
+
+  void _showAddMenu(BuildContext context) {
+    Get.bottomSheet(
+      _AddMenuSheet(
+        onAddCategory: () { Get.back(); _showAddCategory(); },
+        onAddFood: () { Get.back(); _showAddFood(); },
+      ),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+    );
   }
 
   void _showAddCategory() {
     Get.bottomSheet(
       const AddCategorySheet(),
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       isScrollControlled: true,
     );
   }
@@ -204,9 +183,10 @@ class MenuView extends GetView<MenuController> {
   void _showAddFood() {
     Get.bottomSheet(
       const AddFoodSheet(),
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       isScrollControlled: true,
     );
   }
@@ -214,9 +194,10 @@ class MenuView extends GetView<MenuController> {
   void _showOptionGroups(FoodModel food) {
     Get.bottomSheet(
       OptionGroupSheet(food: food),
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       isScrollControlled: true,
     );
   }
@@ -224,9 +205,10 @@ class MenuView extends GetView<MenuController> {
   void _showEditFood(FoodModel food) {
     Get.bottomSheet(
       EditFoodSheet(food: food),
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       isScrollControlled: true,
     );
   }
@@ -238,21 +220,12 @@ class MenuView extends GetView<MenuController> {
         minChildSize: 0.42,
         maxChildSize: 0.94,
         expand: false,
-        builder: (context, scrollController) => _FoodDetailSheet(
+        builder: (_, scrollController) => _FoodDetailSheet(
           food: food,
           scrollController: scrollController,
-          onManageOptions: () {
-            Get.back();
-            _showOptionGroups(food);
-          },
-          onEdit: () {
-            Get.back();
-            _showEditFood(food);
-          },
-          onDelete: () {
-            Get.back();
-            _confirmDeleteFood(context, food);
-          },
+          onManageOptions: () { Get.back(); _showOptionGroups(food); },
+          onEdit: () { Get.back(); _showEditFood(food); },
+          onDelete: () { Get.back(); _confirmDeleteFood(context, food); },
         ),
       ),
       backgroundColor: Colors.transparent,
@@ -263,38 +236,20 @@ class MenuView extends GetView<MenuController> {
   void _confirmDeleteFood(BuildContext context, FoodModel food) {
     Get.dialog(
       AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.errorRed.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.delete_outline_rounded,
-                  color: AppColors.errorRed, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Text('Xoá món ăn',
-                style: AppTextStyles.h3.copyWith(color: AppColors.textDark)),
-          ],
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Xoá món ăn',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF111827)),
         ),
         content: RichText(
           text: TextSpan(
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textGrey,
-              height: 1.5,
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280), height: 1.5),
             children: [
               const TextSpan(text: 'Bạn chắc chắn muốn xoá '),
               TextSpan(
                 text: '"${food.name}"',
-                style: const TextStyle(
-                  color: AppColors.textDark,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: const TextStyle(color: Color(0xFF111827), fontWeight: FontWeight.w600),
               ),
               const TextSpan(text: '?'),
             ],
@@ -303,24 +258,15 @@ class MenuView extends GetView<MenuController> {
         actions: [
           TextButton(
             onPressed: Get.back,
-            child: Text('Huỷ',
-                style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textGrey, fontWeight: FontWeight.w600)),
+            child: const Text('Huỷ', style: TextStyle(color: Color(0xFF6B7280))),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.errorRed,
-              borderRadius: BorderRadius.circular(10),
+          FilledButton(
+            onPressed: () { Get.back(); Future.microtask(() => controller.deleteFood(food.id)); },
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: TextButton(
-              onPressed: () {
-                Get.back();
-                Future.microtask(() => controller.deleteFood(food.id));
-              },
-              child: Text('Xoá ngay',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.white, fontWeight: FontWeight.w700)),
-            ),
+            child: const Text('Xoá'),
           ),
         ],
       ),
@@ -328,8 +274,10 @@ class MenuView extends GetView<MenuController> {
   }
 }
 
-class _MenuSegmentedTabs extends StatelessWidget {
-  const _MenuSegmentedTabs({required this.controller});
+// ─── Tab bar ─────────────────────────────────────────────────────────────────
+
+class _MenuTabBar extends StatelessWidget {
+  const _MenuTabBar({required this.controller});
 
   final MenuController controller;
 
@@ -337,103 +285,85 @@ class _MenuSegmentedTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final active = controller.activeMenuTab.value;
-      return Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: AppColors.grey100,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.grey200),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _SegmentButton(
-                label: 'Danh mục',
-                icon: Icons.category_outlined,
-                count: controller.categories.length,
-                selected: active == 0,
-                onTap: controller.showCategoriesTab,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: _SegmentButton(
-                label: 'Món ăn',
-                icon: Icons.restaurant_menu_outlined,
-                count: controller.visibleFoodsForList.length,
-                selected: active == 1,
-                onTap: controller.showFoodsTab,
-              ),
-            ),
-          ],
-        ),
+      return Row(
+        children: [
+          _TabItem(
+            label: 'Danh mục',
+            count: controller.categories.length,
+            isActive: active == 0,
+            onTap: () {
+              controller.updateSearch('');
+              controller.showCategoriesTab();
+            },
+          ),
+          _TabItem(
+            label: 'Món ăn',
+            count: controller.visibleFoodsForList.length,
+            isActive: active == 1,
+            onTap: controller.showFoodsTab,
+          ),
+        ],
       );
     });
   }
 }
 
-class _SegmentButton extends StatelessWidget {
-  const _SegmentButton({
+class _TabItem extends StatelessWidget {
+  const _TabItem({
     required this.label,
-    required this.icon,
     required this.count,
-    required this.selected,
+    required this.isActive,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
   final int count;
-  final bool selected;
+  final bool isActive;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.emeraldDark : AppColors.textGrey;
-    return Material(
-      color: selected ? AppColors.white : AppColors.transparent,
-      borderRadius: BorderRadius.circular(8),
-      child: InkWell(
+    final color = isActive ? AppColors.emeraldDark : const Color(0xFF9CA3AF);
+    return Expanded(
+      child: GestureDetector(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        behavior: HitTestBehavior.opaque,
         child: Container(
-          height: 42,
-          alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: selected
-                ? Border.all(color: AppColors.emerald.withValues(alpha: 0.18))
-                : null,
+            border: Border(
+              bottom: BorderSide(
+                color: isActive ? AppColors.emerald : const Color(0xFFEBEBEB),
+                width: isActive ? 2 : 1,
+              ),
+            ),
           ),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 17, color: color),
-              const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  color: color,
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
                 ),
               ),
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.emerald.withValues(alpha: 0.10)
-                      : AppColors.white,
-                  borderRadius: BorderRadius.circular(999),
+                  color: isActive
+                      ? AppColors.emerald.withValues(alpha: 0.12)
+                      : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '$count',
                   style: TextStyle(
-                    color:
-                        selected ? AppColors.emeraldDark : AppColors.textGrey,
                     fontSize: 11,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
+                    color: color,
                   ),
                 ),
               ),
@@ -445,82 +375,217 @@ class _SegmentButton extends StatelessWidget {
   }
 }
 
-class _FoodManagementSection extends StatelessWidget {
-  const _FoodManagementSection({
-    required this.controller,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onManageOptions,
-    required this.onView,
+// ─── Add menu action sheet ────────────────────────────────────────────────────
+
+class _AddMenuSheet extends StatelessWidget {
+  const _AddMenuSheet({
+    required this.onAddCategory,
+    required this.onAddFood,
   });
 
+  final VoidCallback onAddCategory;
+  final VoidCallback onAddFood;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Thêm mới',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ActionTile(
+              icon: Icons.category_outlined,
+              title: 'Tạo danh mục',
+              subtitle: 'Thêm nhóm món ăn mới',
+              onTap: onAddCategory,
+            ),
+            const SizedBox(height: 8),
+            _ActionTile(
+              icon: Icons.restaurant_menu_outlined,
+              title: 'Tạo món ăn',
+              subtitle: 'Thêm món mới vào thực đơn',
+              onTap: onAddFood,
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFF9FAFB),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.emerald.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: AppColors.emerald, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB), size: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Foods tab header (stats + title row + empty state) ──────────────────────
+
+class _FoodsTabHeader extends StatelessWidget {
+  const _FoodsTabHeader({required this.controller});
+
   final MenuController controller;
-  final ValueChanged<FoodModel> onEdit;
-  final ValueChanged<FoodModel> onDelete;
-  final ValueChanged<FoodModel> onManageOptions;
-  final ValueChanged<FoodModel> onView;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final foods = controller.visibleFoodsForList;
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const MenuStatsRow(),
+            const SizedBox(height: 16),
             Row(
               children: [
-                Text(
+                const Text(
                   'Món ăn',
-                  style: AppTextStyles.h2.copyWith(
-                    color: AppColors.textDark,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
                   ),
                 ),
                 const SizedBox(width: 8),
-                _SmallCountBadge(value: '${foods.length}'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.emerald.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${foods.length}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.emeraldDark,
+                    ),
+                  ),
+                ),
                 const Spacer(),
                 if (controller.isFiltered)
-                  _SectionTextButton(
-                    label: 'Bỏ lọc',
-                    icon: Icons.filter_alt_off_outlined,
+                  GestureDetector(
                     onTap: controller.clearFilters,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.filter_alt_off_outlined, size: 14, color: AppColors.emerald),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Bỏ lọc',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.emerald,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
-            if (controller.selectedCategoryId.value != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Đang lọc theo danh mục đã chọn',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textGrey,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
             const SizedBox(height: 10),
             if (foods.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 56),
-                child: AppEmptyState(
-                  icon: Icons.restaurant_menu_outlined,
-                  message: 'Không tìm thấy món ăn nào',
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 100),
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFEBEBEB)),
                 ),
-              )
-            else
-              for (final food in foods) ...[
-                FoodCard(
-                  food: food,
-                  onToggle: (_) => controller.toggleAvailability(food),
-                  onEdit: () => onEdit(food),
-                  onDelete: () => onDelete(food),
-                  onManageOptions: () => onManageOptions(food),
-                  onView: () => onView(food),
+                child: const Column(
+                  children: [
+                    Icon(Icons.restaurant_menu_outlined, size: 36, color: Color(0xFFD1D5DB)),
+                    SizedBox(height: 8),
+                    Text(
+                      'Không tìm thấy món ăn nào',
+                      style: TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                    ),
+                  ],
                 ),
-                if (food != foods.last) const SizedBox(height: 10),
-              ],
+              ),
           ],
         ),
       );
@@ -528,61 +593,7 @@ class _FoodManagementSection extends StatelessWidget {
   }
 }
 
-class _SmallCountBadge extends StatelessWidget {
-  const _SmallCountBadge({required this.value});
-
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.emerald.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        value,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-          color: AppColors.emerald,
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionTextButton extends StatelessWidget {
-  const _SectionTextButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: TextButton.styleFrom(
-        foregroundColor: AppColors.emerald,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-}
+// ─── Food detail sheet ────────────────────────────────────────────────────────
 
 class _FoodDetailSheet extends StatelessWidget {
   const _FoodDetailSheet({
@@ -601,124 +612,117 @@ class _FoodDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       child: Material(
-        color: AppColors.white,
+        color: Colors.white,
         child: SingleChildScrollView(
           controller: scrollController,
-          padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + keyboardHeight),
+          padding: EdgeInsets.fromLTRB(
+            20, 8, 20, 24 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
                 child: Container(
-                  width: 40,
+                  width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.grey300,
+                    color: const Color(0xFFE5E7EB),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   const Expanded(
-                    child: Text('Chi tiết món ăn', style: AppTextStyles.h3),
+                    child: Text(
+                      'Chi tiết món ăn',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
                   ),
-                  _FoodStatusPill(isAvailable: food.isAvailable),
+                  _StatusBadge(isAvailable: food.isAvailable),
                 ],
               ),
               const SizedBox(height: 14),
-              _DetailImage(
-                imageUrl: food.imageUrl,
-                caption: food.name,
-                fallbackIcon: Icons.restaurant_menu_rounded,
-              ),
-              const SizedBox(height: 16),
+              _DetailImage(imageUrl: food.imageUrl, fallbackIcon: Icons.restaurant_menu_rounded),
+              const SizedBox(height: 14),
               Text(
                 food.name,
-                style: AppTextStyles.h2.copyWith(
-                  color: AppColors.textDark,
-                  fontWeight: FontWeight.w800,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 food.description?.trim().isNotEmpty == true
                     ? food.description!.trim()
                     : 'Không có mô tả',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textGrey,
-                  height: 1.45,
-                ),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280), height: 1.5),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _FoodInfoPill(
-                    icon: Icons.payments_outlined,
-                    label: '${food.price.toInt().toVnd()}đ',
-                  ),
-                  _FoodInfoPill(
-                    icon: Icons.category_outlined,
-                    label: food.categoryName,
-                  ),
-                  _FoodInfoPill(
-                      icon: Icons.tag_rounded, label: 'ID ${food.id}'),
+                  _InfoChip(label: '${food.price.toInt().toVnd()}đ', isPrice: true),
+                  _InfoChip(label: food.categoryName),
                 ],
               ),
-              const SizedBox(height: 18),
-              _DetailInfoBlock(
-                title: 'Mô tả',
-                rows: [
-                  ('Mã món', '#${food.id}'),
-                  ('Tên món', food.name),
-                  ('Giá bán', '${food.price.toInt().toVnd()}đ'),
-                  ('Mã danh mục', '#${food.categoryId}'),
-                  ('Tên danh mục', food.categoryName),
-                  ('Trạng thái', food.isAvailable ? 'Đang bán' : 'Tạm ẩn'),
-                  (
-                    'Mô tả',
-                    food.description?.trim().isNotEmpty == true
-                        ? food.description!.trim()
-                        : 'Không có mô tả'
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_rounded, size: 16),
+                  label: const Text('Sửa món ăn'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.emerald,
+                    minimumSize: const Size.fromHeight(46),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: _GreenSquareButton(
-                      label: 'Tuỳ chọn',
-                      icon: Icons.tune_rounded,
-                      onTap: onManageOptions,
+                    child: OutlinedButton.icon(
+                      onPressed: onManageOptions,
+                      icon: const Icon(Icons.tune_rounded, size: 16),
+                      label: const Text('Tuỳ chọn'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.emerald,
+                        side: BorderSide(color: AppColors.emerald.withValues(alpha: 0.4)),
+                        minimumSize: const Size.fromHeight(44),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: _GreenSquareButton(
-                      label: 'Xoá',
-                      icon: Icons.delete_outline_rounded,
-                      onTap: onDelete,
+                    child: OutlinedButton.icon(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 16),
+                      label: const Text('Xoá'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFDC2626),
+                        side: const BorderSide(color: Color(0xFFFCA5A5)),
+                        minimumSize: const Size.fromHeight(44),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: _GreenSquareButton(
-                  label: 'Sửa món ăn',
-                  icon: Icons.edit_outlined,
-                  onTap: onEdit,
-                ),
               ),
             ],
           ),
@@ -728,235 +732,114 @@ class _FoodDetailSheet extends StatelessWidget {
   }
 }
 
-class _DetailImage extends StatelessWidget {
-  const _DetailImage({
-    required this.imageUrl,
-    required this.caption,
-    required this.fallbackIcon,
-  });
-
-  final String? imageUrl;
-  final String caption;
-  final IconData fallbackIcon;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap:
-          imageUrl == null ? null : () => _showImagePreview(imageUrl!, caption),
-      borderRadius: BorderRadius.circular(10),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: imageUrl != null
-            ? AppNetworkImage(
-                url: imageUrl!,
-                height: 176,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              )
-            : Container(
-                height: 176,
-                width: double.infinity,
-                color: AppColors.grey100,
-                child: Icon(fallbackIcon, size: 46, color: AppColors.grey600),
-              ),
-      ),
-    );
-  }
-
-  void _showImagePreview(String url, String caption) {
-    Get.dialog(
-      Dialog(
-        insetPadding: const EdgeInsets.all(16),
-        backgroundColor: Colors.transparent,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Material(
-            color: AppColors.black,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: AppNetworkImage(url: url, fit: BoxFit.contain),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  color: AppColors.black,
-                  child: Text(
-                    caption,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GreenSquareButton extends StatelessWidget {
-  const _GreenSquareButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: TextButton.styleFrom(
-        backgroundColor: AppColors.emerald,
-        foregroundColor: AppColors.white,
-        minimumSize: const Size.fromHeight(44),
-        shape: const RoundedRectangleBorder(),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-}
-
-class _DetailInfoBlock extends StatelessWidget {
-  const _DetailInfoBlock({required this.title, required this.rows});
-
-  final String title;
-  final List<(String, String)> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.mintBg,
-        border: Border.all(color: AppColors.emerald.withValues(alpha: 0.16)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.labelLarge.copyWith(
-              color: AppColors.emeraldDark,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 10),
-          for (final row in rows) ...[
-            _DetailInfoRow(label: row.$1, value: row.$2),
-            if (row != rows.last) const SizedBox(height: 8),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailInfoRow extends StatelessWidget {
-  const _DetailInfoRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 96,
-          child: Text(
-            label,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textGrey,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FoodStatusPill extends StatelessWidget {
-  const _FoodStatusPill({required this.isAvailable});
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.isAvailable});
 
   final bool isAvailable;
 
   @override
   Widget build(BuildContext context) {
-    final color = isAvailable ? AppColors.emeraldDark : AppColors.grey600;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
+        color: isAvailable ? const Color(0xFFF0FDF4) : const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isAvailable ? const Color(0xFFBBF7D0) : const Color(0xFFE5E7EB),
+        ),
       ),
       child: Text(
         isAvailable ? 'Đang bán' : 'Tạm ẩn',
         style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: isAvailable ? const Color(0xFF16A34A) : const Color(0xFF6B7280),
         ),
       ),
     );
   }
 }
 
-class _FoodInfoPill extends StatelessWidget {
-  const _FoodInfoPill({required this.icon, required this.label});
+class _DetailImage extends StatelessWidget {
+  const _DetailImage({required this.imageUrl, required this.fallbackIcon});
 
-  final IconData icon;
+  final String? imageUrl;
+  final IconData fallbackIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: imageUrl != null
+          ? AppNetworkImage(url: imageUrl!, height: 160, width: double.infinity, fit: BoxFit.cover)
+          : Container(
+              height: 160,
+              width: double.infinity,
+              color: const Color(0xFFF3F4F6),
+              child: Icon(fallbackIcon, size: 40, color: const Color(0xFFD1D5DB)),
+            ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.label, this.isPrice = false});
+
   final String label;
+  final bool isPrice;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: AppColors.grey200),
+        color: isPrice
+            ? AppColors.emerald.withValues(alpha: 0.08)
+            : const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isPrice ? AppColors.emeraldDark : const Color(0xFF6B7280),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Search bar delegate (pinned sliver, foods tab only) ──────────────────────
+
+class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
+  const _SearchBarDelegate();
+
+  static const double _h = 57.0;
+
+  @override
+  double get minExtent => _h;
+
+  @override
+  double get maxExtent => _h;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return const ColoredBox(
+      color: Colors.white,
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: AppColors.textGrey),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w800,
-            ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 7, 16, 7),
+            child: MenuSearchBar(),
           ),
+          Divider(height: 1, thickness: 1, color: Color(0xFFEBEBEB)),
         ],
       ),
     );
   }
+
+  @override
+  bool shouldRebuild(_SearchBarDelegate old) => false;
 }

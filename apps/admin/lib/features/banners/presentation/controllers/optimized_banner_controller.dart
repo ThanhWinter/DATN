@@ -28,6 +28,10 @@ class OptimizedBannerController extends GetxController {
   late final RxInt activeBannerCount;
   late final RxInt inactiveBannerCount;
 
+  late final Worker _bannersWorker;
+  late final Worker _categoryWorker;
+  late final Worker _searchWorker;
+
   @override
   void onInit() {
     super.onInit();
@@ -45,14 +49,20 @@ class OptimizedBannerController extends GetxController {
     inactiveBannerCount = 0.obs;
 
     // Update computed values when banners change
-    ever(banners, (_) => _updateComputedValues());
-    ever(searchText, (_) => _updateFilteredBanners());
-    ever(selectedCategory, (_) => _updateFilteredBanners());
+    _bannersWorker = ever(banners, (_) => _updateComputedValues());
+    _categoryWorker = ever(selectedCategory, (_) => _updateFilteredBanners());
   }
 
   void _setupSearchListener() {
-    // Debounce search to avoid excessive filtering
-    debounce<String>(searchText, (_) => _updateFilteredBanners(), time: const Duration(milliseconds: 300));
+    _searchWorker = debounce<String>(searchText, (_) => _updateFilteredBanners(), time: const Duration(milliseconds: 300));
+  }
+
+  @override
+  void onClose() {
+    _bannersWorker.dispose();
+    _categoryWorker.dispose();
+    _searchWorker.dispose();
+    super.onClose();
   }
 
   void _updateComputedValues() {

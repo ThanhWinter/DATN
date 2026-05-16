@@ -8,12 +8,14 @@ class NotificationTile extends StatelessWidget {
   final NotificationModel notif;
   final VoidCallback onMarkAsRead;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const NotificationTile({
     super.key,
     required this.notif,
     required this.onMarkAsRead,
     required this.onDelete,
+    this.onTap,
   });
 
   @override
@@ -23,7 +25,7 @@ class NotificationTile extends StatelessWidget {
           ? AppColors.white
           : AppColors.primaryOrange.withValues(alpha: 0.05),
       child: InkWell(
-        onTap: onMarkAsRead,
+        onTap: onTap ?? onMarkAsRead,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
           child: Row(

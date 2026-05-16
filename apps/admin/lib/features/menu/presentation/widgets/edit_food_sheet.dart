@@ -74,6 +74,7 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
 
     final compressed = await compressPickedImageToTempJpeg(File(cropped.path));
     if (compressed == null) return;
+    if (!mounted) return;
     setState(() {
       _newImageFile = compressed;
       _newImageFilename = picked.name;
@@ -96,16 +97,23 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
       return;
     }
 
+    final desc = _descCtrl.text.trim();
+    final category = _selectedCategory!;
+    final imageFile = _newImageFile;
+    final imageFilename = _newImageFilename;
+
+    final imageBytes = imageFile != null ? await imageFile.readAsBytes() : null;
+    if (!mounted) return;
+
     Get.back();
     Get.find<MenuController>().updateFood(
       widget.food.id,
       name: name,
       price: price,
-      categoryId: _selectedCategory!.id,
-      description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
-      imageBytes:
-          _newImageFile != null ? await _newImageFile!.readAsBytes() : null,
-      imageFilename: _newImageFilename,
+      categoryId: category.id,
+      description: desc.isEmpty ? null : desc,
+      imageBytes: imageBytes,
+      imageFilename: imageFilename,
     );
   }
 

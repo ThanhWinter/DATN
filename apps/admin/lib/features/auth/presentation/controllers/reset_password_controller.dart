@@ -25,9 +25,9 @@ class ResetPasswordController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments as Map<String, dynamic>;
-    email = args['email'] ?? '';
-    otpCode = args['otpCode'] ?? '';
+    final args = Get.arguments as Map<String, dynamic>?;
+    email = args?['email'] as String? ?? '';
+    otpCode = args?['otpCode'] as String? ?? '';
   }
 
   void togglePasswordVisibility() => isPasswordVisible.toggle();
