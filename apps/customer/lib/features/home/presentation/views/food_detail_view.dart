@@ -45,30 +45,16 @@ class _FoodDetailContent extends StatelessWidget {
       slivers: [
         _FoodSliverAppBar(food: food, controller: controller),
         SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Card chính ────────────────────────────────────────────
-              _MainInfoCard(food: food, controller: controller),
-
-              // ── Tuỳ chọn ─────────────────────────────────────────────
-              ...food.optionGroups.map(
-                (group) => _OptionGroupSection(
-                  group: group,
-                  controller: controller,
-                ),
-              ),
-
-              // ── Mô tả ─────────────────────────────────────────────────
-              _FoodDescriptionSection(food: food),
-
-              // ── Đánh giá ──────────────────────────────────────────────
-              _ReviewsSection(controller: controller),
-
-              const SizedBox(height: 130),
-            ],
+          child: _MainInfoCard(food: food, controller: controller),
+        ),
+        ...food.optionGroups.map(
+          (group) => SliverToBoxAdapter(
+            child: _OptionGroupSection(group: group, controller: controller),
           ),
         ),
+        SliverToBoxAdapter(child: _FoodDescriptionSection(food: food)),
+        SliverToBoxAdapter(child: _ReviewsSection(controller: controller)),
+        const SliverToBoxAdapter(child: SizedBox(height: 130)),
       ],
     );
   }
@@ -211,10 +197,13 @@ class _FullscreenImagePage extends StatelessWidget {
                   child: InteractiveViewer(
                     minScale: 0.8,
                     maxScale: 4.0,
-                    child: AppNetworkImage(
-                      url: url,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
+                    child: LayoutBuilder(
+                      builder: (_, constraints) => AppNetworkImage(
+                        url: url,
+                        fit: BoxFit.contain,
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                      ),
                     ),
                   ),
                 ),
@@ -712,6 +701,7 @@ class _ReviewsSection extends StatelessWidget {
             const SizedBox(height: 12),
             Obx(() {
               final reviews = controller.reviews;
+              final rating = controller.rating.value;
               if (reviews.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -723,6 +713,7 @@ class _ReviewsSection extends StatelessWidget {
                 );
               }
               return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   ListView.separated(
                     shrinkWrap: true,
@@ -733,35 +724,26 @@ class _ReviewsSection extends StatelessWidget {
                     itemBuilder: (_, index) =>
                         _ReviewTile(review: reviews[index]),
                   ),
-                  Obx(() {
-                    final rating = controller.rating.value;
-                    if (rating.totalReviews > reviews.length) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: controller.viewAllReviews,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primaryOrange,
-                                side: const BorderSide(
-                                    color: AppColors.primaryOrange),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                              child: const Text('Xem tất cả',
-                                  style: AppTextStyles.bodyLarge),
-                            ),
+                  if (rating.totalReviews > reviews.length) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: controller.viewAllReviews,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primaryOrange,
+                          side:
+                              const BorderSide(color: AppColors.primaryOrange),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Xem tất cả',
+                            style: AppTextStyles.bodyLarge),
+                      ),
+                    ),
+                  ],
                 ],
               );
             }),
