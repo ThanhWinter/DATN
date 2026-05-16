@@ -32,6 +32,10 @@ class OptimizedCouponListController extends GetxController {
 
   bool _isFirstLoad = true;
   Timer? _debounceTimer;
+  late final Worker _availableCouponsWorker;
+  late final Worker _expiredCouponsWorker;
+  late final Worker _categoryWorker;
+  late final Worker _searchWorker;
 
   @override
   void onInit() {
@@ -42,6 +46,10 @@ class OptimizedCouponListController extends GetxController {
 
   @override
   void onClose() {
+    _availableCouponsWorker.dispose();
+    _expiredCouponsWorker.dispose();
+    _categoryWorker.dispose();
+    _searchWorker.dispose();
     _debounceTimer?.cancel();
     super.onClose();
   }
@@ -53,14 +61,14 @@ class OptimizedCouponListController extends GetxController {
     expiredCount = 0.obs;
 
     // Update computed values when data changes
-    ever(availableCoupons, (_) => _updateComputedValues());
-    ever(expiredCoupons, (_) => _updateComputedValues());
-    ever(selectedCategory, (_) => _updateFilteredCoupons());
+    _availableCouponsWorker = ever(availableCoupons, (_) => _updateComputedValues());
+    _expiredCouponsWorker = ever(expiredCoupons, (_) => _updateComputedValues());
+    _categoryWorker = ever(selectedCategory, (_) => _updateFilteredCoupons());
     // searchText dùng debounce riêng trong _setupSearchListener — không ever ở đây
   }
 
   void _setupSearchListener() {
-    ever(searchText, (_) {
+    _searchWorker = ever(searchText, (_) {
       _debounceTimer?.cancel();
       _debounceTimer = Timer(const Duration(milliseconds: 300), () {
         _updateFilteredCoupons();
