@@ -54,14 +54,7 @@ class ResetPasswordController extends GetxController {
       );
 
       dev.log("[AUTH/RESET] ✅ Password reset success for ${email.value}");
-      Get.snackbar(
-        "Thành công",
-        "Mật khẩu đã được đặt lại. Vui lòng đăng nhập.",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.success("Thành công", "Mật khẩu đã được đặt lại. Vui lòng đăng nhập.");
       await Future.delayed(const Duration(milliseconds: 500));
       Get.offAllNamed(AppRoutes.login);
     } catch (e) {
@@ -69,14 +62,7 @@ class ResetPasswordController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : "Đặt lại mật khẩu thất bại. Vui lòng thử lại.";
-      Get.snackbar(
-        "Thất bại",
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error("Thất bại", message);
     } finally {
       isLoading.value = false;
     }

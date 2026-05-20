@@ -32,14 +32,7 @@ class ForgotPasswordController extends GetxController {
       await _authRepository.forgotPassword(email: email.trim());
 
       dev.log("[AUTH/FORGOT] ✅ OTP sent to ${email.trim()}");
-      Get.snackbar(
-        "Đã gửi mã",
-        "Vui lòng kiểm tra email ${email.trim()} để lấy mã OTP.",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.success("Đã gửi mã", "Vui lòng kiểm tra email ${email.trim()} để lấy mã OTP.");
       await Future.delayed(const Duration(milliseconds: 500));
       Get.toNamed(
         AppRoutes.otpVerification,
@@ -50,14 +43,7 @@ class ForgotPasswordController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : "Không thể gửi mã. Vui lòng thử lại.";
-      Get.snackbar(
-        "Gửi mã thất bại",
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error("Gửi mã thất bại", message);
     } finally {
       isLoading.value = false;
     }

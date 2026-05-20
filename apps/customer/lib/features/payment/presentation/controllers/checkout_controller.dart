@@ -78,11 +78,13 @@ class CheckoutController extends GetxController {
       dev.log('[CHECKOUT/ADDR] Could not load default address: $e');
     }
 
-    final homeAddr = Get.find<HomeController>().locationName.value;
-    if (homeAddr.isNotEmpty) {
-      addressController.text = homeAddr;
-      deliveryAddress.value = homeAddr;
-    }
+    try {
+      final homeAddr = Get.find<HomeController>().locationName.value;
+      if (homeAddr.isNotEmpty) {
+        addressController.text = homeAddr;
+        deliveryAddress.value = homeAddr;
+      }
+    } catch (_) {}
   }
 
   @override
@@ -218,6 +220,7 @@ class CheckoutController extends GetxController {
           snackPosition: SnackPosition.TOP,
         );
         await Future.delayed(const Duration(milliseconds: 500));
+        if (isClosed) return;
         Get.offNamedUntil(
           AppRoutes.orderDetail,
           (route) => route.settings.name == AppRoutes.main,
@@ -228,6 +231,7 @@ class CheckoutController extends GetxController {
         dev.log('[CHECKOUT/ZALOPAY] ⚠️ ZaloPay exception (order created): $e');
         Get.find<CartController>().clearCart();
         await Future.delayed(const Duration(milliseconds: 500));
+        if (isClosed) return;
         Get.offNamedUntil(
           AppRoutes.orderDetail,
           (route) => route.settings.name == AppRoutes.main,
@@ -286,6 +290,7 @@ class CheckoutController extends GetxController {
       snackPosition: SnackPosition.TOP,
     );
     await Future.delayed(const Duration(milliseconds: 500));
+    if (isClosed) return;
     Get.offNamedUntil(
       AppRoutes.orderDetail,
       (route) => route.settings.name == AppRoutes.main,

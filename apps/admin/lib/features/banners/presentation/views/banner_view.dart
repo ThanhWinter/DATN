@@ -85,7 +85,7 @@ class _BannerList extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: banners.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (_, i) => _BannerCard(banner: banners[i]),
+          itemBuilder: (_, i) => RepaintBoundary(child: _BannerCard(banner: banners[i])),
         ),
       );
     });
@@ -115,7 +115,7 @@ class _BannerCard extends GetView<OptimizedBannerController> {
             // ── Image preview ───────────────────────────────────────────
             AppBannerCard(
               imageUrl: banner.imageUrl,
-              height: 150,
+              height: (MediaQuery.sizeOf(context).width * 0.38).clamp(120.0, 200.0),
               borderRadius: 0,
               fallbackWidget: Container(
                 color: AppColors.grey200,

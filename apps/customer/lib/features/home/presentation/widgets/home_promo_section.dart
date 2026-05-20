@@ -51,6 +51,8 @@ class _HomePromoSectionState extends State<HomePromoSection> {
 
   @override
   Widget build(BuildContext context) {
+    final bannerHeight =
+        (MediaQuery.sizeOf(context).width * 0.42).clamp(120.0, 200.0);
     return Obx(() {
       final banners = _ctrl.promoBanners;
       if (banners.isEmpty) return const SizedBox.shrink();
@@ -79,7 +81,7 @@ class _HomePromoSectionState extends State<HomePromoSection> {
             },
             onPointerUp: (_) => _startAutoScroll(),
             child: SizedBox(
-              height: 168,
+              height: bannerHeight,
               child: PageView.builder(
                 controller: _pageCtrl,
                 itemCount: banners.length,
@@ -89,7 +91,7 @@ class _HomePromoSectionState extends State<HomePromoSection> {
                   child: AppBannerCard(
                     imageUrl: banners[i].imageUrl,
                     title: banners[i].title,
-                    height: 168,
+                    height: bannerHeight,
                     showGradient: true,
                     fallbackWidget: Container(
                       color: AppColors.primaryOrange,

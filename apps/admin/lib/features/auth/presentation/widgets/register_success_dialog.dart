@@ -98,22 +98,17 @@ class _RegisterSuccessDialogState extends State<RegisterSuccessDialog>
                 textAlign: TextAlign.center,
               ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ShaderMask(
-                    shaderCallback: (b) => const LinearGradient(
-                      colors: [AppColors.emeraldDark, AppColors.emeraldLight],
-                    ).createShader(b),
-                    child: Text(
-                      'thành công!',
-                      style: AppTextStyles.h2.copyWith(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+              ShaderMask(
+                shaderCallback: (b) => const LinearGradient(
+                  colors: [AppColors.emeraldDark, AppColors.emeraldLight],
+                ).createShader(b),
+                child: Text(
+                  'thành công!',
+                  style: AppTextStyles.h2.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
+                ),
               ),
 
               const SizedBox(height: 12),

@@ -99,13 +99,7 @@ class OtpController extends GetxController {
       final message = e is ApiException
           ? _mapError(e.message)
           : 'Xác thực thất bại. Vui lòng thử lại.';
-      Get.snackbar(
-        'Xác thực thất bại',
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.error('Xác thực thất bại', message);
     } finally {
       isLoading.value = false;
     }
@@ -118,23 +112,11 @@ class OtpController extends GetxController {
     try {
       await _repository.resendOtp(email: email.value, type: otpType.value);
       dev.log('[OTP] ✅ Resent ($otpType) to ${email.value}');
-      Get.snackbar(
-        'Đã gửi lại mã',
-        'Mã OTP mới đã được gửi đến ${email.value}.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.success('Đã gửi lại mã', 'Mã OTP mới đã được gửi đến ${email.value}.');
       _startCountdown();
     } catch (e) {
       dev.log('[OTP] ❌ Resend failed: $e');
-      Get.snackbar(
-        'Gửi lại thất bại',
-        'Vui lòng thử lại sau.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.error('Gửi lại thất bại', 'Vui lòng thử lại sau.');
     } finally {
       isResending.value = false;
     }

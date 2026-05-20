@@ -64,7 +64,7 @@ class NotificationListView extends GetView<NotificationListController> {
                   const Divider(height: 1, indent: 16, endIndent: 16),
               itemBuilder: (_, i) {
                 final notif = controller.notifications[i];
-                return _NotifTile(
+                return RepaintBoundary(child: _NotifTile(
                   notif: notif,
                   onTap: () {
                     controller.markAsRead(notif);
@@ -75,7 +75,7 @@ class NotificationListView extends GetView<NotificationListController> {
                       );
                     }
                   },
-                );
+                ));
               },
             );
           }),

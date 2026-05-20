@@ -277,8 +277,6 @@ class HomeController extends GetxController with AutoRefreshMixin {
         ..clear()
         ..addAll(results[2] as List<FoodItemModel>);
       _applyFilters(resetWindow: true);
-
-      await Future.delayed(Duration.zero);
       isLoading.value = false;
     } catch (e) {
       dev.log('[HOME] ❌ _loadData error: $e');

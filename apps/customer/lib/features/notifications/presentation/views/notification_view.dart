@@ -71,22 +71,24 @@ class _NotificationViewState extends State<NotificationView> {
                       const Divider(height: 1, color: AppColors.grey300),
                   itemBuilder: (_, index) {
                     final notif = controller.notifications[index];
-                    return NotificationTile(
-                      notif: notif,
-                      onMarkAsRead: () => controller.markAsRead(notif.id),
-                      onDelete: () => controller.deleteNotification(notif.id),
-                      onTap: () {
-                        controller.markAsRead(notif.id);
-                        Get.bottomSheet(
-                          _NotificationDetailSheet(notif: notif),
-                          backgroundColor: AppColors.white,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20)),
-                          ),
-                          isScrollControlled: true,
-                        );
-                      },
+                    return RepaintBoundary(
+                      child: NotificationTile(
+                        notif: notif,
+                        onMarkAsRead: () => controller.markAsRead(notif.id),
+                        onDelete: () => controller.deleteNotification(notif.id),
+                        onTap: () {
+                          controller.markAsRead(notif.id);
+                          Get.bottomSheet(
+                            _NotificationDetailSheet(notif: notif),
+                            backgroundColor: AppColors.white,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20)),
+                            ),
+                            isScrollControlled: true,
+                          );
+                        },
+                      ),
                     );
                   },
                 )),

@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:get/get.dart";
 
 import "../controllers/reset_password_controller.dart";
+import "../widgets/auth_loading_overlay.dart";
 
 class ResetPasswordView extends StatefulWidget {
   const ResetPasswordView({super.key});
@@ -170,16 +171,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
             ),
           ),
 
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.white, strokeWidth: 3),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          AuthLoadingOverlay(isLoading: controller.isLoading),
         ],
       ),
     );

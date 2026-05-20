@@ -24,13 +24,20 @@ class BannerModel {
         displayOrder: (json['displayOrder'] as num?)?.toInt() ?? 0,
       );
 
-  BannerModel copyWith({bool? isActive}) => BannerModel(
+  BannerModel copyWith({
+    String? title,
+    String? imageUrl,
+    String? linkUrl,
+    bool? isActive,
+    int? displayOrder,
+  }) =>
+      BannerModel(
         id: id,
-        title: title,
-        imageUrl: imageUrl,
-        linkUrl: linkUrl,
+        title: title ?? this.title,
+        imageUrl: imageUrl ?? this.imageUrl,
+        linkUrl: linkUrl ?? this.linkUrl,
         isActive: isActive ?? this.isActive,
-        displayOrder: displayOrder,
+        displayOrder: displayOrder ?? this.displayOrder,
       );
 }
 

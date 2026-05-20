@@ -40,7 +40,7 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '#${order.id.substring(0, 8).toUpperCase()}',
+                '#${order.id.substring(0, order.id.length.clamp(0, 8)).toUpperCase()}',
                 style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w800),
               ),
               _OrderStatusBadge(status: order.status),

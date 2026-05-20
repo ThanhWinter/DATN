@@ -54,7 +54,11 @@ class _FoodDetailContent extends StatelessWidget {
         ),
         SliverToBoxAdapter(child: _FoodDescriptionSection(food: food)),
         SliverToBoxAdapter(child: _ReviewsSection(controller: controller)),
-        const SliverToBoxAdapter(child: SizedBox(height: 130)),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: MediaQuery.paddingOf(context).bottom + 80,
+          ),
+        ),
       ],
     );
   }
@@ -71,7 +75,7 @@ class _FoodSliverAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 300,
+      expandedHeight: (MediaQuery.sizeOf(context).height * 0.36).clamp(220.0, 380.0),
       pinned: true,
       backgroundColor: Colors.black,
       systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -166,9 +170,9 @@ class _FoodSliverAppBar extends StatelessWidget {
 class _FoodPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return const ColoredBox(
       color: AppColors.grey200,
-      child: const Center(
+      child: Center(
         child: Icon(Icons.fastfood_rounded, color: AppColors.grey400, size: 64),
       ),
     );

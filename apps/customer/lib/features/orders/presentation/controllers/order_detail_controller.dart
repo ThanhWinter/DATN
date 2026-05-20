@@ -42,7 +42,7 @@ class OrderDetailController extends GetxController with AutoRefreshMixin {
     try {
       apiCache.invalidate('GET_/orders/${current.id}_');
       final fresh = await _repository.getOrderById(current.id);
-      order.value = fresh;
+      if (!isClosed) order.value = fresh;
     } catch (e) {
       dev.log('[ORDER_DETAIL] ⚠️ silentPoll error (ignored): $e');
     }

@@ -19,21 +19,21 @@ class HelpSupportView extends StatelessWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: [
+        children: const [
           _Section(
             icon: Icons.contact_support_outlined,
             title: 'Liên hệ hỗ trợ',
-            children: const [
+            children: [
               _InfoRow(label: 'Email', value: 'support@foodhit.vn'),
               _InfoRow(label: 'Hotline', value: '1800 1234 (miễn phí)'),
               _InfoRow(label: 'Giờ làm việc', value: 'T2–T6, 8:00–17:30'),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _Section(
             icon: Icons.quiz_outlined,
             title: 'Câu hỏi thường gặp',
-            children: const [
+            children: [
               _FaqItem(
                 question: 'Làm sao để thêm món ăn mới?',
                 answer:
@@ -56,17 +56,17 @@ class HelpSupportView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _Section(
             icon: Icons.info_outline,
             title: 'Thông tin ứng dụng',
-            children: const [
+            children: [
               _InfoRow(label: 'Phiên bản', value: 'v1.0.0'),
               _InfoRow(label: 'Nền tảng', value: 'Android / iOS'),
               _InfoRow(label: 'Nhà phát triển', value: 'Food Hit Team'),
             ],
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
         ],
       ),
     );

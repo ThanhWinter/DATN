@@ -89,13 +89,7 @@ class RegisterController extends GetxController {
       final message = e is ApiException
           ? _mapError(e.message)
           : 'Đăng ký thất bại. Vui lòng thử lại.';
-      Get.snackbar(
-        'Đăng ký thất bại',
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.error('Đăng ký thất bại', message);
     } finally {
       isLoading.value = false;
     }

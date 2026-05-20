@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/bootstrap/firebase_foreground.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/services/auth_service.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
@@ -91,6 +92,7 @@ class ProfileController extends GetxController with AutoRefreshMixin {
       apiClient.updateToken(null);
       apiClient.setRefreshToken(null);
     }
+    await disposeCustomerFirebaseForegroundListeners();
     dev.log("[PROFILE] ✅ Local auth cleared — navigating to login");
 
     await Future.delayed(const Duration(milliseconds: 500));

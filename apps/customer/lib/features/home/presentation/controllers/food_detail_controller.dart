@@ -20,7 +20,7 @@ class FoodDetailController extends GetxController {
   FoodDetailController(this._repository, this._interactionRepository);
 
   // ── State ────────────────────────────────────────────────────────────────────
-  final isLoading = false.obs;
+  final isLoading = true.obs;
   final error = Rxn<Object>();
   final food = Rxn<FoodItemModel>();
   final quantity = 1.obs;
@@ -138,6 +138,7 @@ class FoodDetailController extends GetxController {
       rating.value = FoodRatingModel.empty;
       isFavorite.value = false;
       food.value = await _repository.getFoodById(id);
+      if (isClosed) return;
       rating.value = food.value?.rating ?? FoodRatingModel.empty;
       reviews.value = food.value?.reviews ?? [];
       dev.log('[FOOD_DETAIL] ✅ Loaded food: id=$id');
@@ -163,10 +164,11 @@ class FoodDetailController extends GetxController {
 
   Future<void> _safeLoadFavorite(int id) async {
     try {
-      isFavorite.value = await _interactionRepository.checkFavorite(id);
+      final result = await _interactionRepository.checkFavorite(id);
+      if (!isClosed) isFavorite.value = result;
     } catch (e) {
       dev.log('[FOOD_DETAIL] ⚠️ checkFavorite error: $e');
-      isFavorite.value = false;
+      if (!isClosed) isFavorite.value = false;
     }
   }
 

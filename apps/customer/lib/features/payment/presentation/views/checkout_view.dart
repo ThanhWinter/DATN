@@ -252,14 +252,12 @@ class _CartItemTile extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: item.imageUrl != null
-              ? Image.network(
-                  item.imageUrl!,
+              ? AppNetworkImage(
+                  url: item.imageUrl!,
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
-                  cacheWidth: 120,
-                  cacheHeight: 120,
-                  errorBuilder: (_, __, ___) => _PlaceholderBox(),
+                  errorWidget: _PlaceholderBox(),
                 )
               : _PlaceholderBox(),
         ),

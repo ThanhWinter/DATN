@@ -50,7 +50,7 @@ class DashboardView extends GetView<DashboardController> {
                       ),
                     ),
                   ),
-                  background: Container(color: AppColors.mintBg),
+                  background: const ColoredBox(color: AppColors.mintBg),
                 ),
               ),
               SliverPadding(

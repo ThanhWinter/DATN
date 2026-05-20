@@ -3,6 +3,7 @@ export "src/theme/app_icons.dart";
 export "src/theme/app_text_styles.dart";
 export "src/theme/app_theme.dart";
 export "src/utils/app_logger.dart";
+export "src/utils/app_snackbar.dart";
 export "src/utils/currency_ext.dart";
 export "src/widgets/app_banner_card.dart";
 export "src/widgets/app_empty_state.dart";

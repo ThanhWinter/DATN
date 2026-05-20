@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:get/get.dart";
 
 import "../controllers/register_controller.dart";
+import "../widgets/auth_loading_overlay.dart";
 
 // Keep consistent with backend regex in RegisterUserRequest.java.
 const _passwordRegex =
@@ -108,7 +109,7 @@ class _RegisterViewState extends State<RegisterView> {
               'assets/images/register_bg.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Container(color: AppColors.primaryOrangeDark);
+                return const ColoredBox(color: AppColors.primaryOrangeDark);
               },
             ),
           ),
@@ -353,18 +354,7 @@ class _RegisterViewState extends State<RegisterView> {
             ),
           ),
 
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          AuthLoadingOverlay(isLoading: controller.isLoading),
         ],
       ),
     );

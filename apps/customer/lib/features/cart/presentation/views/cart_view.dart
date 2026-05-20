@@ -48,8 +48,8 @@ class CartView extends GetView<CartController> {
                 itemCount: controller.cartItems.length,
                 separatorBuilder: (_, __) =>
                     const Divider(color: AppColors.grey200, height: 1),
-                itemBuilder: (_, index) =>
-                    CartItemCard(item: controller.cartItems[index]),
+                itemBuilder: (_, index) => RepaintBoundary(
+                    child: CartItemCard(item: controller.cartItems[index])),
               );
             }),
           ),

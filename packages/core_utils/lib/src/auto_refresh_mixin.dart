@@ -32,7 +32,9 @@ mixin AutoRefreshMixin on GetxController {
 
     void startTimer() {
       _pollTimer?.cancel();
-      _pollTimer = Timer.periodic(interval, (_) => onTick());
+      _pollTimer = Timer.periodic(interval, (_) {
+        if (!isClosed) onTick();
+      });
     }
 
     _lifecycleObserver = _LifecycleObserver(

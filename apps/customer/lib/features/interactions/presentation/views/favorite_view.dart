@@ -36,12 +36,14 @@ class FavoriteView extends GetView<FavoriteController> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: controller.favorites.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) => _FavoriteTile(
-                    item: controller.favorites[i],
-                    onTap: () => controller
-                        .navigateToFoodDetail(controller.favorites[i].foodId),
-                    onRemove: () => controller
-                        .removeFavorite(controller.favorites[i].foodId),
+                  itemBuilder: (_, i) => RepaintBoundary(
+                    child: _FavoriteTile(
+                      item: controller.favorites[i],
+                      onTap: () => controller
+                          .navigateToFoodDetail(controller.favorites[i].foodId),
+                      onRemove: () => controller
+                          .removeFavorite(controller.favorites[i].foodId),
+                    ),
                   ),
                 )),
         ),

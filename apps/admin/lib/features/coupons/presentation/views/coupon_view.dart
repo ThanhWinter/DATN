@@ -59,8 +59,8 @@ class CouponView extends GetView<CouponController> {
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                   itemCount: controller.coupons.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) => _CouponCard(
-                      coupon: controller.coupons[i], fmtDate: _fmtDate),
+                  itemBuilder: (_, i) => RepaintBoundary(
+                      child: _CouponCard(coupon: controller.coupons[i], fmtDate: _fmtDate)),
                 )),
         ),
       ),

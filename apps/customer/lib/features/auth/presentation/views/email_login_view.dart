@@ -4,6 +4,7 @@ import "package:get/get.dart";
 
 import "../../../../app/routes/app_routes.dart";
 import "../controllers/email_login_controller.dart";
+import "../widgets/auth_loading_overlay.dart";
 
 /// Màn hình đăng nhập bằng Email — mirror UI của email_login_screen
 /// trong fo_mobile, được điều chỉnh theo design system orange/gold của food_hit.
@@ -51,9 +52,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
               'assets/images/login_bg.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AppColors.primaryOrangeDark,
-                );
+                return const ColoredBox(color: AppColors.primaryOrangeDark);
               },
             ),
           ),
@@ -264,18 +263,7 @@ class _EmailLoginViewState extends State<EmailLoginView> {
             ),
           ),
 
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          AuthLoadingOverlay(isLoading: controller.isLoading),
         ],
       ),
     );

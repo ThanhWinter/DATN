@@ -2,7 +2,6 @@ import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../coupons/presentation/controllers/optimized_coupon_list_controller.dart';
 import '../../../main/presentation/controllers/main_controller.dart';
 
 /// Thanh nhỏ hiển thị số ưu đãi khả dụng — chỉ xuất hiện khi có coupon.
@@ -12,7 +11,7 @@ class HomeCouponBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final count = Get.find<OptimizedCouponListController>().availableCoupons.length;
+      final count = Get.find<MainController>().availableCouponCount.value;
       if (count == 0) return const SizedBox.shrink();
 
       return GestureDetector(

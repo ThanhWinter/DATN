@@ -176,6 +176,9 @@ class OptimizedApiClient implements IApiClient {
     for (final key in keysToInvalidate) {
       apiCache.invalidate(key);
     }
+
+    // Dọn dẹp các entry hết hạn mỗi khi có mutation để tránh tích lũy bộ nhớ.
+    apiCache.cleanExpired();
   }
 
   /// Clear all cache

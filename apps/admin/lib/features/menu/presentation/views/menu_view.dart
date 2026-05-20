@@ -118,6 +118,7 @@ class MenuView extends GetView<MenuController> {
                         itemBuilder: (_, i) {
                           final food = foods[i];
                           return FoodCard(
+                            key: ValueKey(food.id),
                             food: food,
                             onToggle: (_) => controller.toggleAvailability(food),
                             onEdit: () => _showEditFood(food),
@@ -535,7 +536,7 @@ class _FoodsTabHeader extends StatelessWidget {
                   ),
                   child: Text(
                     '${foods.length}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.emeraldDark,
@@ -546,11 +547,11 @@ class _FoodsTabHeader extends StatelessWidget {
                 if (controller.isFiltered)
                   GestureDetector(
                     onTap: controller.clearFilters,
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.filter_alt_off_outlined, size: 14, color: AppColors.emerald),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           'Bỏ lọc',
                           style: TextStyle(

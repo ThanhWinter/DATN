@@ -44,9 +44,11 @@ class OrderListSection extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: orders.length,
             separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (_, index) => OrderCard(
-              order: orders[index],
-              onActionPressed: () => onOrderTap(orders[index].id),
+            itemBuilder: (_, index) => RepaintBoundary(
+              child: OrderCard(
+                order: orders[index],
+                onActionPressed: () => onOrderTap(orders[index].id),
+              ),
             ),
           );
 

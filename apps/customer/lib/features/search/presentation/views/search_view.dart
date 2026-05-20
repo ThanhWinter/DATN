@@ -75,10 +75,10 @@ class SearchView extends GetView<FoodSearchController> {
                   ),
                 );
               }
-              return _ResultTile(
+              return RepaintBoundary(child: _ResultTile(
                 food: controller.results[i],
                 onTap: () => controller.navigateToDetail(controller.results[i]),
-              );
+              ));
             },
           ),
         );

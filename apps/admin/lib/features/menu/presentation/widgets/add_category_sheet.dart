@@ -65,8 +65,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   Future<void> _submit() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      Get.snackbar('Lỗi', 'Vui lòng nhập tên danh mục',
-          backgroundColor: AppColors.errorRed, colorText: AppColors.white);
+      AppSnackbar.error('Lỗi', 'Vui lòng nhập tên danh mục');
       return;
     }
     final desc = _descCtrl.text.trim();
@@ -155,6 +154,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                               try {
                                 await _previewImageFile?.delete();
                               } catch (_) {}
+                              if (!mounted) return;
                               setState(() => _previewImageFile = null);
                             },
                             child: Container(

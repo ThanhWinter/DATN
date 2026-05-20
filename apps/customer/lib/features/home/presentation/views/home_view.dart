@@ -86,12 +86,14 @@ class _HomeSkeleton extends StatelessWidget {
         // Header thật — không pulsate
         const HomeLocationHeader(),
         // Chỉ phần nội dung skeleton mới fade
-        Expanded(child: _SkeletonPulse(child: _buildContent())),
+        Expanded(child: _SkeletonPulse(child: _buildContent(context))),
       ],
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
+    final bannerHeight =
+        (MediaQuery.sizeOf(context).width * 0.42).clamp(120.0, 200.0);
     return ListView(
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
@@ -99,7 +101,7 @@ class _HomeSkeleton extends StatelessWidget {
         // Banner skeleton
         _box(
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            height: 160,
+            height: bannerHeight,
             radius: 12),
         const SizedBox(height: 12),
 

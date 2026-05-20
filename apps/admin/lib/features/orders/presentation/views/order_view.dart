@@ -74,7 +74,7 @@ class OrderView extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       itemCount: orders.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      itemBuilder: (_, i) => OrderCard(order: orders[i]),
+                      itemBuilder: (_, i) => RepaintBoundary(child: OrderCard(order: orders[i])),
                     ),
                   ),
           );

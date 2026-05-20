@@ -33,20 +33,30 @@ class CustomerController extends GetxController {
   final selectedCustomer = Rxn<CustomerModel>();
   final isLoadingDetail = false.obs;
 
+  Worker? _customerSearchWorker;
+  Worker? _adminSearchWorker;
+
   @override
   void onInit() {
     super.onInit();
-    debounce(
+    _customerSearchWorker = debounce(
       searchCustomerQuery,
       (_) => _applySearchCustomers(searchCustomerQuery.value),
       time: const Duration(milliseconds: 400),
     );
-    debounce(
+    _adminSearchWorker = debounce(
       searchAdminQuery,
       (_) => _applySearchAdmins(searchAdminQuery.value),
       time: const Duration(milliseconds: 400),
     );
     loadAll();
+  }
+
+  @override
+  void onClose() {
+    _customerSearchWorker?.dispose();
+    _adminSearchWorker?.dispose();
+    super.onClose();
   }
 
   Future<void> loadAll() async {

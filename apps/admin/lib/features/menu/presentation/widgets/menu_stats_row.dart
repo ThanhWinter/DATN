@@ -48,11 +48,11 @@ class MenuStatsRow extends GetView<MenuController> {
               padding: const EdgeInsets.only(left: 16, top: 6),
               child: GestureDetector(
                 onTap: controller.clearFilters,
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.filter_alt_off_rounded, size: 13, color: AppColors.emerald),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       'Bỏ lọc danh mục',
                       style: TextStyle(

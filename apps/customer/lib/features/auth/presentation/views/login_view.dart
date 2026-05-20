@@ -18,9 +18,7 @@ class LoginView extends StatelessWidget {
               'assets/images/login_bg.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AppColors.primaryOrangeDark,
-                );
+                return const ColoredBox(color: AppColors.primaryOrangeDark);
               },
             ),
           ),
@@ -77,6 +75,7 @@ class LoginView extends StatelessWidget {
                 children: [
                   Text(
                     "Food",
+                    textScaler: TextScaler.noScaling,
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 48,
                       fontStyle: FontStyle.italic,
@@ -93,6 +92,7 @@ class LoginView extends StatelessWidget {
                   ),
                   Text(
                     "Hit",
+                    textScaler: TextScaler.noScaling,
                     style: AppTextStyles.h1.copyWith(
                       fontSize: 48,
                       fontStyle: FontStyle.italic,
@@ -118,6 +118,7 @@ class LoginView extends StatelessWidget {
             right: 24,
             bottom: 20,
             child: RichText(
+              textScaler: TextScaler.noScaling,
               text: TextSpan(
                 style: AppTextStyles.h1.copyWith(
                   fontSize: 30,

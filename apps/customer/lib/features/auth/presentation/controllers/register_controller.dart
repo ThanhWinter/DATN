@@ -65,14 +65,7 @@ class RegisterController extends GetxController {
       );
 
       dev.log("[AUTH/REGISTER] ✅ Register success — OTP sent to $email");
-      Get.snackbar(
-        "Thành công",
-        "Vui lòng kiểm tra email để lấy mã xác thực OTP.",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.success("Thành công", "Vui lòng kiểm tra email để lấy mã xác thực OTP.");
       // 800ms cho snackbar animation hoàn tất trước khi route transition bắt đầu.
       await Future.delayed(const Duration(milliseconds: 800));
       Get.toNamed(AppRoutes.otpVerification, arguments: email.trim());
@@ -81,14 +74,7 @@ class RegisterController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : "Đăng ký thất bại. Vui lòng thử lại.";
-      Get.snackbar(
-        "Đăng ký thất bại",
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error("Đăng ký thất bại", message);
     } finally {
       isLoading.value = false;
     }

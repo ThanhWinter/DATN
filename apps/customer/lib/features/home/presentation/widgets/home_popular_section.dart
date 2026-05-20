@@ -244,16 +244,6 @@ class _AddButton extends StatelessWidget {
                   selectedOptions: const [],
                 ),
               );
-              Get.snackbar(
-                'Đã thêm vào giỏ',
-                item.name,
-                duration: const Duration(seconds: 1),
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: AppColors.primaryOrange,
-                colorText: AppColors.white,
-                margin: const EdgeInsets.all(12),
-                borderRadius: 10,
-              );
             }
           : null,
       child: Container(

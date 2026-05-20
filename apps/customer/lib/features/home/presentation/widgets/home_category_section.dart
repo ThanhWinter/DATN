@@ -18,13 +18,12 @@ class HomeCategorySection extends GetView<HomeController> {
           padding: const EdgeInsets.fromLTRB(20, 14, 8, 10),
           child: Row(
             children: [
-              const Text(
+              Text(
                 'Danh mục',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
-                ),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
               ),
               const Spacer(),
               TextButton(
@@ -35,10 +34,9 @@ class HomeCategorySection extends GetView<HomeController> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 child: const Text('Xem tất cả'),
               ),
@@ -48,7 +46,8 @@ class HomeCategorySection extends GetView<HomeController> {
 
         // ── Category list ────────────────────────────────────────────────
         SizedBox(
-          height: 78,
+          height: (52 + 5 + MediaQuery.textScalerOf(context).scale(16) + 10)
+              .clamp(78.0, 110.0),
           child: Obx(() {
             final cats = controller.categories;
             // Đọc selectedCategoryId.value tại đây để Obx theo dõi reactive dependency
@@ -136,6 +135,7 @@ class _CategoryChip extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color:
                     isSelected ? AppColors.primaryOrange : AppColors.textGrey,
+                leadingDistribution: TextLeadingDistribution.even,
               ),
             ),
           ],

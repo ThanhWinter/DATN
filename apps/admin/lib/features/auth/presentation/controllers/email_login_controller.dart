@@ -86,14 +86,7 @@ class EmailLoginController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : 'Đã xảy ra lỗi. Vui lòng thử lại.';
-      Get.snackbar(
-        'Đăng nhập thất bại',
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error('Đăng nhập thất bại', message);
     } finally {
       isLoading.value = false;
     }

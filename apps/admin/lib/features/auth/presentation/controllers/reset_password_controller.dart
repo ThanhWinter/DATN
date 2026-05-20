@@ -64,13 +64,7 @@ class ResetPasswordController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : 'Đã xảy ra lỗi. Vui lòng thử lại.';
-      Get.snackbar(
-        'Lỗi',
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.error('Lỗi', message);
     } finally {
       isLoading.value = false;
     }

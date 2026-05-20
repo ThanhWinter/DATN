@@ -56,8 +56,16 @@ class StatisticRepository {
       final sink = targetFile.openWrite();
       try {
         await streamed.stream.pipe(sink);
-      } finally {
-        await sink.close();
+      } catch (e) {
+        // pipe() đã đóng hoặc đang đóng sink — đảm bảo flush trước khi xoá
+        try {
+          await sink.close();
+        } catch (_) {}
+        // Xoá file bị hỏng để tránh user mở file thiếu dữ liệu
+        try {
+          await targetFile.delete();
+        } catch (_) {}
+        rethrow;
       }
       dev.log('[STAT/REPO] ✅ Streamed export to disk');
     } finally {

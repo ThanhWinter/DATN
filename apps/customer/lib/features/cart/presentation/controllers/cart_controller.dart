@@ -24,15 +24,20 @@ class CartController extends GetxController {
   }
 
   Future<void> _loadData() async {
-    final items = await _repository.fetchCartItems();
-    if (!_initialHydrationApplied) {
-      if (!_cartMutatedBeforeHydration) {
-        cartItems.assignAll(items);
+    try {
+      final items = await _repository.fetchCartItems();
+      if (!_initialHydrationApplied) {
+        if (!_cartMutatedBeforeHydration) {
+          cartItems.assignAll(items);
+        }
+        _initialHydrationApplied = true;
       }
+      _recalcTotal();
+      _syncMainCartBadge();
+    } catch (_) {
+      // Không crash nếu hydration thất bại — giỏ hàng vẫn dùng được ở trạng thái rỗng
       _initialHydrationApplied = true;
     }
-    _recalcTotal();
-    _syncMainCartBadge();
   }
 
   void _notifyCartMutationBeforeHydration() {

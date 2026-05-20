@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app/bootstrap/firebase_foreground.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/services/auth_service.dart';
 import '../../data/repositories/auth_repository.dart';
@@ -84,13 +85,7 @@ class AuthController extends GetxController {
           ? _mapError(e.message)
           : 'Đăng nhập thất bại. Vui lòng thử lại.';
       errorMessage.value = message;
-      Get.snackbar(
-        'Đăng nhập thất bại',
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-      );
+      AppSnackbar.error('Đăng nhập thất bại', message);
     } finally {
       isLoading.value = false;
     }
@@ -122,6 +117,7 @@ class AuthController extends GetxController {
         apiClient.updateToken(null);
         apiClient.setRefreshToken(null);
       }
+      await disposeAdminFirebaseForegroundListeners();
       // Rule 17: Prepend Get.offAllNamed with 500ms delay
       await Future.delayed(const Duration(milliseconds: 500));
       Get.offAllNamed(AppRoutes.login);

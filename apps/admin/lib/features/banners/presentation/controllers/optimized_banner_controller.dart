@@ -242,12 +242,10 @@ class OptimizedBannerController extends GetxController {
     final originalBanner = banners.firstWhereOrNull((b) => b.id == id);
     if (originalBanner == null) return;
 
-    // Optimistic update
-    final updatedBanner = originalBanner;
-
+    // Optimistic update — cập nhật title/linkUrl ngay để UI phản hồi tức thì
     final idx = banners.indexWhere((b) => b.id == id);
     if (idx != -1) {
-      banners[idx] = updatedBanner;
+      banners[idx] = originalBanner.copyWith(title: title, linkUrl: linkUrl);
     }
 
     isUploading.value = true;

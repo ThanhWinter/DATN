@@ -83,14 +83,7 @@ class OtpController extends GetxController {
 
       dev.log(
           "[AUTH/OTP] ✅ OTP verified — account activated for ${email.value}");
-      Get.snackbar(
-        "Thành công",
-        "Tài khoản của bạn đã được kích hoạt!",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.success("Thành công", "Tài khoản của bạn đã được kích hoạt!");
       await Future.delayed(const Duration(milliseconds: 500));
       Get.offAllNamed(AppRoutes.login);
     } catch (e) {
@@ -98,14 +91,7 @@ class OtpController extends GetxController {
       final message = e is ApiException
           ? _mapErrorCode(e.message)
           : "Xác thực thất bại. Vui lòng thử lại.";
-      Get.snackbar(
-        "Xác thực thất bại",
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error("Xác thực thất bại", message);
     } finally {
       isLoading.value = false;
     }
@@ -132,28 +118,14 @@ class OtpController extends GetxController {
       );
 
       dev.log("[AUTH/OTP] ✅ OTP resent successfully");
-      Get.snackbar(
-        "Đã gửi lại mã",
-        "Mã OTP mới đã được gửi đến ${email.value}",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.success("Đã gửi lại mã", "Mã OTP mới đã được gửi đến ${email.value}");
       _startCountdown();
     } catch (e) {
       dev.log("[AUTH/OTP] ❌ Resend failed: $e");
       final message = e is ApiException
           ? _mapResendError(e.message)
           : "Gửi lại mã thất bại. Vui lòng thử lại.";
-      Get.snackbar(
-        "Gửi lại mã thất bại",
-        message,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: AppColors.errorRed,
-        colorText: AppColors.white,
-        duration: const Duration(seconds: 3),
-      );
+      AppSnackbar.error("Gửi lại mã thất bại", message);
     } finally {
       isResending.value = false;
     }

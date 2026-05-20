@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:developer" as dev;
 
 import "package:core_network/core_network.dart";
@@ -30,6 +31,10 @@ void _handleOrderFcm(String orderId) {
   }
 }
 
+StreamSubscription? _onMessageSub;
+StreamSubscription? _onMessageOpenedAppSub;
+StreamSubscription? _onTokenRefreshSub;
+
 /// Xin quyền + đăng ký listener FCM sau frame đầu — không chặn [runApp],
 /// login / splash hiển thị nhanh hơn so với await permission trước [runApp].
 void registerCustomerFirebaseForegroundListeners() {
@@ -42,8 +47,13 @@ void registerCustomerFirebaseForegroundListeners() {
 
     await FirebaseMessaging.instance.subscribeToTopic('customer_promotions');
 
+    // Cancel trước khi đăng ký lại — tránh chồng listener khi hot-restart
+    await _onMessageSub?.cancel();
+    await _onMessageOpenedAppSub?.cancel();
+    await _onTokenRefreshSub?.cancel();
+
     // App ở foreground — hiện snackbar và cập nhật UI ngay lập tức
-    FirebaseMessaging.onMessage.listen((message) {
+    _onMessageSub = FirebaseMessaging.onMessage.listen((message) {
       final title = message.notification?.title ?? 'Thông báo';
       final body = message.notification?.body ?? '';
       Get.snackbar(title, body,
@@ -60,7 +70,7 @@ void registerCustomerFirebaseForegroundListeners() {
 
     // App ở background/bị kill — user tap vào notification để mở app.
     // Lúc này cache chưa bị xóa nên phải invalidate trước khi controller load data.
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
       if (Get.isRegistered<NotificationController>()) {
         Get.find<NotificationController>().refreshUnreadCount();
       }
@@ -68,8 +78,9 @@ void registerCustomerFirebaseForegroundListeners() {
       if (orderId != null) _handleOrderFcm(orderId);
     });
 
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
       try {
+        if (!Get.isRegistered<IApiClient>()) return;
         Get.find<IApiClient>().post(
           '/user/devices/register',
           body: {'fcmToken': newToken, 'deviceType': 'ANDROID'},
@@ -77,4 +88,14 @@ void registerCustomerFirebaseForegroundListeners() {
       } catch (_) {}
     });
   });
+}
+
+/// Hủy tất cả FCM listener — gọi khi logout để tránh memory leak.
+Future<void> disposeCustomerFirebaseForegroundListeners() async {
+  await _onMessageSub?.cancel();
+  await _onMessageOpenedAppSub?.cancel();
+  await _onTokenRefreshSub?.cancel();
+  _onMessageSub = null;
+  _onMessageOpenedAppSub = null;
+  _onTokenRefreshSub = null;
 }

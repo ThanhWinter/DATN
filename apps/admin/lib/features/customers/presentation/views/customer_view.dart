@@ -132,8 +132,8 @@ class _UserListTab extends GetView<CustomerController> {
                   padding: const EdgeInsets.all(16),
                   itemCount: list.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) =>
-                      _UserCard(user: list[i], canLock: canLock),
+                  itemBuilder: (_, i) => RepaintBoundary(
+                      child: _UserCard(user: list[i], canLock: canLock)),
                 );
               }),
             ),

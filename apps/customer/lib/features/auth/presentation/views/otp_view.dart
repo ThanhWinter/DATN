@@ -4,6 +4,7 @@ import "package:flutter/services.dart";
 import "package:get/get.dart";
 
 import "../controllers/otp_controller.dart";
+import "../widgets/auth_loading_overlay.dart";
 
 class OtpView extends StatefulWidget {
   const OtpView({super.key});
@@ -98,9 +99,7 @@ class _OtpViewState extends State<OtpView> {
             child: Image.asset(
               "assets/images/otp_bg.jpg",
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: AppColors.primaryOrangeDark,
-              ),
+              errorBuilder: (_, __, ___) => const ColoredBox(color: AppColors.primaryOrangeDark),
             ),
           ),
 
@@ -136,6 +135,7 @@ class _OtpViewState extends State<OtpView> {
                         const SizedBox(height: 32),
                         Text(
                           "Xác thực OTP",
+                          textScaler: TextScaler.noScaling,
                           style: AppTextStyles.h1.copyWith(
                             fontSize: 30,
                             fontWeight: FontWeight.bold,
@@ -218,18 +218,7 @@ class _OtpViewState extends State<OtpView> {
             ),
           ),
 
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          AuthLoadingOverlay(isLoading: controller.isLoading),
         ],
       ),
     );

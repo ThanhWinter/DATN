@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:core_network/core_network.dart";
 import "package:core_ui/core_ui.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
@@ -6,6 +8,9 @@ import "package:get/get.dart";
 
 import "../services/auth_service.dart";
 import "../../features/orders/presentation/controllers/order_controller.dart";
+
+StreamSubscription? _onMessageSub;
+StreamSubscription? _onTokenRefreshSub;
 
 /// Xin quyền + đăng ký listener FCM sau frame đầu — không chặn [runApp].
 void registerAdminFirebaseForegroundListeners() {
@@ -18,7 +23,11 @@ void registerAdminFirebaseForegroundListeners() {
 
     await FirebaseMessaging.instance.subscribeToTopic('admin_orders');
 
-    FirebaseMessaging.onMessage.listen((message) {
+    // Cancel trước khi đăng ký lại — tránh chồng listener khi hot-restart
+    await _onMessageSub?.cancel();
+    await _onTokenRefreshSub?.cancel();
+
+    _onMessageSub = FirebaseMessaging.onMessage.listen((message) {
       final title = message.notification?.title ?? 'Thông báo';
       final body = message.notification?.body ?? '';
       Get.snackbar(title, body,
@@ -32,9 +41,11 @@ void registerAdminFirebaseForegroundListeners() {
       }
     });
 
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    _onTokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
       try {
+        if (!Get.isRegistered<AuthService>()) return;
         if (!Get.find<AuthService>().isAuthenticated) return;
+        if (!Get.isRegistered<IApiClient>()) return;
         await Get.find<IApiClient>().post(
           '/user/devices/register',
           body: {'fcmToken': newToken, 'deviceType': 'ANDROID'},
@@ -42,4 +53,12 @@ void registerAdminFirebaseForegroundListeners() {
       } catch (_) {}
     });
   });
+}
+
+/// Hủy tất cả FCM listener — gọi khi logout để tránh memory leak.
+Future<void> disposeAdminFirebaseForegroundListeners() async {
+  await _onMessageSub?.cancel();
+  await _onTokenRefreshSub?.cancel();
+  _onMessageSub = null;
+  _onTokenRefreshSub = null;
 }

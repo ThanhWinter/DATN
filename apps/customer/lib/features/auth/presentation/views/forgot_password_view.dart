@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:get/get.dart";
 
 import "../controllers/forgot_password_controller.dart";
+import "../widgets/auth_loading_overlay.dart";
 
 /// Màn hình Quên mật khẩu — mirror UI của ForgotPasswordScreen trong fo_mobile,
 /// được điều chỉnh theo design system orange/gold của food_hit.
@@ -135,18 +136,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
             ),
           ),
 
-          // ── Loading Overlay ────────────────────────────────────────────────
-          Obx(() => controller.isLoading.value
-              ? Container(
-                  color: AppColors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.white,
-                      strokeWidth: 3,
-                    ),
-                  ),
-                )
-              : const SizedBox.shrink()),
+          AuthLoadingOverlay(isLoading: controller.isLoading),
         ],
       ),
     );

@@ -149,11 +149,13 @@ class _CouponListViewState extends State<CouponListView> {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
               itemCount: itemCount,
-              itemBuilder: (context, index) => _buildCouponListItem(
-                index,
-                available,
-                expired,
-                widget.isTab,
+              itemBuilder: (context, index) => RepaintBoundary(
+                child: _buildCouponListItem(
+                  index,
+                  available,
+                  expired,
+                  widget.isTab,
+                ),
               ),
             ),
           );
