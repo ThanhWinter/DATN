@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:core_network/core_network.dart';
 import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../features/main/presentation/controllers/main_controller.dart';
 import '../../../../features/orders/data/models/coupon_model.dart';
+import '../../../../features/payment/data/repositories/coupon_repository.dart';
 import '../controllers/optimized_coupon_list_controller.dart';
 
 // ── Palette màu cho các card (cycling) ───────────────────────────────────────
@@ -81,16 +83,33 @@ class CouponListView extends StatefulWidget {
 }
 
 class _CouponListViewState extends State<CouponListView> {
-  OptimizedCouponListController get controller =>
-      Get.find<OptimizedCouponListController>();
+  late final OptimizedCouponListController controller;
 
   @override
   void initState() {
     super.initState();
+    controller = _resolveController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       controller.ensureFirstLoad();
     });
+  }
+
+  OptimizedCouponListController _resolveController() {
+    try {
+      return Get.find<OptimizedCouponListController>();
+    } catch (_) {
+      final repository = _resolveRepository();
+      return Get.put(OptimizedCouponListController(repository));
+    }
+  }
+
+  CouponRepository _resolveRepository() {
+    try {
+      return Get.find<CouponRepository>();
+    } catch (_) {
+      return CouponRepository(Get.find<IApiClient>());
+    }
   }
 
   @override

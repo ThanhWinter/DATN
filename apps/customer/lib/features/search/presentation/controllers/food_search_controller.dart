@@ -63,9 +63,10 @@ class FoodSearchController extends GetxController {
       _matchedAll
         ..clear()
         ..addAll(all.where((f) {
-          return f.name.toLowerCase().contains(q) ||
-              (f.description?.toLowerCase().contains(q) ?? false) ||
-              (f.categoryName?.toLowerCase().contains(q) ?? false);
+          return f.isAvailable &&
+              (f.name.toLowerCase().contains(q) ||
+                  (f.description?.toLowerCase().contains(q) ?? false) ||
+                  (f.categoryName?.toLowerCase().contains(q) ?? false));
         }));
 
       _visibleEnd = math.min(_chunk, _matchedAll.length);

@@ -54,7 +54,7 @@ class HomeController extends GetxController with AutoRefreshMixin {
     super.onInit();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       loadData();
-      startPolling(const Duration(seconds: 60), _silentRefresh);
+      startPolling(const Duration(seconds: 5), _silentRefresh);
     });
   }
 
@@ -205,6 +205,7 @@ class HomeController extends GetxController with AutoRefreshMixin {
   /// Polling ngầm — không bật skeleton, chỉ cập nhật dữ liệu.
   Future<void> _silentRefresh() async {
     try {
+      _repository.clearCache();
       final results = await Future.wait([
         _repository.fetchCategories(),
         _safe(_repository.fetchPromoBanners, <HomePromoBannerItem>[]),
@@ -235,7 +236,7 @@ class HomeController extends GetxController with AutoRefreshMixin {
       storeSetting.value = results[3] as StoreSettingModel;
       _foodsMaster
         ..clear()
-        ..addAll(results[2] as List<FoodItemModel>);
+        ..addAll(_visibleFoods(results[2] as List<FoodItemModel>));
       _applyFilters(resetWindow: false);
     } catch (e) {
       dev.log('[HOME] ⚠️ silentRefresh error (ignored): $e');
@@ -246,6 +247,7 @@ class HomeController extends GetxController with AutoRefreshMixin {
     isLoading.value = true;
     error.value = null;
     try {
+      _repository.clearCache();
       // Categories và Foods là bắt buộc — nếu fail sẽ hiện màn hình lỗi.
       // Banners và StoreSetting là phụ trợ — nếu fail thì dùng giá trị mặc định.
       final results = await Future.wait([
@@ -275,7 +277,7 @@ class HomeController extends GetxController with AutoRefreshMixin {
 
       _foodsMaster
         ..clear()
-        ..addAll(results[2] as List<FoodItemModel>);
+        ..addAll(_visibleFoods(results[2] as List<FoodItemModel>));
       _applyFilters(resetWindow: true);
 
       await Future.delayed(Duration.zero);
@@ -285,5 +287,9 @@ class HomeController extends GetxController with AutoRefreshMixin {
       error.value = e;
       isLoading.value = false;
     }
+  }
+
+  Iterable<FoodItemModel> _visibleFoods(Iterable<FoodItemModel> foods) {
+    return foods.where((food) => food.isAvailable);
   }
 }

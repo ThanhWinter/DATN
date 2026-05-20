@@ -17,6 +17,13 @@ class HomeRepository {
 
   final IApiClient _apiClient;
 
+  void clearCache() {
+    final client = _apiClient;
+    if (client is OptimizedApiClient) {
+      client.clearCache();
+    }
+  }
+
   Future<List<HomePromoBannerItem>> fetchPromoBanners() async {
     final response = await _apiClient.get('/settings/banners');
     final list = response['result'] as List<dynamic>? ?? [];

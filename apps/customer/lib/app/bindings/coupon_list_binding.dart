@@ -8,7 +8,10 @@ class CouponListBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<OptimizedCouponListController>(
-      () => OptimizedCouponListController(CouponRepository(Get.find<IApiClient>())),
+      () => OptimizedCouponListController(
+        CouponRepository(Get.find<IApiClient>()),
+      ),
+      fenix: true,
     );
   }
 }
