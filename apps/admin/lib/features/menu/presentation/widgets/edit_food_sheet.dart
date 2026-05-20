@@ -120,16 +120,10 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<MenuController>();
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-      ),
-      child: Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
+    final keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24 + keyboardHeight),
+      child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -289,8 +283,6 @@ class _EditFoodSheetState extends State<EditFoodSheet> {
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 }

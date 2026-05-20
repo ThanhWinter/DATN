@@ -256,7 +256,7 @@ class _CouponCard extends StatelessWidget {
       child: Opacity(
         opacity: isExpired ? 0.6 : 1.0,
         child: Container(
-          height: 120,
+          constraints: const BoxConstraints(minHeight: 120),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(12),
@@ -270,205 +270,197 @@ class _CouponCard extends StatelessWidget {
                     ),
                   ],
           ),
-          child: Row(
-            children: [
-              // ── Left: Gradient Ticket Stub ──────────────────────────────
-              Container(
-                width: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      _baseColor.withValues(alpha: 0.8),
-                      _baseColor,
-                    ],
-                  ),
-                  borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(12),
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Watermark icon
-                    const Positioned(
-                      right: -15,
-                      bottom: -15,
-                      child: Icon(
-                        Icons.local_offer_rounded,
-                        size: 60,
-                        color: Color(0x33FFFFFF), // Colors.white with 0.2 alpha
-                      ),
-                    ),
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _discountBig,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              height: 1.1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Giảm giá',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                // ── Left: Gradient Ticket Stub (fills full card height) ───
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 100,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          _baseColor.withValues(alpha: 0.8),
+                          _baseColor,
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-              // ── Divider: Dashed Line ──────────────────────────────────────
-              SizedBox(
-                width: 12,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final height = constraints.constrainHeight();
-                    const dashHeight = 4.0;
-                    const dashSpace = 3.0;
-                    final dashCount =
-                        (height / (dashHeight + dashSpace)).floor();
-                    return Flex(
-                      direction: Axis.vertical,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(dashCount, (_) {
-                        return const SizedBox(
-                          width: 1,
-                          height: dashHeight,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(color: AppColors.grey300),
-                          ),
-                        );
-                      }),
-                    );
-                  },
-                ),
-              ),
-
-              // ── Right: Details ────────────────────────────────────────────
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Text(
-                        _title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      // Min order
-                      if (coupon.minOrderValue != null)
-                        Text(
-                          'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textGrey,
+                    child: Stack(
+                      children: [
+                        const Positioned(
+                          right: -15,
+                          bottom: -15,
+                          child: Icon(
+                            Icons.local_offer_rounded,
+                            size: 60,
+                            color: Color(0x33FFFFFF),
                           ),
                         ),
-                      const SizedBox(height: 6),
-                      // Code pill
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey100,
-                          border: Border.all(color: AppColors.grey300),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          coupon.code,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textDark,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-
-                      // Progress bar / Used count
-                      if (coupon.usageLimit != null) ...[
-                        _RemainingBar(
-                          remaining: coupon.usageLimit! - coupon.usedCount,
-                          total: coupon.usageLimit!,
-                          color: _baseColor,
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-
-                      // Bottom row: Time + Action
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _timeText,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isExpired
-                                    ? AppColors.errorRed
-                                    : AppColors.primaryOrange,
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _discountBig,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  height: 1.1,
+                                ),
                               ),
-                            ),
-                          ),
-                          if (!isExpired)
-                            InkWell(
-                              onTap: () => _useCoupon(context),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
+                              const SizedBox(height: 4),
+                              Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 6),
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: _baseColor,
-                                  borderRadius: BorderRadius.circular(16),
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: const Text(
-                                  'Dùng',
+                                  'Giảm giá',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
                                     color: Colors.white,
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Right: Dashed line + Details (determines card height) ─
+                Padding(
+                  padding: const EdgeInsets.only(left: 100),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ── Divider: Dashed Line ────────────────────────────
+                      const SizedBox(
+                        width: 12,
+                        child: CustomPaint(
+                          painter: _DashedLinePainter(),
+                        ),
+                      ),
+
+                      // ── Right: Details ──────────────────────────────────
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _title,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textDark,
+                                  height: 1.2,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              if (coupon.minOrderValue != null)
+                                Text(
+                                  'Đơn tối thiểu ${coupon.minOrderValue!.toInt().toVnd()}đ',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textGrey,
+                                  ),
+                                ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey100,
+                                  border: Border.all(color: AppColors.grey300),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  coupon.code,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textDark,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              if (coupon.usageLimit != null) ...[
+                                _RemainingBar(
+                                  remaining:
+                                      coupon.usageLimit! - coupon.usedCount,
+                                  total: coupon.usageLimit!,
+                                  color: _baseColor,
+                                ),
+                                const SizedBox(height: 6),
+                              ],
+
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _timeText,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: isExpired
+                                            ? AppColors.errorRed
+                                            : AppColors.primaryOrange,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!isExpired)
+                                    InkWell(
+                                      onTap: () => _useCoupon(context),
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: _baseColor,
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                        ),
+                                        child: const Text(
+                                          'Dùng',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -541,4 +533,27 @@ class _RemainingBar extends StatelessWidget {
       ],
     );
   }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  const _DashedLinePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const dashHeight = 4.0;
+    const dashSpace = 3.0;
+    final paint = Paint()
+      ..color = AppColors.grey300
+      ..strokeWidth = 1
+      ..style = PaintingStyle.fill;
+    double y = 0;
+    final x = (size.width - 1) / 2;
+    while (y < size.height) {
+      canvas.drawRect(Rect.fromLTWH(x, y, 1, dashHeight), paint);
+      y += dashHeight + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLinePainter _) => false;
 }
